@@ -7,7 +7,8 @@
         WindowStartupLocation="CenterScreen"
         Background="#111318">
     <Grid>
-        <StackPanel HorizontalAlignment="Center"
+        <StackPanel x:Name="HomePanel"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Width="420">
             <TextBlock Text="PHOTOBOOTH"
@@ -21,7 +22,8 @@
                     Height="80"
                     FontSize="28"
                     FontWeight="SemiBold"
-                    Margin="0,0,0,20" />
+                    Margin="0,0,0,20"
+                    Click="StartButton_Click" />
 
             <Button Content="Настройки"
                     Height="48"
@@ -33,5 +35,25 @@
                     FontSize="18"
                     Click="ExitButton_Click" />
         </StackPanel>
+
+        <Grid x:Name="CountdownPanel"
+              Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock x:Name="CountdownText"
+                           Text="3"
+                           Foreground="White"
+                           FontSize="180"
+                           FontWeight="Bold"
+                           TextAlignment="Center" />
+
+                <TextBlock x:Name="CountdownCaption"
+                           Text="Приготовьтесь"
+                           Foreground="#C9CED8"
+                           FontSize="28"
+                           TextAlignment="Center"
+                           Margin="0,24,0,0" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
