@@ -36,6 +36,57 @@
                     Click="ExitButton_Click" />
         </StackPanel>
 
+        <Grid x:Name="TemplatesPanel"
+              Visibility="Collapsed"
+              Margin="80">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Выберите шаблон"
+                       Foreground="White"
+                       FontSize="42"
+                       FontWeight="Bold"
+                       TextAlignment="Center"
+                       Margin="0,0,0,32" />
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <TextBlock x:Name="NoTemplatesText"
+                               Text="Шаблоны не найдены"
+                               Foreground="#C9CED8"
+                               FontSize="24"
+                               TextAlignment="Center"
+                               Visibility="Collapsed" />
+
+                    <ItemsControl x:Name="TemplatesList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Name}"
+                                        Height="72"
+                                        FontSize="24"
+                                        FontWeight="SemiBold"
+                                        Margin="0,0,0,16"
+                                        Click="TemplateButton_Click" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
+
+            <Button Grid.Row="2"
+                    Content="Назад"
+                    Width="220"
+                    Height="52"
+                    FontSize="18"
+                    HorizontalAlignment="Center"
+                    Margin="0,24,0,0"
+                    Click="BackToHomeButton_Click" />
+        </Grid>
+
         <Grid x:Name="CountdownPanel"
               Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center"
