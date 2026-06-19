@@ -10,6 +10,7 @@ public partial class MainWindow : Window
 {
     private readonly DispatcherTimer _countdownTimer;
     private readonly AppConfig _config;
+    private readonly TemplateDefinitionService _templateDefinitionService;
     private readonly TemplateManager _templateManager;
     private int _countdownValue = 3;
 
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         _config = new ConfigService().Load();
+        _templateDefinitionService = new TemplateDefinitionService();
         _templateManager = new TemplateManager();
 
         _countdownTimer = new DispatcherTimer
@@ -42,13 +44,52 @@ public partial class MainWindow : Window
 
     private void TemplateButton_Click(object sender, RoutedEventArgs e)
     {
-        StartCountdown();
+        if (sender is not FrameworkElement { DataContext: TemplateInfo template })
+        {
+            return;
+        }
+
+        ShowTemplateDetails(template);
     }
 
     private void BackToHomeButton_Click(object sender, RoutedEventArgs e)
     {
         TemplatesPanel.Visibility = Visibility.Collapsed;
         HomePanel.Visibility = Visibility.Visible;
+    }
+
+    private void BackToTemplatesButton_Click(object sender, RoutedEventArgs e)
+    {
+        TemplateDetailsPanel.Visibility = Visibility.Collapsed;
+        TemplatesPanel.Visibility = Visibility.Visible;
+    }
+
+    private void ContinueButton_Click(object sender, RoutedEventArgs e)
+    {
+        StartCountdown();
+    }
+
+    private void ShowTemplateDetails(TemplateInfo template)
+    {
+        SelectedTemplateNameText.Text = template.Name;
+
+        if (string.IsNullOrWhiteSpace(template.JsonPath))
+        {
+            TemplateWidthText.Text = "Ширина: не указана";
+            TemplateHeightText.Text = "Высота: не указана";
+            TemplatePhotosText.Text = "Количество кадров: 0";
+        }
+        else
+        {
+            TemplateDefinition definition = _templateDefinitionService.Load(template.JsonPath);
+
+            TemplateWidthText.Text = $"Ширина: {definition.Width}";
+            TemplateHeightText.Text = $"Высота: {definition.Height}";
+            TemplatePhotosText.Text = $"Количество кадров: {definition.Photos.Count}";
+        }
+
+        TemplatesPanel.Visibility = Visibility.Collapsed;
+        TemplateDetailsPanel.Visibility = Visibility.Visible;
     }
 
     private void StartCountdown()
@@ -58,7 +99,7 @@ public partial class MainWindow : Window
         CountdownText.FontSize = 180;
         CountdownCaption.Text = "Приготовьтесь";
 
-        TemplatesPanel.Visibility = Visibility.Collapsed;
+        TemplateDetailsPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Visible;
 
         _countdownTimer.Start();
