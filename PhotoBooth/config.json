@@ -1,0 +1,6 @@
+{
+  "DemoMode": true,
+  "TemplatesPath": "Templates",
+  "DemoPhotosPath": "DemoPhotos",
+  "OutputPath": "Output"
+}
