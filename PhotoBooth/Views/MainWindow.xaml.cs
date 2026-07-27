@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using PhotoBooth.Models;
 using PhotoBooth.Services;
@@ -16,15 +17,23 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _countdownTimer;
     private readonly DispatcherTimer _completionTimer;
     private readonly AppConfig _config;
+    private readonly DemoPhotoService _demoPhotoService;
+    private readonly ImageComposer _imageComposer;
     private readonly TemplateDefinitionService _templateDefinitionService;
     private readonly TemplateManager _templateManager;
     private int _countdownValue = InitialCountdownValue;
+    private int _currentShotNumber;
+    private IReadOnlyList<string> _preparedShots = [];
+    private TemplateDefinition? _selectedDefinition;
+    private TemplateInfo? _selectedTemplate;
 
     public MainWindow()
     {
         InitializeComponent();
 
         _config = new ConfigService().Load();
+        _demoPhotoService = new DemoPhotoService();
+        _imageComposer = new ImageComposer();
         _templateDefinitionService = new TemplateDefinitionService();
         _templateManager = new TemplateManager();
 
@@ -101,6 +110,8 @@ public partial class MainWindow : Window
         {
             TemplateDefinition definition = _templateDefinitionService.Load(template.JsonPath);
             string? templateError = GetTemplateError(template, definition);
+            _selectedTemplate = template;
+            _selectedDefinition = definition;
 
             TemplateWidthText.Text = $"Ширина: {definition.Width}";
             TemplateHeightText.Text = $"Высота: {definition.Height}";
@@ -139,18 +150,65 @@ public partial class MainWindow : Window
             return $"Ошибка: файл Overlay не найден ({definition.Overlay}).";
         }
 
+        foreach (TemplatePhotoSlot slot in definition.Photos)
+        {
+            if (slot.Shoot <= 0 ||
+                slot.Width <= 0 ||
+                slot.Height <= 0 ||
+                slot.X < 0 ||
+                slot.Y < 0 ||
+                slot.X + slot.Width > definition.Width ||
+                slot.Y + slot.Height > definition.Height)
+            {
+                return "Ошибка: координаты одного из снимков выходят за границы шаблона.";
+            }
+        }
+
         return null;
     }
 
     private void StartCountdown()
     {
         _completionTimer.Stop();
+        PreviewStatusText.Text = string.Empty;
+        PrintButton.IsEnabled = true;
+
+        if (_selectedTemplate is null || _selectedDefinition is null)
+        {
+            return;
+        }
+
+        try
+        {
+            string sessionPath = Path.Combine(
+                ResolveAppPath(_config.OutputPath),
+                DateTime.Now.ToString("yyyyMMdd-HHmmss-fff"));
+            string originalsPath = Path.Combine(sessionPath, "Originals");
+
+            _preparedShots = _demoPhotoService.PrepareShots(
+                ResolveAppPath(_config.DemoPhotosPath),
+                originalsPath,
+                _selectedDefinition.RequiredShotCount);
+            _currentShotNumber = 1;
+        }
+        catch (Exception exception)
+        {
+            ShowCaptureError(exception.Message);
+            return;
+        }
+
+        StartCurrentShotCountdown();
+    }
+
+    private void StartCurrentShotCountdown()
+    {
         _countdownValue = InitialCountdownValue;
         CountdownText.Text = _countdownValue.ToString();
         CountdownText.FontSize = 180;
-        CountdownCaption.Text = "Приготовьтесь";
+        CountdownCaption.Text = $"Кадр {_currentShotNumber} из {_selectedDefinition!.RequiredShotCount}";
 
         TemplateDetailsPanel.Visibility = Visibility.Collapsed;
+        PreviewPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Visible;
 
         _countdownTimer.Start();
@@ -167,9 +225,9 @@ public partial class MainWindow : Window
         }
 
         _countdownTimer.Stop();
-        CountdownText.Text = "ГОТОВО";
+        CountdownText.Text = "СНЯТО";
         CountdownText.FontSize = 96;
-        CountdownCaption.Text = "Снимок сделан";
+        CountdownCaption.Text = $"Кадр {_currentShotNumber} сохранён";
 
         _completionTimer.Start();
     }
@@ -177,7 +235,89 @@ public partial class MainWindow : Window
     private void CompletionTimer_Tick(object? sender, EventArgs e)
     {
         _completionTimer.Stop();
+
+        if (_selectedDefinition is null)
+        {
+            ShowHomeScreen();
+            return;
+        }
+
+        if (_currentShotNumber < _selectedDefinition.RequiredShotCount)
+        {
+            _currentShotNumber++;
+            StartCurrentShotCountdown();
+            return;
+        }
+
+        ShowComposedPreview();
+    }
+
+    private void ShowComposedPreview()
+    {
+        if (_selectedTemplate is null || _selectedDefinition is null)
+        {
+            return;
+        }
+
+        try
+        {
+            string originalsPath = Path.GetDirectoryName(_preparedShots[0])!;
+            string sessionPath = Directory.GetParent(originalsPath)!.FullName;
+            string overlayPath = Path.Combine(_selectedTemplate.FolderPath, _selectedDefinition.Overlay!);
+            string resultPath = Path.Combine(sessionPath, "result.png");
+
+            _imageComposer.Compose(
+                _selectedDefinition,
+                overlayPath,
+                _preparedShots,
+                resultPath);
+
+            BitmapImage preview = new();
+            preview.BeginInit();
+            preview.CacheOption = BitmapCacheOption.OnLoad;
+            preview.UriSource = new Uri(resultPath, UriKind.Absolute);
+            preview.EndInit();
+            preview.Freeze();
+
+            ResultPreviewImage.Source = preview;
+            PreviewStatusText.Text = $"Готовый файл: {resultPath}";
+            PrintButton.Content = _config.DemoMode ? "Печать (демо)" : "Печатать";
+            CountdownPanel.Visibility = Visibility.Collapsed;
+            PreviewPanel.Visibility = Visibility.Visible;
+        }
+        catch (Exception exception)
+        {
+            ShowCaptureError(exception.Message);
+        }
+    }
+
+    private void RetakeButton_Click(object sender, RoutedEventArgs e)
+    {
+        StartCountdown();
+    }
+
+    private void PreviewHomeButton_Click(object sender, RoutedEventArgs e)
+    {
         ShowHomeScreen();
+    }
+
+    private void PrintButton_Click(object sender, RoutedEventArgs e)
+    {
+        PrintButton.IsEnabled = false;
+        PreviewStatusText.Text = _config.DemoMode
+            ? "Демо-печать выполнена. Принтер пока не используется."
+            : "Модуль принтера ещё не подключён.";
+    }
+
+    private void ShowCaptureError(string message)
+    {
+        _countdownTimer.Stop();
+        _completionTimer.Stop();
+        CountdownPanel.Visibility = Visibility.Collapsed;
+        PreviewPanel.Visibility = Visibility.Collapsed;
+        TemplateDetailsPanel.Visibility = Visibility.Visible;
+        TemplateStatusText.Text = $"Ошибка: {message}";
+        TemplateStatusText.Foreground = Brushes.LightSalmon;
     }
 
     private void ExitButton_Click(object sender, RoutedEventArgs e)
@@ -201,6 +341,8 @@ public partial class MainWindow : Window
         TemplatesPanel.Visibility = Visibility.Collapsed;
         TemplateDetailsPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Collapsed;
+        PreviewPanel.Visibility = Visibility.Collapsed;
+        ResultPreviewImage.Source = null;
         HomePanel.Visibility = Visibility.Visible;
     }
 
