@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using PhotoBooth.Models;
 using PhotoBooth.Services;
@@ -9,11 +10,14 @@ namespace PhotoBooth.Views;
 
 public partial class MainWindow : Window
 {
+    private const int InitialCountdownValue = 3;
+
     private readonly DispatcherTimer _countdownTimer;
+    private readonly DispatcherTimer _completionTimer;
     private readonly AppConfig _config;
     private readonly TemplateDefinitionService _templateDefinitionService;
     private readonly TemplateManager _templateManager;
-    private int _countdownValue = 3;
+    private int _countdownValue = InitialCountdownValue;
 
     public MainWindow()
     {
@@ -29,6 +33,13 @@ public partial class MainWindow : Window
         };
 
         _countdownTimer.Tick += CountdownTimer_Tick;
+
+        _completionTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(1.5)
+        };
+
+        _completionTimer.Tick += CompletionTimer_Tick;
     }
 
     private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -56,8 +67,7 @@ public partial class MainWindow : Window
 
     private void BackToHomeButton_Click(object sender, RoutedEventArgs e)
     {
-        TemplatesPanel.Visibility = Visibility.Collapsed;
-        HomePanel.Visibility = Visibility.Visible;
+        ShowHomeScreen();
     }
 
     private void BackToTemplatesButton_Click(object sender, RoutedEventArgs e)
@@ -96,7 +106,8 @@ public partial class MainWindow : Window
 
     private void StartCountdown()
     {
-        _countdownValue = 3;
+        _completionTimer.Stop();
+        _countdownValue = InitialCountdownValue;
         CountdownText.Text = _countdownValue.ToString();
         CountdownText.FontSize = 180;
         CountdownCaption.Text = "Приготовьтесь";
@@ -121,11 +132,38 @@ public partial class MainWindow : Window
         CountdownText.Text = "ГОТОВО";
         CountdownText.FontSize = 96;
         CountdownCaption.Text = "Снимок сделан";
+
+        _completionTimer.Start();
+    }
+
+    private void CompletionTimer_Tick(object? sender, EventArgs e)
+    {
+        _completionTimer.Stop();
+        ShowHomeScreen();
     }
 
     private void ExitButton_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void Window_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (_config.DemoMode && e.Key == Key.Escape)
+        {
+            Close();
+        }
+    }
+
+    private void ShowHomeScreen()
+    {
+        _countdownTimer.Stop();
+        _completionTimer.Stop();
+
+        TemplatesPanel.Visibility = Visibility.Collapsed;
+        TemplateDetailsPanel.Visibility = Visibility.Collapsed;
+        CountdownPanel.Visibility = Visibility.Collapsed;
+        HomePanel.Visibility = Visibility.Visible;
     }
 
     private static string ResolveAppPath(string path)

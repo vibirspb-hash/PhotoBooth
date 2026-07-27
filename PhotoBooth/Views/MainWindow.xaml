@@ -5,7 +5,8 @@
         Width="1280"
         Height="720"
         WindowStartupLocation="CenterScreen"
-        Background="#111318">
+        Background="#111318"
+        KeyDown="Window_KeyDown">
     <Grid>
         <StackPanel x:Name="HomePanel"
                     HorizontalAlignment="Center"
