@@ -16,12 +16,14 @@ public partial class MainWindow : Window
 
     private readonly DispatcherTimer _countdownTimer;
     private readonly DispatcherTimer _completionTimer;
+    private readonly DispatcherTimer _printCompletionTimer;
     private readonly AppConfig _config;
     private readonly DemoPhotoService _demoPhotoService;
     private readonly ImageComposer _imageComposer;
     private readonly TemplateDefinitionService _templateDefinitionService;
     private readonly TemplateManager _templateManager;
     private int _countdownValue = InitialCountdownValue;
+    private int _copyCount = 1;
     private int _currentShotNumber;
     private IReadOnlyList<string> _preparedShots = [];
     private TemplateDefinition? _selectedDefinition;
@@ -50,6 +52,13 @@ public partial class MainWindow : Window
         };
 
         _completionTimer.Tick += CompletionTimer_Tick;
+
+        _printCompletionTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(2.5)
+        };
+
+        _printCompletionTimer.Tick += PrintCompletionTimer_Tick;
     }
 
     private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -170,8 +179,10 @@ public partial class MainWindow : Window
     private void StartCountdown()
     {
         _completionTimer.Stop();
-        PreviewStatusText.Text = string.Empty;
+        _printCompletionTimer.Stop();
+        PrintStatusText.Text = string.Empty;
         PrintButton.IsEnabled = true;
+        CopyOptionsPanel.IsEnabled = true;
 
         if (_selectedTemplate is null || _selectedDefinition is null)
         {
@@ -280,8 +291,10 @@ public partial class MainWindow : Window
             preview.Freeze();
 
             ResultPreviewImage.Source = preview;
-            PreviewStatusText.Text = $"Готовый файл: {resultPath}";
-            PrintButton.Content = _config.DemoMode ? "Печать (демо)" : "Печатать";
+            _copyCount = 1;
+            CopyOneOption.IsChecked = true;
+            UpdatePrintButtonText();
+            PrintStatusText.Text = string.Empty;
             CountdownPanel.Visibility = Visibility.Collapsed;
             PreviewPanel.Visibility = Visibility.Visible;
         }
@@ -304,15 +317,51 @@ public partial class MainWindow : Window
     private void PrintButton_Click(object sender, RoutedEventArgs e)
     {
         PrintButton.IsEnabled = false;
-        PreviewStatusText.Text = _config.DemoMode
-            ? "Демо-печать выполнена. Принтер пока не используется."
+        CopyOptionsPanel.IsEnabled = false;
+        PrintStatusText.Text = _config.DemoMode
+            ? $"Демо-печать: {GetCopiesText(_copyCount)}."
             : "Модуль принтера ещё не подключён.";
+
+        _printCompletionTimer.Start();
+    }
+
+    private void CopyCount_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string copyCountText } &&
+            int.TryParse(copyCountText, out int copyCount))
+        {
+            _copyCount = copyCount;
+            UpdatePrintButtonText();
+        }
+    }
+
+    private void UpdatePrintButtonText()
+    {
+        if (PrintButton is null || _config is null)
+        {
+            return;
+        }
+
+        string prefix = _config.DemoMode ? "Печать (демо)" : "Печатать";
+        PrintButton.Content = $"{prefix}: {_copyCount}";
+    }
+
+    private static string GetCopiesText(int copyCount)
+    {
+        return copyCount == 1 ? "1 копия" : $"{copyCount} копии";
+    }
+
+    private void PrintCompletionTimer_Tick(object? sender, EventArgs e)
+    {
+        _printCompletionTimer.Stop();
+        ShowHomeScreen();
     }
 
     private void ShowCaptureError(string message)
     {
         _countdownTimer.Stop();
         _completionTimer.Stop();
+        _printCompletionTimer.Stop();
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         TemplateDetailsPanel.Visibility = Visibility.Visible;
@@ -337,6 +386,7 @@ public partial class MainWindow : Window
     {
         _countdownTimer.Stop();
         _completionTimer.Stop();
+        _printCompletionTimer.Stop();
 
         TemplatesPanel.Visibility = Visibility.Collapsed;
         TemplateDetailsPanel.Visibility = Visibility.Collapsed;

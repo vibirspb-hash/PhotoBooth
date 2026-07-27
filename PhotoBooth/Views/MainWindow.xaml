@@ -7,6 +7,48 @@
         WindowStartupLocation="CenterScreen"
         Background="#111318"
         KeyDown="Window_KeyDown">
+    <Window.Resources>
+        <Style x:Key="CopyOptionStyle"
+               TargetType="RadioButton">
+            <Setter Property="Width" Value="72" />
+            <Setter Property="Height" Value="46" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#252A33" />
+            <Setter Property="BorderBrush" Value="#4A5260" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="OptionBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="OptionBorder"
+                                        Property="BorderBrush"
+                                        Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="OptionBorder"
+                                        Property="Background"
+                                        Value="#FFFFFF" />
+                                <Setter Property="Foreground" Value="#111318" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <StackPanel x:Name="HomePanel"
                     HorizontalAlignment="Center"
@@ -57,21 +99,46 @@
                           VerticalScrollBarVisibility="Auto">
                 <Grid>
                     <TextBlock x:Name="NoTemplatesText"
-                               Text="Шаблоны не найдены"
+                               Text="Пары PNG + JSON не найдены"
                                Foreground="#C9CED8"
                                FontSize="24"
                                TextAlignment="Center"
                                Visibility="Collapsed" />
 
                     <ItemsControl x:Name="TemplatesList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel HorizontalAlignment="Center" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Content="{Binding Name}"
-                                        Height="72"
-                                        FontSize="24"
-                                        FontWeight="SemiBold"
-                                        Margin="0,0,0,16"
-                                        Click="TemplateButton_Click" />
+                                <Button Width="230"
+                                        Height="330"
+                                        Margin="10"
+                                        Padding="10"
+                                        Click="TemplateButton_Click">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Border Background="White"
+                                                BorderBrush="#D5D8DE"
+                                                BorderThickness="1">
+                                            <Image Source="{Binding PreviewPath}"
+                                                   Stretch="Uniform" />
+                                        </Border>
+
+                                        <TextBlock Grid.Row="1"
+                                                   Text="{Binding Name}"
+                                                   FontSize="24"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,12,0,0" />
+                                    </Grid>
+                                </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -204,12 +271,44 @@
                        Stretch="Uniform" />
             </Border>
 
-            <TextBlock x:Name="PreviewStatusText"
-                       Grid.Row="2"
-                       Foreground="#C9CED8"
-                       FontSize="18"
-                       TextAlignment="Center"
-                       Margin="0,14,0,0" />
+            <StackPanel Grid.Row="2"
+                        HorizontalAlignment="Center"
+                        Margin="0,14,0,0">
+                <TextBlock Text="Количество копий"
+                           Foreground="#C9CED8"
+                           FontSize="18"
+                           TextAlignment="Center"
+                           Margin="0,0,0,8" />
+
+                <StackPanel x:Name="CopyOptionsPanel"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                    <RadioButton x:Name="CopyOneOption"
+                                 Content="1"
+                                 Tag="1"
+                                 GroupName="CopyCount"
+                                 IsChecked="True"
+                                 Style="{StaticResource CopyOptionStyle}"
+                                 Checked="CopyCount_Checked" />
+                    <RadioButton Content="2"
+                                 Tag="2"
+                                 GroupName="CopyCount"
+                                 Style="{StaticResource CopyOptionStyle}"
+                                 Checked="CopyCount_Checked" />
+                    <RadioButton Content="3"
+                                 Tag="3"
+                                 GroupName="CopyCount"
+                                 Margin="0"
+                                 Style="{StaticResource CopyOptionStyle}"
+                                 Checked="CopyCount_Checked" />
+                </StackPanel>
+
+                <TextBlock x:Name="PrintStatusText"
+                           Foreground="#C9CED8"
+                           FontSize="18"
+                           TextAlignment="Center"
+                           Margin="0,10,0,0" />
+            </StackPanel>
 
             <StackPanel Grid.Row="3"
                         Orientation="Horizontal"

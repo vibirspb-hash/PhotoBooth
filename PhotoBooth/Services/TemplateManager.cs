@@ -13,27 +13,36 @@ public sealed class TemplateManager
         }
 
         return Directory
-            .GetDirectories(templatesPath)
+            .EnumerateFiles(templatesPath, "*.json", SearchOption.AllDirectories)
             .Select(CreateTemplateInfo)
-            .OrderBy(template => template.Name)
+            .Where(template => template is not null)
+            .Cast<TemplateInfo>()
+            .OrderBy(template => template.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 
-    private static TemplateInfo CreateTemplateInfo(string folderPath)
+    private static TemplateInfo? CreateTemplateInfo(string jsonPath)
     {
-        string? previewPath = Directory
-            .GetFiles(folderPath, "preview.*")
-            .FirstOrDefault();
+        string folderPath = Path.GetDirectoryName(jsonPath)!;
+        string templateName = Path.GetFileNameWithoutExtension(jsonPath);
+        string? overlayPath = Directory
+            .EnumerateFiles(folderPath, "*.png")
+            .FirstOrDefault(path =>
+                string.Equals(
+                    Path.GetFileNameWithoutExtension(path),
+                    templateName,
+                    StringComparison.OrdinalIgnoreCase));
 
-        string? jsonPath = Directory
-            .GetFiles(folderPath, "*.json")
-            .FirstOrDefault();
+        if (overlayPath is null)
+        {
+            return null;
+        }
 
         return new TemplateInfo
         {
-            Name = Path.GetFileName(folderPath),
+            Name = templateName,
             FolderPath = folderPath,
-            PreviewPath = previewPath,
+            PreviewPath = overlayPath,
             JsonPath = jsonPath
         };
     }
