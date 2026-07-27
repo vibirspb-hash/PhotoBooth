@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using PhotoBooth.Models;
@@ -32,7 +33,8 @@ public partial class MainWindow : Window
 
     private void StartButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<TemplateInfo> templates = _templateManager.GetTemplates(_config.TemplatesPath);
+        string templatesPath = ResolveAppPath(_config.TemplatesPath);
+        IReadOnlyList<TemplateInfo> templates = _templateManager.GetTemplates(templatesPath);
 
         TemplatesList.ItemsSource = templates;
         TemplatesList.Visibility = templates.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -124,5 +126,15 @@ public partial class MainWindow : Window
     private void ExitButton_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private static string ResolveAppPath(string path)
+    {
+        if (Path.IsPathRooted(path))
+        {
+            return path;
+        }
+
+        return Path.Combine(AppContext.BaseDirectory, path);
     }
 }

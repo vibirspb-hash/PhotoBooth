@@ -10,12 +10,14 @@ public sealed class ConfigService
 
     public AppConfig Load()
     {
-        if (!File.Exists(ConfigFileName))
+        string configPath = Path.Combine(AppContext.BaseDirectory, ConfigFileName);
+
+        if (!File.Exists(configPath))
         {
             return new AppConfig();
         }
 
-        string json = File.ReadAllText(ConfigFileName);
+        string json = File.ReadAllText(configPath);
         return JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
     }
 }
