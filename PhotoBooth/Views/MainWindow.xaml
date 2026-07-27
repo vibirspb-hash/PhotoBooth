@@ -121,7 +121,20 @@
                 <TextBlock x:Name="TemplatePhotosText"
                            Foreground="#C9CED8"
                            FontSize="28"
-                           TextAlignment="Center" />
+                           TextAlignment="Center"
+                           Margin="0,0,0,12" />
+
+                <TextBlock x:Name="TemplateOverlayText"
+                           Foreground="#C9CED8"
+                           FontSize="28"
+                           TextAlignment="Center"
+                           Margin="0,0,0,12" />
+
+                <TextBlock x:Name="TemplateStatusText"
+                           Foreground="#FFB4A8"
+                           FontSize="20"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap" />
             </StackPanel>
 
             <StackPanel Grid.Row="1"
@@ -136,6 +149,7 @@
                         Click="BackToTemplatesButton_Click" />
 
                 <Button Content="Продолжить"
+                        x:Name="ContinueButton"
                         Width="220"
                         Height="52"
                         FontSize="18"

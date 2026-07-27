@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using PhotoBooth.Models;
 using PhotoBooth.Services;
@@ -84,24 +85,61 @@ public partial class MainWindow : Window
     private void ShowTemplateDetails(TemplateInfo template)
     {
         SelectedTemplateNameText.Text = template.Name;
+        TemplateStatusText.Text = string.Empty;
 
         if (string.IsNullOrWhiteSpace(template.JsonPath))
         {
             TemplateWidthText.Text = "Ширина: не указана";
             TemplateHeightText.Text = "Высота: не указана";
             TemplatePhotosText.Text = "Количество кадров: 0";
+            TemplateOverlayText.Text = "Overlay: не указан";
+            TemplateStatusText.Text = "Ошибка: JSON-файл шаблона не найден.";
+            TemplateStatusText.Foreground = Brushes.LightSalmon;
+            ContinueButton.IsEnabled = false;
         }
         else
         {
             TemplateDefinition definition = _templateDefinitionService.Load(template.JsonPath);
+            string? templateError = GetTemplateError(template, definition);
 
             TemplateWidthText.Text = $"Ширина: {definition.Width}";
             TemplateHeightText.Text = $"Высота: {definition.Height}";
-            TemplatePhotosText.Text = $"Количество кадров: {definition.Photos.Count}";
+            TemplatePhotosText.Text = $"Количество снимков: {definition.RequiredShotCount}";
+            TemplateOverlayText.Text = $"Overlay: {definition.Overlay ?? "не указан"}";
+            TemplateStatusText.Text = templateError ?? "Шаблон готов.";
+            TemplateStatusText.Foreground = templateError is null ? Brushes.LightGreen : Brushes.LightSalmon;
+            ContinueButton.IsEnabled = templateError is null;
         }
 
         TemplatesPanel.Visibility = Visibility.Collapsed;
         TemplateDetailsPanel.Visibility = Visibility.Visible;
+    }
+
+    private static string? GetTemplateError(TemplateInfo template, TemplateDefinition definition)
+    {
+        if (definition.Width <= 0 || definition.Height <= 0)
+        {
+            return "Ошибка: ширина или высота шаблона не указана.";
+        }
+
+        if (definition.RequiredShotCount <= 0)
+        {
+            return "Ошибка: в шаблоне нет снимков.";
+        }
+
+        if (string.IsNullOrWhiteSpace(definition.Overlay))
+        {
+            return "Ошибка: Overlay не указан.";
+        }
+
+        string overlayPath = Path.Combine(template.FolderPath, definition.Overlay);
+
+        if (!File.Exists(overlayPath))
+        {
+            return $"Ошибка: файл Overlay не найден ({definition.Overlay}).";
+        }
+
+        return null;
     }
 
     private void StartCountdown()
