@@ -151,6 +151,12 @@
                     Margin="0,0,0,20"
                     Click="StartButton_Click" />
 
+            <Button Content="История печати"
+                    Height="56"
+                    FontSize="20"
+                    Margin="0,0,0,12"
+                    Click="PrintHistoryButton_Click" />
+
             <Button Content="Настройки"
                     Height="48"
                     FontSize="18"
@@ -174,6 +180,88 @@
                        TextWrapping="Wrap"
                        Margin="0,18,0,0" />
         </StackPanel>
+
+        <Grid x:Name="HistoryPanel"
+              Visibility="Collapsed"
+              Margin="60,40">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel>
+                <TextBlock Text="История печати"
+                           Foreground="White"
+                           FontSize="40"
+                           FontWeight="Bold"
+                           TextAlignment="Center" />
+
+                <TextBlock x:Name="HistorySessionNameText"
+                           Foreground="#C9CED8"
+                           FontSize="18"
+                           TextAlignment="Center"
+                           Margin="0,8,0,24" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <TextBlock x:Name="NoHistoryText"
+                               Text="В этой сессии пока нет готовых коллажей"
+                               Foreground="#C9CED8"
+                               FontSize="22"
+                               TextAlignment="Center"
+                               Visibility="Collapsed" />
+
+                    <ItemsControl x:Name="HistoryList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel HorizontalAlignment="Center" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Width="220"
+                                        Height="300"
+                                        Margin="10"
+                                        Padding="8"
+                                        Click="HistoryItemButton_Click">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Border Background="White"
+                                                BorderBrush="#D5D8DE"
+                                                BorderThickness="1">
+                                            <Image Source="{Binding Thumbnail}"
+                                                   Stretch="Uniform" />
+                                        </Border>
+
+                                        <TextBlock Grid.Row="1"
+                                                   Text="{Binding DisplayTime}"
+                                                   FontSize="17"
+                                                   TextAlignment="Center"
+                                                   Margin="0,10,0,0" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
+
+            <Button Grid.Row="2"
+                    Content="На главную"
+                    Width="220"
+                    Height="52"
+                    FontSize="18"
+                    HorizontalAlignment="Center"
+                    Margin="0,20,0,0"
+                    Click="HistoryBackButton_Click" />
+        </Grid>
 
         <Grid x:Name="TemplatesPanel"
               Visibility="Collapsed"
@@ -423,7 +511,8 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TextBlock Text="Предпросмотр"
+            <TextBlock x:Name="PreviewTitleText"
+                       Text="Предпросмотр"
                        Foreground="White"
                        FontSize="36"
                        FontWeight="Bold"
@@ -482,14 +571,16 @@
                         Orientation="Horizontal"
                         HorizontalAlignment="Center"
                         Margin="0,18,0,0">
-                <Button Content="На главную"
+                <Button x:Name="PreviewBackButton"
+                        Content="На главную"
                         Width="200"
                         Height="52"
                         FontSize="18"
                         Margin="0,0,16,0"
                         Click="PreviewHomeButton_Click" />
 
-                <Button Content="Переснять"
+                <Button x:Name="RetakeButton"
+                        Content="Переснять"
                         Width="200"
                         Height="52"
                         FontSize="18"

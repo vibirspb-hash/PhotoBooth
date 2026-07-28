@@ -5,7 +5,7 @@ using System.Windows.Media.Imaging;
 
 namespace PhotoBooth.Services;
 
-public sealed class DemoPhotoService
+public sealed class DemoPhotoService : ICameraService
 {
     private static readonly string[] SupportedExtensions = [".jpg", ".jpeg", ".png", ".bmp"];
 
@@ -16,6 +16,10 @@ public sealed class DemoPhotoService
         Color.FromRgb(30, 136, 229),
         Color.FromRgb(251, 140, 0)
     ];
+
+    public bool IsDemo => true;
+
+    public string DisplayName => "Демо-камера";
 
     public IReadOnlyList<string> PrepareShots(string demoPhotosPath, string originalsPath, int shotCount)
     {

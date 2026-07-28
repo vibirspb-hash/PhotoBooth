@@ -19,8 +19,10 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _completionTimer;
     private readonly DispatcherTimer _printCompletionTimer;
     private readonly AppConfig _config;
-    private readonly DemoPhotoService _demoPhotoService;
+    private readonly ICameraService _cameraService;
     private readonly ImageComposer _imageComposer;
+    private readonly PrintHistoryService _printHistoryService;
+    private readonly IPrinterService _printerService;
     private readonly SessionManager _sessionManager;
     private readonly TemplateDefinitionService _templateDefinitionService;
     private readonly TemplateManager _templateManager;
@@ -30,7 +32,9 @@ public partial class MainWindow : Window
     private int _currentShotNumber;
     private bool _isCursorHidden;
     private bool _isFullscreen;
+    private bool _isHistoryPreview;
     private string _currentCaptureId = string.Empty;
+    private string _currentResultPath = string.Empty;
     private PhotoSession? _activeSession;
     private IReadOnlyList<string> _preparedShots = [];
     private PhotoSession? _recoverableSession;
@@ -42,8 +46,10 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         _config = new ConfigService().Load();
-        _demoPhotoService = new DemoPhotoService();
+        _cameraService = new DemoPhotoService();
         _imageComposer = new ImageComposer();
+        _printHistoryService = new PrintHistoryService();
+        _printerService = new DemoPrinterService();
         _sessionManager = new SessionManager();
         _templateDefinitionService = new TemplateDefinitionService();
         _templateManager = new TemplateManager();
@@ -81,6 +87,8 @@ public partial class MainWindow : Window
         SessionErrorText.Text = string.Empty;
         HomePanel.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Collapsed;
+        HistoryPanel.Visibility = Visibility.Collapsed;
+        PreviewPanel.Visibility = Visibility.Collapsed;
         SessionPanel.Visibility = Visibility.Visible;
 
         if (_recoverableSession is null)
@@ -174,6 +182,49 @@ public partial class MainWindow : Window
 
         HomePanel.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Visible;
+    }
+
+    private void PrintHistoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowPrintHistory();
+    }
+
+    private void ShowPrintHistory()
+    {
+        if (_activeSession is null)
+        {
+            ShowSessionStartup();
+            return;
+        }
+
+        IReadOnlyList<PrintHistoryItem> history = _printHistoryService.GetItems(_activeSession);
+        HistoryList.ItemsSource = history;
+        HistoryList.Visibility = history.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        NoHistoryText.Visibility = history.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        HistorySessionNameText.Text = $"Сессия: {_activeSession.Name}";
+
+        HomePanel.Visibility = Visibility.Collapsed;
+        TemplatesPanel.Visibility = Visibility.Collapsed;
+        PreviewPanel.Visibility = Visibility.Collapsed;
+        ResultPreviewImage.Source = null;
+        HistoryPanel.Visibility = Visibility.Visible;
+    }
+
+    private void HistoryItemButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: PrintHistoryItem item })
+        {
+            return;
+        }
+
+        _currentResultPath = item.FilePath;
+        _isHistoryPreview = true;
+        ShowResultPreview(item.FilePath);
+    }
+
+    private void HistoryBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowHomeScreen();
     }
 
     private void TemplateButton_Click(object sender, RoutedEventArgs e)
@@ -305,7 +356,7 @@ public partial class MainWindow : Window
                 "Photos",
                 _currentCaptureId);
 
-            _preparedShots = _demoPhotoService.PrepareShots(
+            _preparedShots = _cameraService.PrepareShots(
                 ResolveAppPath(_config.DemoPhotosPath),
                 originalsPath,
                 _selectedDefinition.RequiredShotCount);
@@ -315,7 +366,7 @@ public partial class MainWindow : Window
                 Path.Combine(_selectedTemplate.FolderPath, _selectedDefinition.Overlay!);
             SelectedFramePreviewImage.Source = LoadImage(framePreviewPath);
             CaptureTemplateNameText.Text = _selectedTemplate.Name;
-            DemoPreviewBadge.Visibility = _config.DemoMode
+            DemoPreviewBadge.Visibility = _cameraService.IsDemo
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
@@ -402,13 +453,10 @@ public partial class MainWindow : Window
                 _preparedShots,
                 resultPath);
 
-            ResultPreviewImage.Source = LoadImage(resultPath);
-            _copyCount = 1;
-            CopyOneOption.IsChecked = true;
-            UpdatePrintButtonText();
-            PrintStatusText.Text = string.Empty;
+            _currentResultPath = resultPath;
+            _isHistoryPreview = false;
             CountdownPanel.Visibility = Visibility.Collapsed;
-            PreviewPanel.Visibility = Visibility.Visible;
+            ShowResultPreview(resultPath);
         }
         catch (Exception exception)
         {
@@ -423,6 +471,12 @@ public partial class MainWindow : Window
 
     private void PreviewHomeButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_isHistoryPreview)
+        {
+            ShowPrintHistory();
+            return;
+        }
+
         ShowHomeScreen();
     }
 
@@ -430,11 +484,37 @@ public partial class MainWindow : Window
     {
         PrintButton.IsEnabled = false;
         CopyOptionsPanel.IsEnabled = false;
-        PrintStatusText.Text = _config.DemoMode
-            ? $"Демо-печать: {GetCopiesText(_copyCount)}."
-            : "Модуль принтера ещё не подключён.";
+        PrintResult result;
 
-        _printCompletionTimer.Start();
+        try
+        {
+            result = _printerService.Print(_currentResultPath, _copyCount);
+        }
+        catch (Exception exception)
+        {
+            result = new PrintResult(false, $"Ошибка печати: {exception.Message}");
+        }
+
+        PrintStatusText.Text = result.Message;
+
+        if (_activeSession is not null)
+        {
+            _printHistoryService.RecordPrintJob(
+                _activeSession,
+                _currentResultPath,
+                _copyCount,
+                _printerService.DisplayName,
+                result);
+        }
+
+        if (result.Success)
+        {
+            _printCompletionTimer.Start();
+            return;
+        }
+
+        PrintButton.IsEnabled = true;
+        CopyOptionsPanel.IsEnabled = true;
     }
 
     private void CopyCount_Checked(object sender, RoutedEventArgs e)
@@ -454,19 +534,39 @@ public partial class MainWindow : Window
             return;
         }
 
-        string prefix = _config.DemoMode ? "Печать (демо)" : "Печатать";
+        string prefix = _printerService.IsDemo ? "Печать (демо)" : "Печатать";
         PrintButton.Content = $"{prefix}: {_copyCount}";
-    }
-
-    private static string GetCopiesText(int copyCount)
-    {
-        return copyCount == 1 ? "1 копия" : $"{copyCount} копии";
     }
 
     private void PrintCompletionTimer_Tick(object? sender, EventArgs e)
     {
         _printCompletionTimer.Stop();
+
+        if (_isHistoryPreview)
+        {
+            ShowPrintHistory();
+            return;
+        }
+
         ShowHomeScreen();
+    }
+
+    private void ShowResultPreview(string resultPath)
+    {
+        ResultPreviewImage.Source = LoadImage(resultPath);
+        _copyCount = 1;
+        CopyOneOption.IsChecked = true;
+        CopyOptionsPanel.IsEnabled = true;
+        PrintButton.IsEnabled = true;
+        PrintStatusText.Text = string.Empty;
+        UpdatePrintButtonText();
+
+        PreviewTitleText.Text = _isHistoryPreview ? "Повторная печать" : "Предпросмотр";
+        PreviewBackButton.Content = _isHistoryPreview ? "К истории" : "На главную";
+        RetakeButton.Visibility = _isHistoryPreview ? Visibility.Collapsed : Visibility.Visible;
+
+        HistoryPanel.Visibility = Visibility.Collapsed;
+        PreviewPanel.Visibility = Visibility.Visible;
     }
 
     private void ShowCaptureError(string message)
@@ -543,12 +643,14 @@ public partial class MainWindow : Window
         _printCompletionTimer.Stop();
 
         TemplatesPanel.Visibility = Visibility.Collapsed;
+        HistoryPanel.Visibility = Visibility.Collapsed;
         TemplateDetailsPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         ResultPreviewImage.Source = null;
         LivePreviewImage.Source = null;
         SelectedFramePreviewImage.Source = null;
+        _isHistoryPreview = false;
         SessionPanel.Visibility = Visibility.Collapsed;
         ActiveSessionText.Text = _activeSession is null ? string.Empty : $"Сессия: {_activeSession.Name}";
         HomePanel.Visibility = Visibility.Visible;
