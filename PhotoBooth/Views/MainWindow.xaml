@@ -12,6 +12,97 @@
         Cursor="None"
         KeyDown="Window_KeyDown">
     <Window.Resources>
+        <LinearGradientBrush x:Key="HomeBackgroundBrush"
+                             StartPoint="0,0"
+                             EndPoint="1,1">
+            <GradientStop Color="#5AA7FF" Offset="0" />
+            <GradientStop Color="#7B61FF" Offset="0.30" />
+            <GradientStop Color="#B16CFF" Offset="0.52" />
+            <GradientStop Color="#FF6EC7" Offset="0.76" />
+            <GradientStop Color="#FFB278" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="HomeGlassPillStyle"
+               TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#18FFFFFF" />
+            <Setter Property="BorderBrush" Value="#BFFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="24,14" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="28">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#2AFFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#38FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="HomeGlassToggleStyle"
+               TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#18FFFFFF" />
+            <Setter Property="BorderBrush" Value="#BFFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="24,14" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="28">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#2AFFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#38FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="HomeMenuButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource HomeGlassPillStyle}">
+            <Setter Property="MinWidth" Value="260" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="Padding" Value="18,12" />
+        </Style>
+
         <Style x:Key="CopyOptionStyle"
                TargetType="RadioButton">
             <Setter Property="Width" Value="72" />
@@ -132,54 +223,274 @@
             </StackPanel>
         </Grid>
 
-        <StackPanel x:Name="HomePanel"
-                    Visibility="Collapsed"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Width="420">
-            <TextBlock Text="PHOTOBOOTH"
-                       Foreground="White"
-                       FontSize="48"
-                       FontWeight="Bold"
-                       TextAlignment="Center"
-                       Margin="0,0,0,40" />
+        <Grid x:Name="HomePanel"
+              Visibility="Collapsed"
+              Background="{StaticResource HomeBackgroundBrush}">
+            <Grid>
+                <Ellipse Width="760"
+                         Height="760"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Bottom"
+                         Margin="-250,0,0,-360"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#805AA7FF" Offset="0" />
+                            <GradientStop Color="#005AA7FF" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
 
-            <Button Content="НАЧАТЬ"
-                    Height="80"
-                    FontSize="28"
-                    FontWeight="SemiBold"
-                    Margin="0,0,0,20"
-                    Click="StartButton_Click" />
+                <Ellipse Width="680"
+                         Height="680"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Margin="0,-260,-190,0"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#80FF6EC7" Offset="0" />
+                            <GradientStop Color="#00FF6EC7" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
 
-            <Button Content="История печати"
-                    Height="56"
-                    FontSize="20"
-                    Margin="0,0,0,12"
-                    Click="PrintHistoryButton_Click" />
+                <Ellipse Width="620"
+                         Height="620"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Bottom"
+                         Margin="0,0,-220,-260"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#90FFE7B8" Offset="0" />
+                            <GradientStop Color="#00FFE7B8" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
 
-            <Button Content="Настройки"
-                    Height="48"
-                    FontSize="18"
-                    Margin="0,0,0,12" />
+            <Grid Margin="44,36">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <Button Content="Выход"
-                    Height="48"
-                    FontSize="18"
-                    Margin="0,0,0,12"
-                    Click="ExitButton_Click" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-            <Button Content="Сменить сессию"
-                    Height="44"
-                    FontSize="16"
-                    Click="ChangeSessionButton_Click" />
+                    <TextBlock Text="P H O T O   S T A R  ✦"
+                               Foreground="White"
+                               FontSize="21"
+                               FontWeight="Normal"
+                               VerticalAlignment="Center" />
 
-            <TextBlock x:Name="ActiveSessionText"
-                       Foreground="#8F98A8"
-                       FontSize="15"
-                       TextAlignment="Center"
-                       TextWrapping="Wrap"
-                       Margin="0,18,0,0" />
-        </StackPanel>
+                    <Grid Grid.Column="1">
+                        <ToggleButton x:Name="SettingsToggle"
+                                      Style="{StaticResource HomeGlassToggleStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE713;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           FontSize="28"
+                                           Margin="0,0,12,0" />
+                                <TextBlock Text="Настройки"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </ToggleButton>
+
+                        <Popup PlacementTarget="{Binding ElementName=SettingsToggle}"
+                               Placement="Bottom"
+                               HorizontalOffset="-94"
+                               VerticalOffset="12"
+                               AllowsTransparency="True"
+                               StaysOpen="False"
+                               IsOpen="{Binding IsChecked, ElementName=SettingsToggle}">
+                            <Border Padding="16"
+                                    Background="#D930285C"
+                                    BorderBrush="#BFFFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="22">
+                                <StackPanel>
+                                    <TextBlock x:Name="ActiveSessionText"
+                                               Foreground="White"
+                                               FontSize="16"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               Margin="8,4,8,16" />
+
+                                    <Button Content="История печати"
+                                            Style="{StaticResource HomeMenuButtonStyle}"
+                                            Click="PrintHistoryButton_Click" />
+
+                                    <Button Content="Сменить сессию"
+                                            Style="{StaticResource HomeMenuButtonStyle}"
+                                            Click="ChangeSessionButton_Click" />
+
+                                    <Button Content="Выход"
+                                            Style="{StaticResource HomeMenuButtonStyle}"
+                                            Margin="0"
+                                            Click="ExitButton_Click" />
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </Grid>
+
+                <Button Grid.Row="1"
+                        Width="780"
+                        MaxWidth="780"
+                        MinHeight="410"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Foreground="White"
+                        Background="#20FFFFFF"
+                        BorderBrush="#DFFFFFFF"
+                        BorderThickness="1"
+                        Click="StartButton_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="StartGlassBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="54">
+                                <Grid ClipToBounds="True">
+                                    <Rectangle Height="170"
+                                               VerticalAlignment="Top"
+                                               IsHitTestVisible="False">
+                                        <Rectangle.Fill>
+                                            <LinearGradientBrush StartPoint="0,0"
+                                                                 EndPoint="0,1">
+                                                <GradientStop Color="#35FFFFFF" Offset="0" />
+                                                <GradientStop Color="#00FFFFFF" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+
+                                    <StackPanel HorizontalAlignment="Center"
+                                                VerticalAlignment="Center">
+                                        <Border Width="190"
+                                                Height="190"
+                                                CornerRadius="95"
+                                                BorderBrush="#EFFFFFFF"
+                                                BorderThickness="1"
+                                                Margin="0,0,0,26">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0"
+                                                                     EndPoint="1,1">
+                                                    <GradientStop Color="#B05AA7FF" Offset="0" />
+                                                    <GradientStop Color="#B0B16CFF" Offset="0.48" />
+                                                    <GradientStop Color="#B0FF6EC7" Offset="0.72" />
+                                                    <GradientStop Color="#B0FFB278" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                            <Grid>
+                                                <Ellipse Margin="3"
+                                                         Stroke="#55FFFFFF"
+                                                         StrokeThickness="1" />
+                                                <TextBlock Text="&#xE722;"
+                                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                           Foreground="White"
+                                                           FontSize="78"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
+
+                                        <TextBlock Text="Начать фотосессию"
+                                                   Foreground="White"
+                                                   FontSize="50"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center" />
+
+                                        <TextBlock Text="Создавайте яркие воспоминания"
+                                                   Foreground="White"
+                                                   FontSize="24"
+                                                   TextAlignment="Center"
+                                                   Margin="0,14,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="StartGlassBorder"
+                                            Property="Background"
+                                            Value="#2EFFFFFF" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="StartGlassBorder"
+                                            Property="Background"
+                                            Value="#3AFFFFFF" />
+                                    <Setter TargetName="StartGlassBorder"
+                                            Property="Opacity"
+                                            Value="0.92" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Grid Grid.Row="2"
+                      HorizontalAlignment="Left">
+                    <ToggleButton x:Name="InfoToggle"
+                                  Style="{StaticResource HomeGlassToggleStyle}"
+                                  Background="Transparent"
+                                  BorderBrush="Transparent"
+                                  Padding="0">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="40"
+                                    Height="40"
+                                    CornerRadius="20"
+                                    BorderBrush="White"
+                                    BorderThickness="2"
+                                    Margin="0,0,14,0">
+                                <TextBlock Text="&#xE946;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="White"
+                                           FontSize="22"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="Инструкция по использованию"
+                                       Foreground="White"
+                                       FontSize="18"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+
+                    <Popup PlacementTarget="{Binding ElementName=InfoToggle}"
+                           Placement="Top"
+                           VerticalOffset="-12"
+                           AllowsTransparency="True"
+                           StaysOpen="False"
+                           IsOpen="{Binding IsChecked, ElementName=InfoToggle}">
+                        <Border Width="360"
+                                Padding="22"
+                                Background="#E630285C"
+                                BorderBrush="#BFFFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="22">
+                            <StackPanel>
+                                <TextBlock Text="Как сделать фото"
+                                           Foreground="White"
+                                           FontSize="24"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,14" />
+                                <TextBlock Text="1. Нажмите «Начать фотосессию».&#x0a;2. Выберите рамку.&#x0a;3. Встаньте перед камерой и смотрите в объектив.&#x0a;4. После съёмки выберите количество копий."
+                                           Foreground="White"
+                                           FontSize="18"
+                                           LineHeight="28"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </Grid>
+        </Grid>
 
         <Grid x:Name="HistoryPanel"
               Visibility="Collapsed"
