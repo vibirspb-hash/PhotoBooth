@@ -808,7 +808,7 @@
                     <Button x:Name="TemplatePreviewButton"
                             Grid.Column="2"
                             Style="{StaticResource TemplatesGlassButtonStyle}"
-                            Click="TemplateSelectionContinueButton_Click">
+                            Click="TemplatePreviewButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE80A;"
                                        FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
@@ -881,186 +881,376 @@
                     </ListBox>
                 </Grid>
 
-                <Button x:Name="TemplateSelectionContinueButton"
-                        Grid.Row="2"
-                        Width="760"
-                        Height="76"
-                        HorizontalAlignment="Center"
-                        Style="{StaticResource TemplatesPrimaryButtonStyle}"
-                        Click="TemplateSelectionContinueButton_Click">
-                    <Grid Margin="34,0">
-                        <TextBlock Text="Продолжить"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                        <TextBlock Text="&#xE72A;"
-                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                   FontSize="31"
-                                   HorizontalAlignment="Right"
-                                   VerticalAlignment="Center" />
-                    </Grid>
-                </Button>
+                <StackPanel Grid.Row="2"
+                            HorizontalAlignment="Center">
+                    <TextBlock x:Name="TemplateSelectionErrorText"
+                               Width="760"
+                               MinHeight="24"
+                               Foreground="#9D345D"
+                               FontSize="16"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,8" />
+
+                    <Button x:Name="TemplateSelectionContinueButton"
+                            Width="760"
+                            Height="76"
+                            Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                            Click="TemplateSelectionContinueButton_Click">
+                        <Grid Margin="34,0">
+                            <TextBlock Text="Продолжить"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xE72A;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="31"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Button>
+                </StackPanel>
             </Grid>
-        </Grid>
 
-        <Grid x:Name="TemplateDetailsPanel"
-              Visibility="Collapsed"
-              Margin="80">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Width="520">
-                <TextBlock x:Name="SelectedTemplateNameText"
-                           Foreground="White"
-                           FontSize="42"
-                           FontWeight="Bold"
-                           TextAlignment="Center"
-                           Margin="0,0,0,36" />
-
-                <TextBlock x:Name="TemplateWidthText"
-                           Foreground="#C9CED8"
-                           FontSize="28"
-                           TextAlignment="Center"
-                           Margin="0,0,0,12" />
-
-                <TextBlock x:Name="TemplateHeightText"
-                           Foreground="#C9CED8"
-                           FontSize="28"
-                           TextAlignment="Center"
-                           Margin="0,0,0,12" />
-
-                <TextBlock x:Name="TemplatePhotosText"
-                           Foreground="#C9CED8"
-                           FontSize="28"
-                           TextAlignment="Center"
-                           Margin="0,0,0,12" />
-
-                <TextBlock x:Name="TemplateOverlayText"
-                           Foreground="#C9CED8"
-                           FontSize="28"
-                           TextAlignment="Center"
-                           Margin="0,0,0,12" />
-
-                <TextBlock x:Name="TemplateStatusText"
-                           Foreground="#FFB4A8"
-                           FontSize="20"
-                           TextAlignment="Center"
-                           TextWrapping="Wrap" />
-            </StackPanel>
-
-            <StackPanel Grid.Row="1"
-                        Orientation="Horizontal"
+            <Grid x:Name="TemplatePreviewOverlay"
+                  Panel.ZIndex="10"
+                  Visibility="Collapsed"
+                  Background="#9A172238">
+                <Border Width="520"
+                        Height="620"
+                        Padding="22"
+                        Background="#E6FFFFFF"
+                        BorderBrush="White"
+                        BorderThickness="1"
+                        CornerRadius="30"
                         HorizontalAlignment="Center"
-                        Margin="0,24,0,0">
-                <Button Content="Назад"
-                        Width="220"
-                        Height="52"
-                        FontSize="18"
-                        Margin="0,0,16,0"
-                        Click="BackToTemplatesButton_Click" />
+                        VerticalAlignment="Center">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                <Button Content="Снять фото"
-                        x:Name="ContinueButton"
-                        Width="220"
-                        Height="52"
-                        FontSize="18"
-                        FontWeight="SemiBold"
-                        Click="ContinueButton_Click" />
-            </StackPanel>
+                        <Grid>
+                            <TextBlock Text="Предпросмотр макета"
+                                       Foreground="#172238"
+                                       FontSize="24"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                            <Button HorizontalAlignment="Right"
+                                    Style="{StaticResource TemplatesGlassButtonStyle}"
+                                    Padding="14,8"
+                                    Click="CloseTemplatePreviewButton_Click">
+                                <TextBlock Text="&#xE711;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           FontSize="22" />
+                            </Button>
+                        </Grid>
+
+                        <Border Grid.Row="1"
+                                Margin="0,18,0,0"
+                                Padding="12"
+                                Background="White"
+                                CornerRadius="18">
+                            <Image x:Name="TemplatePreviewImage"
+                                   Stretch="Uniform" />
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
         </Grid>
 
         <Grid x:Name="CountdownPanel"
               Visibility="Collapsed"
-              Margin="24">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="280" />
-            </Grid.ColumnDefinitions>
+              Background="Black"
+              ClipToBounds="True">
+            <Image x:Name="LivePreviewImage"
+                   Stretch="UniformToFill"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch" />
 
-            <Border Grid.Column="0"
-                    Background="Black"
-                    BorderBrush="#343945"
-                    BorderThickness="1"
-                    ClipToBounds="True">
+            <Rectangle IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0"
+                                         EndPoint="0,1">
+                        <GradientStop Color="#73000000" Offset="0" />
+                        <GradientStop Color="#12000000" Offset="0.30" />
+                        <GradientStop Color="#08000000" Offset="0.62" />
+                        <GradientStop Color="#85000000" Offset="1" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Grid Margin="34,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
                 <Grid>
-                    <Image x:Name="LivePreviewImage"
-                           Stretch="Uniform"
-                           HorizontalAlignment="Stretch"
-                           VerticalAlignment="Stretch" />
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                    <Border x:Name="DemoPreviewBadge"
-                            Background="#B2111318"
-                            CornerRadius="4"
-                            Padding="10,6"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Top"
-                            Margin="16">
-                        <TextBlock Text="ДЕМО-ПРЕВЬЮ"
-                                   Foreground="White"
-                                   FontSize="14"
-                                   FontWeight="SemiBold" />
+                    <Button HorizontalAlignment="Left"
+                            Style="{StaticResource HomeGlassPillStyle}"
+                            Click="CaptureBackButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="25"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="Назад"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border Grid.Column="1"
+                            MinWidth="270"
+                            Padding="28,13"
+                            Background="#28FFFFFF"
+                            BorderBrush="#85FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="28">
+                        <StackPanel>
+                            <TextBlock x:Name="CaptureProgressText"
+                                       Text="СЪЁМКА 1 ИЗ 4"
+                                       Foreground="White"
+                                       FontSize="22"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center" />
+                            <ItemsControl x:Name="CaptureProgressDots"
+                                          HorizontalAlignment="Center"
+                                          Margin="0,7,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Ellipse Width="9"
+                                                 Height="9"
+                                                 Stroke="#AFFFFFFF"
+                                                 StrokeThickness="2"
+                                                 Margin="4,0">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill"
+                                                            Value="Transparent" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding}"
+                                                                     Value="True">
+                                                            <Setter Property="Fill"
+                                                                    Value="White" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
                     </Border>
 
-                    <Border Background="#78000000"
-                            CornerRadius="4"
-                            Padding="22,10"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
-                            Margin="0,24,0,0">
-                        <StackPanel>
+                    <Border Grid.Column="2"
+                            Width="64"
+                            Height="64"
+                            HorizontalAlignment="Right"
+                            Background="#28FFFFFF"
+                            BorderBrush="#85FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="32">
+                        <TextBlock Text="&#xE945;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   Foreground="White"
+                                   FontSize="30"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Border x:Name="DemoPreviewBadge"
+                        Grid.Row="1"
+                        Background="#8A111318"
+                        CornerRadius="18"
+                        Padding="14,8"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="0,16,0,0">
+                    <TextBlock Text="ДЕМО-ПРЕВЬЮ"
+                               Foreground="White"
+                               FontSize="14"
+                               FontWeight="SemiBold" />
+                </Border>
+
+                <Grid x:Name="CaptureReadyOverlay"
+                      Grid.Row="1">
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Margin="0,0,0,28">
+                        <TextBlock x:Name="CaptureReadyTitleText"
+                                   Foreground="White"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,12" />
+
+                        <Button Width="480"
+                                Height="84"
+                                Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                                Click="StartCaptureButton_Click">
+                            <Grid Margin="30,0">
+                                <TextBlock Text="&#xE722;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           FontSize="34"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="Снять фото"
+                                           FontSize="27"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="CountdownOverlay"
+                      Grid.Row="1"
+                      Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid HorizontalAlignment="Center"
+                          VerticalAlignment="Center">
+                        <Viewbox Width="430"
+                                 Height="430">
+                            <Grid Width="560"
+                                  Height="560">
+                                <Ellipse Margin="25"
+                                         Stroke="#80FFFFFF"
+                                         StrokeThickness="9"
+                                         StrokeDashArray="1,2.2" />
+
+                                <Path StrokeThickness="11"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Data="M 280,25 A 255,255 0 1 1 75,432">
+                                    <Path.Stroke>
+                                        <LinearGradientBrush StartPoint="0,0"
+                                                             EndPoint="1,1">
+                                            <GradientStop Color="#FF6EC7" Offset="0" />
+                                            <GradientStop Color="#B16CFF" Offset="0.5" />
+                                            <GradientStop Color="#5AA7FF" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Path.Stroke>
+                                </Path>
+                            </Grid>
+                        </Viewbox>
+
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
                             <TextBlock x:Name="CountdownText"
                                        Text="3"
                                        Foreground="White"
                                        FontSize="112"
-                                       FontWeight="Bold"
+                                       FontWeight="SemiBold"
                                        LineHeight="112"
                                        TextAlignment="Center" />
 
                             <TextBlock x:Name="CountdownCaption"
-                                       Text="Приготовьтесь"
+                                       Text="Смотрите в объектив"
                                        Foreground="White"
                                        FontSize="22"
                                        TextAlignment="Center"
-                                       Margin="0,2,0,0" />
+                                       Margin="0,8,0,0" />
                         </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            Width="820"
+                            Padding="24,16"
+                            HorizontalAlignment="Center"
+                            Background="#32FFFFFF"
+                            BorderBrush="#75FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="30"
+                            Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="1" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="1" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center">
+                                <TextBlock Text="&#xE945;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="White"
+                                           FontSize="29"
+                                           Margin="0,0,12,0" />
+                                <StackPanel>
+                                    <TextBlock Text="Авто"
+                                               Foreground="White"
+                                               FontSize="18" />
+                                    <TextBlock Text="вспышка"
+                                               Foreground="White"
+                                               FontSize="15" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Border Grid.Column="1"
+                                    Background="#65FFFFFF" />
+
+                            <StackPanel Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Center">
+                                <TextBlock Text="&#xE823;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="White"
+                                           FontSize="29"
+                                           Margin="0,0,12,0" />
+                                <StackPanel>
+                                    <TextBlock Text="Таймер"
+                                               Foreground="White"
+                                               FontSize="18" />
+                                    <TextBlock Text="3 сек"
+                                               Foreground="White"
+                                               FontSize="15" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Border Grid.Column="3"
+                                    Background="#65FFFFFF" />
+
+                            <StackPanel Grid.Column="4"
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Center">
+                                <TextBlock Text="&#xE80A;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="White"
+                                           FontSize="29"
+                                           Margin="0,0,12,0" />
+                                <StackPanel>
+                                    <TextBlock Text="Фото"
+                                               Foreground="White"
+                                               FontSize="18" />
+                                    <TextBlock x:Name="CaptureStatusPhotoText"
+                                               Text="1 из 4"
+                                               Foreground="White"
+                                               FontSize="15" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Border>
                 </Grid>
-            </Border>
-
-            <Grid Grid.Column="1"
-                  Margin="20,0,0,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <TextBlock Text="Выбранная рамка"
-                           Foreground="#C9CED8"
-                           FontSize="20"
-                           TextAlignment="Center"
-                           Margin="0,0,0,14" />
-
-                <Border Grid.Row="1"
-                        Background="White"
-                        BorderBrush="#343945"
-                        BorderThickness="1"
-                        Padding="6">
-                    <Image x:Name="SelectedFramePreviewImage"
-                           Stretch="Uniform" />
-                </Border>
-
-                <TextBlock x:Name="CaptureTemplateNameText"
-                           Grid.Row="2"
-                           Foreground="White"
-                           FontSize="22"
-                           FontWeight="SemiBold"
-                           TextAlignment="Center"
-                           TextWrapping="Wrap"
-                           Margin="0,14,0,0" />
             </Grid>
         </Grid>
 

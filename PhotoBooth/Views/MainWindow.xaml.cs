@@ -3,7 +3,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using PhotoBooth.Models;
@@ -180,6 +179,9 @@ public partial class MainWindow : Window
         TemplatesList.SelectedIndex = templates.Count > 0 ? 0 : -1;
         TemplatesList.Visibility = templates.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         NoTemplatesText.Visibility = templates.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        TemplateSelectionErrorText.Text = string.Empty;
+        TemplatePreviewOverlay.Visibility = Visibility.Collapsed;
+        TemplatePreviewImage.Source = null;
         TemplateSelectionContinueButton.IsEnabled = templates.Count > 0;
         TemplatePreviewButton.IsEnabled = templates.Count > 0;
 
@@ -237,7 +239,24 @@ public partial class MainWindow : Window
             return;
         }
 
-        ShowTemplateDetails(template);
+        SelectTemplateAndShowCapture(template);
+    }
+
+    private void TemplatePreviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (TemplatesList.SelectedItem is not TemplateInfo { PreviewPath: not null } template)
+        {
+            return;
+        }
+
+        TemplatePreviewImage.Source = LoadImage(template.PreviewPath);
+        TemplatePreviewOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void CloseTemplatePreviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        TemplatePreviewOverlay.Visibility = Visibility.Collapsed;
+        TemplatePreviewImage.Source = null;
     }
 
     private void BackToHomeButton_Click(object sender, RoutedEventArgs e)
@@ -245,50 +264,48 @@ public partial class MainWindow : Window
         ShowHomeScreen();
     }
 
-    private void BackToTemplatesButton_Click(object sender, RoutedEventArgs e)
+    private void CaptureBackButton_Click(object sender, RoutedEventArgs e)
     {
-        TemplateDetailsPanel.Visibility = Visibility.Collapsed;
+        _countdownTimer.Stop();
+        _completionTimer.Stop();
+        CountdownPanel.Visibility = Visibility.Collapsed;
+        TemplatePreviewOverlay.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Visible;
     }
 
-    private void ContinueButton_Click(object sender, RoutedEventArgs e)
+    private void StartCaptureButton_Click(object sender, RoutedEventArgs e)
     {
-        StartCountdown();
+        StartCurrentShotCountdown();
     }
 
-    private void ShowTemplateDetails(TemplateInfo template)
+    private void SelectTemplateAndShowCapture(TemplateInfo template)
     {
-        SelectedTemplateNameText.Text = template.Name;
-        TemplateStatusText.Text = string.Empty;
-
         if (string.IsNullOrWhiteSpace(template.JsonPath))
         {
-            TemplateWidthText.Text = "Ширина: не указана";
-            TemplateHeightText.Text = "Высота: не указана";
-            TemplatePhotosText.Text = "Количество кадров: 0";
-            TemplateOverlayText.Text = "Overlay: не указан";
-            TemplateStatusText.Text = "Ошибка: JSON-файл шаблона не найден.";
-            TemplateStatusText.Foreground = Brushes.LightSalmon;
-            ContinueButton.IsEnabled = false;
+            TemplateSelectionErrorText.Text = "JSON-файл выбранного шаблона не найден.";
+            return;
         }
-        else
+
+        try
         {
             TemplateDefinition definition = _templateDefinitionService.Load(template.JsonPath);
             string? templateError = GetTemplateError(template, definition);
+
+            if (templateError is not null)
+            {
+                TemplateSelectionErrorText.Text = templateError;
+                return;
+            }
+
             _selectedTemplate = template;
             _selectedDefinition = definition;
-
-            TemplateWidthText.Text = $"Ширина: {definition.Width}";
-            TemplateHeightText.Text = $"Высота: {definition.Height}";
-            TemplatePhotosText.Text = $"Количество снимков: {definition.RequiredShotCount}";
-            TemplateOverlayText.Text = $"Overlay: {definition.Overlay ?? "не указан"}";
-            TemplateStatusText.Text = templateError ?? "Шаблон готов.";
-            TemplateStatusText.Foreground = templateError is null ? Brushes.LightGreen : Brushes.LightSalmon;
-            ContinueButton.IsEnabled = templateError is null;
+            TemplateSelectionErrorText.Text = string.Empty;
+            PrepareCaptureScreen();
         }
-
-        TemplatesPanel.Visibility = Visibility.Collapsed;
-        TemplateDetailsPanel.Visibility = Visibility.Visible;
+        catch (Exception exception)
+        {
+            TemplateSelectionErrorText.Text = $"Не удалось прочитать шаблон: {exception.Message}";
+        }
     }
 
     private static string? GetTemplateError(TemplateInfo template, TemplateDefinition definition)
@@ -332,7 +349,7 @@ public partial class MainWindow : Window
         return null;
     }
 
-    private void StartCountdown()
+    private void PrepareCaptureScreen()
     {
         _completionTimer.Stop();
         _printCompletionTimer.Stop();
@@ -365,13 +382,12 @@ public partial class MainWindow : Window
                 _selectedDefinition.RequiredShotCount);
             _currentShotNumber = 1;
 
-            string framePreviewPath = _selectedTemplate.PreviewPath ??
-                Path.Combine(_selectedTemplate.FolderPath, _selectedDefinition.Overlay!);
-            SelectedFramePreviewImage.Source = LoadImage(framePreviewPath);
-            CaptureTemplateNameText.Text = _selectedTemplate.Name;
             DemoPreviewBadge.Visibility = _cameraService.IsDemo
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+            LivePreviewImage.Source = LoadImage(_preparedShots[0]);
+            CaptureReadyTitleText.Text = _selectedTemplate.Name;
+            UpdateCaptureProgress();
         }
         catch (Exception exception)
         {
@@ -379,7 +395,12 @@ public partial class MainWindow : Window
             return;
         }
 
-        StartCurrentShotCountdown();
+        HomePanel.Visibility = Visibility.Collapsed;
+        TemplatesPanel.Visibility = Visibility.Collapsed;
+        PreviewPanel.Visibility = Visibility.Collapsed;
+        CaptureReadyOverlay.Visibility = Visibility.Visible;
+        CountdownOverlay.Visibility = Visibility.Collapsed;
+        CountdownPanel.Visibility = Visibility.Visible;
     }
 
     private void StartCurrentShotCountdown()
@@ -387,14 +408,27 @@ public partial class MainWindow : Window
         _countdownValue = InitialCountdownValue;
         CountdownText.Text = _countdownValue.ToString();
         CountdownText.FontSize = 112;
-        CountdownCaption.Text = $"Кадр {_currentShotNumber} из {_selectedDefinition!.RequiredShotCount}";
+        CountdownCaption.Text = "Смотрите в объектив";
+        UpdateCaptureProgress();
         LivePreviewImage.Source = LoadImage(_preparedShots[_currentShotNumber - 1]);
 
-        TemplateDetailsPanel.Visibility = Visibility.Collapsed;
+        CaptureReadyOverlay.Visibility = Visibility.Collapsed;
+        CountdownOverlay.Visibility = Visibility.Visible;
         PreviewPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Visible;
 
         _countdownTimer.Start();
+    }
+
+    private void UpdateCaptureProgress()
+    {
+        int shotCount = _selectedDefinition?.RequiredShotCount ?? 0;
+        CaptureProgressText.Text = $"СЪЁМКА {_currentShotNumber} ИЗ {shotCount}";
+        CaptureStatusPhotoText.Text = $"{_currentShotNumber} из {shotCount}";
+        CaptureProgressDots.ItemsSource = Enumerable
+            .Range(1, shotCount)
+            .Select(shotNumber => shotNumber <= _currentShotNumber)
+            .ToList();
     }
 
     private void CountdownTimer_Tick(object? sender, EventArgs e)
@@ -469,7 +503,7 @@ public partial class MainWindow : Window
 
     private void RetakeButton_Click(object sender, RoutedEventArgs e)
     {
-        StartCountdown();
+        PrepareCaptureScreen();
     }
 
     private void PreviewHomeButton_Click(object sender, RoutedEventArgs e)
@@ -579,9 +613,8 @@ public partial class MainWindow : Window
         _printCompletionTimer.Stop();
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
-        TemplateDetailsPanel.Visibility = Visibility.Visible;
-        TemplateStatusText.Text = $"Ошибка: {message}";
-        TemplateStatusText.Foreground = Brushes.LightSalmon;
+        TemplatesPanel.Visibility = Visibility.Visible;
+        TemplateSelectionErrorText.Text = $"Ошибка: {message}";
     }
 
     private void ExitButton_Click(object sender, RoutedEventArgs e)
@@ -647,12 +680,12 @@ public partial class MainWindow : Window
 
         TemplatesPanel.Visibility = Visibility.Collapsed;
         HistoryPanel.Visibility = Visibility.Collapsed;
-        TemplateDetailsPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         ResultPreviewImage.Source = null;
         LivePreviewImage.Source = null;
-        SelectedFramePreviewImage.Source = null;
+        TemplatePreviewImage.Source = null;
+        TemplatePreviewOverlay.Visibility = Visibility.Collapsed;
         _isHistoryPreview = false;
         SessionPanel.Visibility = Visibility.Collapsed;
         ActiveSessionText.Text = _activeSession is null ? string.Empty : $"Сессия: {_activeSession.Name}";
