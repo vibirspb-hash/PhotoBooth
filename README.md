@@ -14,12 +14,13 @@ The first milestone is a clean foundation:
 Each matching pair such as `1.json` + `1.png` is shown as a separate selectable frame.
 In demo mode the app:
 
-1. takes the required number of images from `DemoPhotos`;
-2. creates numbered placeholders when `DemoPhotos` is empty;
-3. saves session originals under `Output/<timestamp>/Originals`;
-4. crops and places every shot according to the template JSON;
-5. saves `result.png` and shows it before the simulated print step.
-6. lets the guest choose one, two, or three print copies.
+1. creates a named event session or continues the previous session after a restart;
+2. takes the required number of images from `DemoPhotos`;
+3. creates numbered placeholders when `DemoPhotos` is empty;
+4. saves originals under `Output/<session>/Photos/<capture>`;
+5. crops and places every shot according to the template JSON;
+6. saves finished collages under `Output/<session>/Prints`;
+7. shows the collage and lets the guest choose one, two, or three print copies.
 
 ## Development Notes
 

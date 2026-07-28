@@ -21,12 +21,17 @@ public partial class MainWindow : Window
     private readonly AppConfig _config;
     private readonly DemoPhotoService _demoPhotoService;
     private readonly ImageComposer _imageComposer;
+    private readonly SessionManager _sessionManager;
     private readonly TemplateDefinitionService _templateDefinitionService;
     private readonly TemplateManager _templateManager;
+    private readonly string _outputRootPath;
     private int _countdownValue = InitialCountdownValue;
     private int _copyCount = 1;
     private int _currentShotNumber;
+    private string _currentCaptureId = string.Empty;
+    private PhotoSession? _activeSession;
     private IReadOnlyList<string> _preparedShots = [];
+    private PhotoSession? _recoverableSession;
     private TemplateDefinition? _selectedDefinition;
     private TemplateInfo? _selectedTemplate;
 
@@ -37,8 +42,10 @@ public partial class MainWindow : Window
         _config = new ConfigService().Load();
         _demoPhotoService = new DemoPhotoService();
         _imageComposer = new ImageComposer();
+        _sessionManager = new SessionManager();
         _templateDefinitionService = new TemplateDefinitionService();
         _templateManager = new TemplateManager();
+        _outputRootPath = ResolveAppPath(_config.OutputPath);
 
         _countdownTimer = new DispatcherTimer
         {
@@ -60,6 +67,96 @@ public partial class MainWindow : Window
         };
 
         _printCompletionTimer.Tick += PrintCompletionTimer_Tick;
+
+        ShowSessionStartup();
+    }
+
+    private void ShowSessionStartup()
+    {
+        _recoverableSession = _sessionManager.LoadActiveSession(_outputRootPath);
+        SessionErrorText.Text = string.Empty;
+        HomePanel.Visibility = Visibility.Collapsed;
+        TemplatesPanel.Visibility = Visibility.Collapsed;
+        SessionPanel.Visibility = Visibility.Visible;
+
+        if (_recoverableSession is null)
+        {
+            ShowNewSessionForm();
+            return;
+        }
+
+        CurrentSessionNameText.Text =
+            $"{_recoverableSession.Name}\n" +
+            $"с {_recoverableSession.StartedAt:dd.MM.yyyy HH:mm}";
+        NewSessionPanel.Visibility = Visibility.Collapsed;
+        CurrentSessionPanel.Visibility = Visibility.Visible;
+    }
+
+    private void ContinueSessionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_recoverableSession is null)
+        {
+            ShowNewSessionForm();
+            return;
+        }
+
+        ActivateSession(_recoverableSession);
+    }
+
+    private void ShowNewSessionButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowNewSessionForm();
+    }
+
+    private void ShowNewSessionForm()
+    {
+        CurrentSessionPanel.Visibility = Visibility.Collapsed;
+        NewSessionPanel.Visibility = Visibility.Visible;
+        SessionNameTextBox.Text = string.Empty;
+        SessionErrorText.Text = string.Empty;
+        SessionNameTextBox.Focus();
+    }
+
+    private void CreateSessionButton_Click(object sender, RoutedEventArgs e)
+    {
+        CreateAndActivateSession();
+    }
+
+    private void SessionNameTextBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            CreateAndActivateSession();
+        }
+    }
+
+    private void CreateAndActivateSession()
+    {
+        try
+        {
+            PhotoSession session = _sessionManager.CreateSession(
+                _outputRootPath,
+                SessionNameTextBox.Text);
+            ActivateSession(session);
+        }
+        catch (Exception exception)
+        {
+            SessionErrorText.Text = exception.Message;
+        }
+    }
+
+    private void ActivateSession(PhotoSession session)
+    {
+        _activeSession = session;
+        _recoverableSession = session;
+        ActiveSessionText.Text = $"Сессия: {session.Name}";
+        SessionPanel.Visibility = Visibility.Collapsed;
+        HomePanel.Visibility = Visibility.Visible;
+    }
+
+    private void ChangeSessionButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowSessionStartup();
     }
 
     private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -190,12 +287,19 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (_activeSession is null)
+        {
+            ShowSessionStartup();
+            return;
+        }
+
         try
         {
-            string sessionPath = Path.Combine(
-                ResolveAppPath(_config.OutputPath),
-                DateTime.Now.ToString("yyyyMMdd-HHmmss-fff"));
-            string originalsPath = Path.Combine(sessionPath, "Originals");
+            _currentCaptureId = DateTime.Now.ToString("yyyyMMdd-HHmmss-fff");
+            string originalsPath = Path.Combine(
+                _activeSession.FolderPath,
+                "Photos",
+                _currentCaptureId);
 
             _preparedShots = _demoPhotoService.PrepareShots(
                 ResolveAppPath(_config.DemoPhotosPath),
@@ -273,10 +377,11 @@ public partial class MainWindow : Window
 
         try
         {
-            string originalsPath = Path.GetDirectoryName(_preparedShots[0])!;
-            string sessionPath = Directory.GetParent(originalsPath)!.FullName;
             string overlayPath = Path.Combine(_selectedTemplate.FolderPath, _selectedDefinition.Overlay!);
-            string resultPath = Path.Combine(sessionPath, "result.png");
+            string resultPath = Path.Combine(
+                _activeSession!.FolderPath,
+                "Prints",
+                $"{_currentCaptureId}.png");
 
             _imageComposer.Compose(
                 _selectedDefinition,
@@ -394,6 +499,8 @@ public partial class MainWindow : Window
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         ResultPreviewImage.Source = null;
+        SessionPanel.Visibility = Visibility.Collapsed;
+        ActiveSessionText.Text = _activeSession is null ? string.Empty : $"Сессия: {_activeSession.Name}";
         HomePanel.Visibility = Visibility.Visible;
     }
 
