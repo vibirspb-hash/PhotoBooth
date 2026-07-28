@@ -103,6 +103,163 @@
             <Setter Property="Padding" Value="18,12" />
         </Style>
 
+        <LinearGradientBrush x:Key="TemplatesBackgroundBrush"
+                             StartPoint="0,0"
+                             EndPoint="1,1">
+            <GradientStop Color="#BED8FF" Offset="0" />
+            <GradientStop Color="#D2C9FF" Offset="0.32" />
+            <GradientStop Color="#E6CEFF" Offset="0.52" />
+            <GradientStop Color="#FFD3EA" Offset="0.76" />
+            <GradientStop Color="#FFE3C5" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="TemplatesGlassButtonStyle"
+               TargetType="Button">
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="#24FFFFFF" />
+            <Setter Property="BorderBrush" Value="#70FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="20,13" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="24">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#40FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#58FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Opacity"
+                                        Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TemplateListItemStyle"
+               TargetType="ListBoxItem">
+            <Setter Property="Width" Value="216" />
+            <Setter Property="Height" Value="382" />
+            <Setter Property="Margin" Value="9" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Grid>
+                            <Border x:Name="CardBorder"
+                                    Background="#20FFFFFF"
+                                    BorderBrush="#76FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="30">
+                                <ContentPresenter Margin="18" />
+                            </Border>
+
+                            <Border x:Name="SelectedBadge"
+                                    Width="42"
+                                    Height="42"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Margin="0,16,16,0"
+                                    Background="White"
+                                    CornerRadius="21"
+                                    Visibility="Collapsed">
+                                <TextBlock Text="&#xE73E;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="22"
+                                           FontWeight="SemiBold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CardBorder"
+                                        Property="Background"
+                                        Value="#32FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="CardBorder"
+                                        Property="Background"
+                                        Value="#32FFFFFF" />
+                                <Setter TargetName="CardBorder"
+                                        Property="BorderBrush"
+                                        Value="White" />
+                                <Setter TargetName="CardBorder"
+                                        Property="BorderThickness"
+                                        Value="2" />
+                                <Setter TargetName="SelectedBadge"
+                                        Property="Visibility"
+                                        Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TemplatesPrimaryButtonStyle"
+               TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#90FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="25">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0"
+                                                     EndPoint="1,0">
+                                    <GradientStop Color="#B05A7FFF" Offset="0" />
+                                    <GradientStop Color="#B0B16CFF" Offset="0.48" />
+                                    <GradientStop Color="#B0FF6EC7" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Opacity"
+                                        Value="0.84" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Opacity"
+                                        Value="0.42" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="CopyOptionStyle"
                TargetType="RadioButton">
             <Setter Property="Width" Value="72" />
@@ -576,78 +733,173 @@
 
         <Grid x:Name="TemplatesPanel"
               Visibility="Collapsed"
-              Margin="80">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+              Background="{StaticResource TemplatesBackgroundBrush}">
+            <Grid>
+                <Ellipse Width="740"
+                         Height="740"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Bottom"
+                         Margin="-280,0,0,-360"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#705AA7FF" Offset="0" />
+                            <GradientStop Color="#005AA7FF" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
 
-            <TextBlock Text="Выберите шаблон"
-                       Foreground="White"
-                       FontSize="42"
-                       FontWeight="Bold"
-                       TextAlignment="Center"
-                       Margin="0,0,0,32" />
+                <Ellipse Width="620"
+                         Height="620"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Margin="0,-270,-170,0"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#68FF6EC7" Offset="0" />
+                            <GradientStop Color="#00FF6EC7" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
 
-            <ScrollViewer Grid.Row="1"
-                          VerticalScrollBarVisibility="Auto">
+            <Grid Margin="34,30">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
                 <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Click="BackToHomeButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="25"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="Назад"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="Выбор макета"
+                                   Foreground="#172238"
+                                   FontSize="40"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Выберите подходящий макет для печати"
+                                   Foreground="#5E6B83"
+                                   FontSize="20"
+                                   TextAlignment="Center"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+
+                    <Button x:Name="TemplatePreviewButton"
+                            Grid.Column="2"
+                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Click="TemplateSelectionContinueButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE80A;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="25"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="Предпросмотр"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <Grid Grid.Row="1"
+                      Margin="0,22,0,18">
                     <TextBlock x:Name="NoTemplatesText"
                                Text="Пары PNG + JSON не найдены"
-                               Foreground="#C9CED8"
+                               Foreground="#5E6B83"
                                FontSize="24"
                                TextAlignment="Center"
+                               VerticalAlignment="Center"
                                Visibility="Collapsed" />
 
-                    <ItemsControl x:Name="TemplatesList">
-                        <ItemsControl.ItemsPanel>
+                    <ListBox x:Name="TemplatesList"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             SelectionMode="Single"
+                             ItemContainerStyle="{StaticResource TemplateListItemStyle}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel HorizontalAlignment="Center" />
                             </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Button Width="230"
-                                        Height="330"
-                                        Margin="10"
-                                        Padding="10"
-                                        Click="TemplateButton_Click">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="*" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
-                                        <Border Background="White"
-                                                BorderBrush="#D5D8DE"
-                                                BorderThickness="1">
-                                            <Image Source="{Binding PreviewPath}"
-                                                   Stretch="Uniform" />
-                                        </Border>
+                                    <Border Background="#D8FFFFFF"
+                                            BorderBrush="#80FFFFFF"
+                                            BorderThickness="1"
+                                            CornerRadius="16"
+                                            Padding="10">
+                                        <Image Source="{Binding PreviewPath}"
+                                               Stretch="Uniform" />
+                                    </Border>
 
-                                        <TextBlock Grid.Row="1"
-                                                   Text="{Binding Name}"
-                                                   FontSize="24"
-                                                   FontWeight="SemiBold"
-                                                   TextAlignment="Center"
-                                                   Margin="0,12,0,0" />
-                                    </Grid>
-                                </Button>
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding PhotoCountText}"
+                                               Foreground="#172238"
+                                               FontSize="25"
+                                               FontWeight="SemiBold"
+                                               TextAlignment="Center"
+                                               Margin="0,14,0,0" />
+
+                                    <TextBlock Grid.Row="2"
+                                               Text="{Binding Name}"
+                                               Foreground="#5E6B83"
+                                               FontSize="17"
+                                               TextAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="0,6,0,0" />
+                                </Grid>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Grid>
-            </ScrollViewer>
 
-            <Button Grid.Row="2"
-                    Content="Назад"
-                    Width="220"
-                    Height="52"
-                    FontSize="18"
-                    HorizontalAlignment="Center"
-                    Margin="0,24,0,0"
-                    Click="BackToHomeButton_Click" />
+                <Button x:Name="TemplateSelectionContinueButton"
+                        Grid.Row="2"
+                        Width="760"
+                        Height="76"
+                        HorizontalAlignment="Center"
+                        Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                        Click="TemplateSelectionContinueButton_Click">
+                    <Grid Margin="34,0">
+                        <TextBlock Text="Продолжить"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="&#xE72A;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="31"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                </Button>
+            </Grid>
         </Grid>
 
         <Grid x:Name="TemplateDetailsPanel"

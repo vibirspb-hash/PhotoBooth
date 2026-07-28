@@ -25,6 +25,7 @@ public sealed class TemplateManager
     {
         string folderPath = Path.GetDirectoryName(jsonPath)!;
         string templateName = Path.GetFileNameWithoutExtension(jsonPath);
+        int requiredShotCount = LoadRequiredShotCount(jsonPath);
         string? overlayPath = Directory
             .EnumerateFiles(folderPath, "*.png")
             .FirstOrDefault(path =>
@@ -43,7 +44,22 @@ public sealed class TemplateManager
             Name = templateName,
             FolderPath = folderPath,
             PreviewPath = overlayPath,
-            JsonPath = jsonPath
+            JsonPath = jsonPath,
+            RequiredShotCount = requiredShotCount
         };
+    }
+
+    private static int LoadRequiredShotCount(string jsonPath)
+    {
+        try
+        {
+            return new TemplateDefinitionService()
+                .Load(jsonPath)
+                .RequiredShotCount;
+        }
+        catch
+        {
+            return 0;
+        }
     }
 }

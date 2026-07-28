@@ -177,8 +177,11 @@ public partial class MainWindow : Window
         IReadOnlyList<TemplateInfo> templates = _templateManager.GetTemplates(templatesPath);
 
         TemplatesList.ItemsSource = templates;
+        TemplatesList.SelectedIndex = templates.Count > 0 ? 0 : -1;
         TemplatesList.Visibility = templates.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         NoTemplatesText.Visibility = templates.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        TemplateSelectionContinueButton.IsEnabled = templates.Count > 0;
+        TemplatePreviewButton.IsEnabled = templates.Count > 0;
 
         HomePanel.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Visible;
@@ -227,9 +230,9 @@ public partial class MainWindow : Window
         ShowHomeScreen();
     }
 
-    private void TemplateButton_Click(object sender, RoutedEventArgs e)
+    private void TemplateSelectionContinueButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: TemplateInfo template })
+        if (TemplatesList.SelectedItem is not TemplateInfo template)
         {
             return;
         }
