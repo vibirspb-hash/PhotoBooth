@@ -1349,5 +1349,374 @@
                         Click="PrintButton_Click" />
             </StackPanel>
         </Grid>
+
+        <Grid x:Name="PrintProgressPanel"
+              Visibility="Collapsed"
+              Background="{StaticResource TemplatesBackgroundBrush}">
+            <Grid>
+                <Ellipse Width="760"
+                         Height="760"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Bottom"
+                         Margin="-310,0,0,-390"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#665AA7FF" Offset="0" />
+                            <GradientStop Color="#005AA7FF" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <Ellipse Width="680"
+                         Height="680"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Margin="0,-300,-210,0"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#60FF6EC7" Offset="0" />
+                            <GradientStop Color="#00FF6EC7" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+
+            <Grid Margin="34,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button HorizontalAlignment="Left"
+                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Click="PrintProgressBackButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="25"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="Назад"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="Печать фотографий"
+                                   Foreground="#172238"
+                                   FontSize="38"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Пожалуйста, не отключайте устройство"
+                                   Foreground="#68758C"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <Border Grid.Column="2"
+                            HorizontalAlignment="Right"
+                            Padding="22,13"
+                            Background="#24FFFFFF"
+                            BorderBrush="#70FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="24">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE749;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="28"
+                                       Margin="0,0,11,0" />
+                            <TextBlock x:Name="PrintProgressPrinterNameText"
+                                       Text="Принтер"
+                                       Foreground="#172238"
+                                       FontSize="19"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <Grid Grid.Row="1"
+                      Margin="70,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="220" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Width="200"
+                            Height="210"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Padding="24"
+                            Background="#32FFFFFF"
+                            BorderBrush="#70FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="28">
+                        <StackPanel VerticalAlignment="Center">
+                            <Border Width="54"
+                                    Height="54"
+                                    HorizontalAlignment="Left"
+                                    Background="#30FFFFFF"
+                                    BorderBrush="#75FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="27"
+                                    Margin="0,0,0,18">
+                                <TextBlock Text="&#xE7F4;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="27"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="Макет"
+                                       Foreground="#172238"
+                                       FontSize="18"
+                                       FontWeight="SemiBold" />
+                            <TextBlock x:Name="PrintProgressTemplateText"
+                                       Text="Фотография"
+                                       Foreground="#68758C"
+                                       FontSize="16"
+                                       TextTrimming="CharacterEllipsis"
+                                       Margin="0,6,0,0" />
+                            <TextBlock x:Name="PrintProgressCopiesText"
+                                       Text="1 копия"
+                                       Foreground="#68758C"
+                                       FontSize="16"
+                                       Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Grid.Column="1"
+                          Width="390"
+                          Height="390"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center">
+                        <Ellipse Margin="14"
+                                 Stroke="#55FFFFFF"
+                                 StrokeThickness="12" />
+                        <Path x:Name="PrintProgressArc"
+                              StrokeThickness="12"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round"
+                              Data="M 195,18 A 177,177 0 1 1 52,302">
+                            <Path.Stroke>
+                                <LinearGradientBrush StartPoint="0,0"
+                                                     EndPoint="1,1">
+                                    <GradientStop Color="#FF6EC7" Offset="0" />
+                                    <GradientStop Color="#B16CFF" Offset="0.52" />
+                                    <GradientStop Color="#5AA7FF" Offset="1" />
+                                </LinearGradientBrush>
+                            </Path.Stroke>
+                        </Path>
+
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                            <Border Width="82"
+                                    Height="82"
+                                    HorizontalAlignment="Center"
+                                    Background="#2AFFFFFF"
+                                    BorderBrush="#70FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="41"
+                                    Margin="0,0,0,12">
+                                <TextBlock Text="&#xE749;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="42"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+
+                            <TextBlock x:Name="PrintProgressStatusText"
+                                       Text="Печатаем ваш макет"
+                                       Foreground="#68758C"
+                                       FontSize="19"
+                                       TextAlignment="Center" />
+
+                            <TextBlock x:Name="PrintProgressPercentText"
+                                       Text="68%"
+                                       Foreground="#172238"
+                                       FontSize="70"
+                                       FontWeight="SemiBold"
+                                       LineHeight="76"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Column="2"
+                            Width="200"
+                            Height="210"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Padding="24"
+                            Background="#32FFFFFF"
+                            BorderBrush="#70FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="28">
+                        <StackPanel VerticalAlignment="Center">
+                            <Border Width="54"
+                                    Height="54"
+                                    HorizontalAlignment="Left"
+                                    Background="#30FFFFFF"
+                                    BorderBrush="#75FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="27"
+                                    Margin="0,0,0,18">
+                                <TextBlock Text="&#xE823;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="27"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="Примерное время"
+                                       Foreground="#172238"
+                                       FontSize="18"
+                                       FontWeight="SemiBold" />
+                            <TextBlock x:Name="PrintProgressTimeText"
+                                       Text="00:20"
+                                       Foreground="#172238"
+                                       FontSize="27"
+                                       Margin="0,6,0,0" />
+                            <TextBlock Text="до завершения"
+                                       Foreground="#68758C"
+                                       FontSize="16"
+                                       Margin="0,3,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <Border Grid.Row="2"
+                        Width="900"
+                        Padding="24,15"
+                        HorizontalAlignment="Center"
+                        Background="#32FFFFFF"
+                        BorderBrush="#70FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="28">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="1" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="1" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="1" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center">
+                            <TextBlock Text="&#xE73E;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="23"
+                                       Margin="0,0,9,0" />
+                            <StackPanel>
+                                <TextBlock Text="Подготовка"
+                                           Foreground="#172238"
+                                           FontSize="15" />
+                                <TextBlock Text="Завершено"
+                                           Foreground="#68758C"
+                                           FontSize="13" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Grid.Column="1"
+                                Background="#55FFFFFF" />
+
+                        <StackPanel Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Center">
+                            <TextBlock Text="&#xE73E;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="23"
+                                       Margin="0,0,9,0" />
+                            <StackPanel>
+                                <TextBlock Text="Передача"
+                                           Foreground="#172238"
+                                           FontSize="15" />
+                                <TextBlock Text="Завершено"
+                                           Foreground="#68758C"
+                                           FontSize="13" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Grid.Column="3"
+                                Background="#55FFFFFF" />
+
+                        <StackPanel Grid.Column="4"
+                                    HorizontalAlignment="Center">
+                            <TextBlock Text="Печать"
+                                       Foreground="#172238"
+                                       FontSize="15"
+                                       TextAlignment="Center" />
+                            <TextBlock x:Name="PrintProgressPhaseText"
+                                       Text="В процессе"
+                                       Foreground="#7B61FF"
+                                       FontSize="13"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+
+                        <Border Grid.Column="5"
+                                Background="#55FFFFFF" />
+
+                        <StackPanel Grid.Column="6"
+                                    HorizontalAlignment="Center">
+                            <TextBlock Text="Завершение"
+                                       Foreground="#172238"
+                                       FontSize="15"
+                                       TextAlignment="Center" />
+                            <TextBlock x:Name="PrintCompletionPhaseText"
+                                       Text="Ожидание"
+                                       Foreground="#68758C"
+                                       FontSize="13"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <StackPanel Grid.Row="3"
+                            HorizontalAlignment="Center"
+                            Margin="0,14,0,0">
+                    <Button x:Name="PrintNextPhotoButton"
+                            Width="560"
+                            Height="68"
+                            Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                            Click="PrintNextPhotoButton_Click">
+                        <Grid Margin="28,0">
+                            <TextBlock Text="Следующее фото"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xE72A;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="29"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Button>
+
+                    <TextBlock Text="Задание останется в очереди принтера"
+                               Foreground="#68758C"
+                               FontSize="14"
+                               TextAlignment="Center"
+                               Margin="0,8,0,0" />
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

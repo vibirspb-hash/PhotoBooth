@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using PhotoBooth.Models;
@@ -87,6 +88,7 @@ public partial class MainWindow : Window
         HomePanel.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Collapsed;
         HistoryPanel.Visibility = Visibility.Collapsed;
+        PrintProgressPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         SessionPanel.Visibility = Visibility.Visible;
 
@@ -211,6 +213,7 @@ public partial class MainWindow : Window
         HomePanel.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
+        PrintProgressPanel.Visibility = Visibility.Collapsed;
         ResultPreviewImage.Source = null;
         HistoryPanel.Visibility = Visibility.Visible;
     }
@@ -546,6 +549,7 @@ public partial class MainWindow : Window
 
         if (result.Success)
         {
+            ShowPrintProgress();
             _printCompletionTimer.Start();
             return;
         }
@@ -578,6 +582,49 @@ public partial class MainWindow : Window
     private void PrintCompletionTimer_Tick(object? sender, EventArgs e)
     {
         _printCompletionTimer.Stop();
+        PrintProgressPercentText.Text = "100%";
+        PrintProgressArc.Data = Geometry.Parse(
+            "M 195,18 A 177,177 0 1 1 195,372 A 177,177 0 1 1 195,18");
+        PrintProgressStatusText.Text = "Задание передано принтеру";
+        PrintProgressTimeText.Text = "00:00";
+        PrintProgressPhaseText.Text = "Завершено";
+        PrintProgressPhaseText.Foreground = new SolidColorBrush(
+            Color.FromRgb(123, 97, 255));
+        PrintCompletionPhaseText.Text = "Завершено";
+        PrintCompletionPhaseText.Foreground = new SolidColorBrush(
+            Color.FromRgb(123, 97, 255));
+    }
+
+    private void ShowPrintProgress()
+    {
+        PrintProgressPrinterNameText.Text = _printerService.DisplayName;
+        PrintProgressTemplateText.Text = _isHistoryPreview
+            ? "Повторная печать"
+            : _selectedTemplate?.Name ?? "Фотография";
+        PrintProgressCopiesText.Text =
+            _copyCount == 1 ? "1 копия" : $"{_copyCount} копии";
+        PrintProgressPercentText.Text = "68%";
+        PrintProgressArc.Data = Geometry.Parse(
+            "M 195,18 A 177,177 0 1 1 52,302");
+        PrintProgressStatusText.Text = "Печатаем ваш макет";
+        PrintProgressTimeText.Text = _printerService.IsDemo ? "00:03" : "00:20";
+        PrintProgressPhaseText.Text = "В процессе";
+        PrintProgressPhaseText.Foreground = new SolidColorBrush(
+            Color.FromRgb(123, 97, 255));
+        PrintCompletionPhaseText.Text = "Ожидание";
+        PrintCompletionPhaseText.Foreground = new SolidColorBrush(
+            Color.FromRgb(104, 117, 140));
+        PrintNextPhotoButton.Content = _isHistoryPreview
+            ? "К истории"
+            : "Следующее фото";
+
+        PreviewPanel.Visibility = Visibility.Collapsed;
+        PrintProgressPanel.Visibility = Visibility.Visible;
+    }
+
+    private void PrintNextPhotoButton_Click(object sender, RoutedEventArgs e)
+    {
+        _printCompletionTimer.Stop();
 
         if (_isHistoryPreview)
         {
@@ -586,6 +633,11 @@ public partial class MainWindow : Window
         }
 
         ShowHomeScreen();
+    }
+
+    private void PrintProgressBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        PrintNextPhotoButton_Click(sender, e);
     }
 
     private void ShowResultPreview(string resultPath)
@@ -603,6 +655,7 @@ public partial class MainWindow : Window
         RetakeButton.Visibility = _isHistoryPreview ? Visibility.Collapsed : Visibility.Visible;
 
         HistoryPanel.Visibility = Visibility.Collapsed;
+        PrintProgressPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Visible;
     }
 
@@ -680,6 +733,7 @@ public partial class MainWindow : Window
 
         TemplatesPanel.Visibility = Visibility.Collapsed;
         HistoryPanel.Visibility = Visibility.Collapsed;
+        PrintProgressPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         ResultPreviewImage.Source = null;
