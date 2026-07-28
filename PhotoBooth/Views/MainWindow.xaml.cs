@@ -306,6 +306,14 @@ public partial class MainWindow : Window
                 originalsPath,
                 _selectedDefinition.RequiredShotCount);
             _currentShotNumber = 1;
+
+            string framePreviewPath = _selectedTemplate.PreviewPath ??
+                Path.Combine(_selectedTemplate.FolderPath, _selectedDefinition.Overlay!);
+            SelectedFramePreviewImage.Source = LoadImage(framePreviewPath);
+            CaptureTemplateNameText.Text = _selectedTemplate.Name;
+            DemoPreviewBadge.Visibility = _config.DemoMode
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
         catch (Exception exception)
         {
@@ -320,8 +328,9 @@ public partial class MainWindow : Window
     {
         _countdownValue = InitialCountdownValue;
         CountdownText.Text = _countdownValue.ToString();
-        CountdownText.FontSize = 180;
+        CountdownText.FontSize = 112;
         CountdownCaption.Text = $"Кадр {_currentShotNumber} из {_selectedDefinition!.RequiredShotCount}";
+        LivePreviewImage.Source = LoadImage(_preparedShots[_currentShotNumber - 1]);
 
         TemplateDetailsPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
@@ -389,14 +398,7 @@ public partial class MainWindow : Window
                 _preparedShots,
                 resultPath);
 
-            BitmapImage preview = new();
-            preview.BeginInit();
-            preview.CacheOption = BitmapCacheOption.OnLoad;
-            preview.UriSource = new Uri(resultPath, UriKind.Absolute);
-            preview.EndInit();
-            preview.Freeze();
-
-            ResultPreviewImage.Source = preview;
+            ResultPreviewImage.Source = LoadImage(resultPath);
             _copyCount = 1;
             CopyOneOption.IsChecked = true;
             UpdatePrintButtonText();
@@ -499,6 +501,8 @@ public partial class MainWindow : Window
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         ResultPreviewImage.Source = null;
+        LivePreviewImage.Source = null;
+        SelectedFramePreviewImage.Source = null;
         SessionPanel.Visibility = Visibility.Collapsed;
         ActiveSessionText.Text = _activeSession is null ? string.Empty : $"Сессия: {_activeSession.Name}";
         HomePanel.Visibility = Visibility.Visible;
@@ -512,5 +516,16 @@ public partial class MainWindow : Window
         }
 
         return Path.Combine(AppContext.BaseDirectory, path);
+    }
+
+    private static BitmapImage LoadImage(string path)
+    {
+        BitmapImage image = new();
+        image.BeginInit();
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.UriSource = new Uri(path, UriKind.Absolute);
+        image.EndInit();
+        image.Freeze();
+        return image;
     }
 }

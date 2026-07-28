@@ -307,7 +307,7 @@
                         Margin="0,0,16,0"
                         Click="BackToTemplatesButton_Click" />
 
-                <Button Content="Продолжить"
+                <Button Content="Снять фото"
                         x:Name="ContinueButton"
                         Width="220"
                         Height="52"
@@ -318,23 +318,95 @@
         </Grid>
 
         <Grid x:Name="CountdownPanel"
-              Visibility="Collapsed">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                <TextBlock x:Name="CountdownText"
-                           Text="3"
-                           Foreground="White"
-                           FontSize="180"
-                           FontWeight="Bold"
-                           TextAlignment="Center" />
+              Visibility="Collapsed"
+              Margin="24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="280" />
+            </Grid.ColumnDefinitions>
 
-                <TextBlock x:Name="CountdownCaption"
-                           Text="Приготовьтесь"
+            <Border Grid.Column="0"
+                    Background="Black"
+                    BorderBrush="#343945"
+                    BorderThickness="1"
+                    ClipToBounds="True">
+                <Grid>
+                    <Image x:Name="LivePreviewImage"
+                           Stretch="Uniform"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch" />
+
+                    <Border x:Name="DemoPreviewBadge"
+                            Background="#B2111318"
+                            CornerRadius="4"
+                            Padding="10,6"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Margin="16">
+                        <TextBlock Text="ДЕМО-ПРЕВЬЮ"
+                                   Foreground="White"
+                                   FontSize="14"
+                                   FontWeight="SemiBold" />
+                    </Border>
+
+                    <Border Background="#78000000"
+                            CornerRadius="4"
+                            Padding="22,10"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Margin="0,24,0,0">
+                        <StackPanel>
+                            <TextBlock x:Name="CountdownText"
+                                       Text="3"
+                                       Foreground="White"
+                                       FontSize="112"
+                                       FontWeight="Bold"
+                                       LineHeight="112"
+                                       TextAlignment="Center" />
+
+                            <TextBlock x:Name="CountdownCaption"
+                                       Text="Приготовьтесь"
+                                       Foreground="White"
+                                       FontSize="22"
+                                       TextAlignment="Center"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="1"
+                  Margin="20,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Выбранная рамка"
                            Foreground="#C9CED8"
-                           FontSize="28"
+                           FontSize="20"
                            TextAlignment="Center"
-                           Margin="0,24,0,0" />
-            </StackPanel>
+                           Margin="0,0,0,14" />
+
+                <Border Grid.Row="1"
+                        Background="White"
+                        BorderBrush="#343945"
+                        BorderThickness="1"
+                        Padding="6">
+                    <Image x:Name="SelectedFramePreviewImage"
+                           Stretch="Uniform" />
+                </Border>
+
+                <TextBlock x:Name="CaptureTemplateNameText"
+                           Grid.Row="2"
+                           Foreground="White"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           Margin="0,14,0,0" />
+            </Grid>
         </Grid>
 
         <Grid x:Name="PreviewPanel"

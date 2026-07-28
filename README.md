@@ -17,10 +17,12 @@ In demo mode the app:
 1. creates a named event session or continues the previous session after a restart;
 2. takes the required number of images from `DemoPhotos`;
 3. creates numbered placeholders when `DemoPhotos` is empty;
-4. saves originals under `Output/<session>/Photos/<capture>`;
-5. crops and places every shot according to the template JSON;
-6. saves finished collages under `Output/<session>/Prints`;
-7. shows the collage and lets the guest choose one, two, or three print copies.
+4. shows a camera-style framing screen with the countdown over the live/demo preview;
+5. keeps the selected frame visible beside the camera preview;
+6. saves originals under `Output/<session>/Photos/<capture>`;
+7. crops and places every shot according to the template JSON;
+8. saves finished collages under `Output/<session>/Prints`;
+9. shows the collage and lets the guest choose one, two, or three print copies.
 
 ## Development Notes
 
