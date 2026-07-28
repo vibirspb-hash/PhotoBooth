@@ -24,6 +24,9 @@ In demo mode the app:
 8. saves finished collages under `Output/<session>/Prints`;
 9. shows the collage and lets the guest choose one, two, or three print copies.
 
+The booth starts borderless and fullscreen with the mouse cursor hidden. During setup,
+`F11` toggles fullscreen mode and `F10` toggles cursor visibility.
+
 ## Development Notes
 
 WPF runs on Windows. This repository can be edited on macOS, but the app should be built and tested on Windows with Visual Studio 2022 or the .NET SDK.

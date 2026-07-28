@@ -28,6 +28,8 @@ public partial class MainWindow : Window
     private int _countdownValue = InitialCountdownValue;
     private int _copyCount = 1;
     private int _currentShotNumber;
+    private bool _isCursorHidden;
+    private bool _isFullscreen;
     private string _currentCaptureId = string.Empty;
     private PhotoSession? _activeSession;
     private IReadOnlyList<string> _preparedShots = [];
@@ -46,6 +48,8 @@ public partial class MainWindow : Window
         _templateDefinitionService = new TemplateDefinitionService();
         _templateManager = new TemplateManager();
         _outputRootPath = ResolveAppPath(_config.OutputPath);
+        SetFullscreen(_config.Fullscreen);
+        SetCursorHidden(_config.HideCursor);
 
         _countdownTimer = new DispatcherTimer
         {
@@ -484,10 +488,52 @@ public partial class MainWindow : Window
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
+        if (e.Key == Key.F11)
+        {
+            SetFullscreen(!_isFullscreen);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.F10)
+        {
+            SetCursorHidden(!_isCursorHidden);
+            e.Handled = true;
+            return;
+        }
+
         if (_config.DemoMode && e.Key == Key.Escape)
         {
             Close();
         }
+    }
+
+    private void SetFullscreen(bool isFullscreen)
+    {
+        _isFullscreen = isFullscreen;
+        WindowState = WindowState.Normal;
+
+        if (isFullscreen)
+        {
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+            Topmost = true;
+            WindowState = WindowState.Maximized;
+            return;
+        }
+
+        Topmost = false;
+        WindowStyle = WindowStyle.SingleBorderWindow;
+        ResizeMode = ResizeMode.CanResize;
+        Width = 1280;
+        Height = 720;
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
+    }
+
+    private void SetCursorHidden(bool isHidden)
+    {
+        _isCursorHidden = isHidden;
+        Cursor = isHidden ? Cursors.None : Cursors.Arrow;
     }
 
     private void ShowHomeScreen()

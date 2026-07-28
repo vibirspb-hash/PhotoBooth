@@ -1,5 +1,7 @@
 {
   "DemoMode": true,
+  "Fullscreen": true,
+  "HideCursor": true,
   "TemplatesPath": "Templates",
   "DemoPhotosPath": "DemoPhotos",
   "OutputPath": "Output"

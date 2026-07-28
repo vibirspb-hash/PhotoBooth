@@ -4,8 +4,12 @@
         Title="PhotoBooth"
         Width="1280"
         Height="720"
+        WindowStyle="None"
+        WindowState="Maximized"
+        ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         Background="#111318"
+        Cursor="None"
         KeyDown="Window_KeyDown">
     <Window.Resources>
         <Style x:Key="CopyOptionStyle"
