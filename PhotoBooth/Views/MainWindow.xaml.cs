@@ -570,13 +570,13 @@ public partial class MainWindow : Window
 
     private void UpdatePrintButtonText()
     {
-        if (PrintButton is null || _config is null)
+        if (PrintButtonText is null || _config is null)
         {
             return;
         }
 
         string prefix = _printerService.IsDemo ? "Печать (демо)" : "Печатать";
-        PrintButton.Content = $"{prefix}: {_copyCount}";
+        PrintButtonText.Text = $"{prefix}: {_copyCount}";
     }
 
     private void PrintCompletionTimer_Tick(object? sender, EventArgs e)
@@ -651,7 +651,7 @@ public partial class MainWindow : Window
         UpdatePrintButtonText();
 
         PreviewTitleText.Text = _isHistoryPreview ? "Повторная печать" : "Предпросмотр";
-        PreviewBackButton.Content = _isHistoryPreview ? "К истории" : "На главную";
+        PreviewBackButtonText.Text = _isHistoryPreview ? "К истории" : "На главную";
         RetakeButton.Visibility = _isHistoryPreview ? Visibility.Collapsed : Visibility.Visible;
 
         HistoryPanel.Visibility = Visibility.Collapsed;

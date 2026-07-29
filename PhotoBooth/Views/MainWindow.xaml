@@ -262,12 +262,12 @@
 
         <Style x:Key="CopyOptionStyle"
                TargetType="RadioButton">
-            <Setter Property="Width" Value="72" />
-            <Setter Property="Height" Value="46" />
-            <Setter Property="Margin" Value="0,0,8,0" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="Background" Value="#252A33" />
-            <Setter Property="BorderBrush" Value="#4A5260" />
+            <Setter Property="Width" Value="106" />
+            <Setter Property="Height" Value="58" />
+            <Setter Property="Margin" Value="0,0,14,0" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="#D8FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D6DCE8" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="FontSize" Value="22" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -278,7 +278,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4">
+                                CornerRadius="12">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                         </Border>
@@ -286,13 +286,19 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="OptionBorder"
                                         Property="BorderBrush"
-                                        Value="#FFFFFF" />
+                                        Value="#9B86FF" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="OptionBorder"
                                         Property="Background"
                                         Value="#FFFFFF" />
-                                <Setter Property="Foreground" Value="#111318" />
+                                <Setter TargetName="OptionBorder"
+                                        Property="BorderBrush"
+                                        Value="#7B61FF" />
+                                <Setter TargetName="OptionBorder"
+                                        Property="BorderThickness"
+                                        Value="2" />
+                                <Setter Property="Foreground" Value="#6F55E8" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -1256,98 +1262,165 @@
 
         <Grid x:Name="PreviewPanel"
               Visibility="Collapsed"
-              Margin="48,32">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+              Background="#F7F8FC">
+            <Grid>
+                <Ellipse Width="700"
+                         Height="700"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Bottom"
+                         Margin="-330,0,0,-410"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#305AA7FF" Offset="0" />
+                            <GradientStop Color="#005AA7FF" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
 
-            <TextBlock x:Name="PreviewTitleText"
-                       Text="Предпросмотр"
-                       Foreground="White"
-                       FontSize="36"
-                       FontWeight="Bold"
-                       TextAlignment="Center"
-                       Margin="0,0,0,20" />
+                <Ellipse Width="620"
+                         Height="620"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Margin="0,-350,-240,0"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#28FF6EC7" Offset="0" />
+                            <GradientStop Color="#00FF6EC7" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
 
-            <Border Grid.Row="1"
-                    BorderBrush="#343945"
-                    BorderThickness="1"
-                    Background="White"
-                    Padding="8">
-                <Image x:Name="ResultPreviewImage"
-                       Stretch="Uniform" />
-            </Border>
+            <Grid Margin="34,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="2"
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="PreviewBackButton"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Click="PreviewHomeButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="25"
+                                       Margin="0,0,10,0" />
+                            <TextBlock x:Name="PreviewBackButtonText"
+                                       Text="На главную"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Center">
+                        <TextBlock x:Name="PreviewTitleText"
+                                   Text="Предпросмотр"
+                                   Foreground="#172238"
+                                   FontSize="38"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Проверьте фото перед печатью"
+                                   Foreground="#68758C"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <Button x:Name="RetakeButton"
+                            Grid.Column="2"
+                            Content="Переснять"
+                            HorizontalAlignment="Right"
+                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Click="RetakeButton_Click" />
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Width="470"
+                        MaxHeight="430"
                         HorizontalAlignment="Center"
-                        Margin="0,14,0,0">
-                <TextBlock Text="Количество копий"
-                           Foreground="#C9CED8"
-                           FontSize="18"
-                           TextAlignment="Center"
-                           Margin="0,0,0,8" />
+                        VerticalAlignment="Center"
+                        BorderBrush="#DDE2EC"
+                        BorderThickness="1"
+                        Background="White"
+                        CornerRadius="8"
+                        Padding="10"
+                        Margin="0,12">
+                    <Image x:Name="ResultPreviewImage"
+                           Stretch="Uniform" />
+                </Border>
 
-                <StackPanel x:Name="CopyOptionsPanel"
-                            Orientation="Horizontal"
+                <StackPanel Grid.Row="2"
                             HorizontalAlignment="Center">
-                    <RadioButton x:Name="CopyOneOption"
-                                 Content="1"
-                                 Tag="1"
-                                 GroupName="CopyCount"
-                                 IsChecked="True"
-                                 Style="{StaticResource CopyOptionStyle}"
-                                 Checked="CopyCount_Checked" />
-                    <RadioButton Content="2"
-                                 Tag="2"
-                                 GroupName="CopyCount"
-                                 Style="{StaticResource CopyOptionStyle}"
-                                 Checked="CopyCount_Checked" />
-                    <RadioButton Content="3"
-                                 Tag="3"
-                                 GroupName="CopyCount"
-                                 Margin="0"
-                                 Style="{StaticResource CopyOptionStyle}"
-                                 Checked="CopyCount_Checked" />
+                    <TextBlock Text="Количество копий"
+                               Foreground="#68758C"
+                               FontSize="18"
+                               TextAlignment="Center"
+                               Margin="0,0,0,10" />
+
+                    <StackPanel x:Name="CopyOptionsPanel"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center">
+                        <RadioButton x:Name="CopyOneOption"
+                                     Content="1"
+                                     Tag="1"
+                                     GroupName="CopyCount"
+                                     IsChecked="True"
+                                     Style="{StaticResource CopyOptionStyle}"
+                                     Checked="CopyCount_Checked" />
+                        <RadioButton Content="2"
+                                     Tag="2"
+                                     GroupName="CopyCount"
+                                     Style="{StaticResource CopyOptionStyle}"
+                                     Checked="CopyCount_Checked" />
+                        <RadioButton Content="3"
+                                     Tag="3"
+                                     GroupName="CopyCount"
+                                     Margin="0"
+                                     Style="{StaticResource CopyOptionStyle}"
+                                     Checked="CopyCount_Checked" />
+                    </StackPanel>
+
+                    <TextBlock x:Name="PrintStatusText"
+                               Width="620"
+                               MinHeight="24"
+                               Foreground="#9D345D"
+                               FontSize="16"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0" />
+
+                    <Button x:Name="PrintButton"
+                            Width="620"
+                            Height="70"
+                            Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                            Click="PrintButton_Click">
+                        <Grid Margin="30,0">
+                            <TextBlock Text="&#xE749;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="31"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Center" />
+                            <TextBlock x:Name="PrintButtonText"
+                                       Text="Печатать: 1"
+                                       FontSize="25"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Button>
                 </StackPanel>
-
-                <TextBlock x:Name="PrintStatusText"
-                           Foreground="#C9CED8"
-                           FontSize="18"
-                           TextAlignment="Center"
-                           Margin="0,10,0,0" />
-            </StackPanel>
-
-            <StackPanel Grid.Row="3"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        Margin="0,18,0,0">
-                <Button x:Name="PreviewBackButton"
-                        Content="На главную"
-                        Width="200"
-                        Height="52"
-                        FontSize="18"
-                        Margin="0,0,16,0"
-                        Click="PreviewHomeButton_Click" />
-
-                <Button x:Name="RetakeButton"
-                        Content="Переснять"
-                        Width="200"
-                        Height="52"
-                        FontSize="18"
-                        Margin="0,0,16,0"
-                        Click="RetakeButton_Click" />
-
-                <Button x:Name="PrintButton"
-                        Content="Печатать"
-                        Width="200"
-                        Height="52"
-                        FontSize="18"
-                        FontWeight="SemiBold"
-                        Click="PrintButton_Click" />
-            </StackPanel>
+            </Grid>
         </Grid>
 
         <Grid x:Name="PrintProgressPanel"
