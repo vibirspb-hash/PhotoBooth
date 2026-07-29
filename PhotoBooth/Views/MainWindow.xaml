@@ -404,6 +404,59 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="PinKeyButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource HomeGlassPillStyle}">
+            <Setter Property="Width" Value="94" />
+            <Setter Property="Height" Value="64" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="SettingsTileButtonStyle"
+               TargetType="Button">
+            <Setter Property="Width" Value="250" />
+            <Setter Property="Height" Value="168" />
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Padding" Value="22" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="#48FFFFFF" />
+            <Setter Property="BorderBrush" Value="#88FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="SettingsTileBorder"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="24">
+                            <ContentPresenter HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Stretch" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="SettingsTileBorder"
+                                        Property="Background"
+                                        Value="#72FFFFFF" />
+                                <Setter TargetName="SettingsTileBorder"
+                                        Property="BorderBrush"
+                                        Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="SettingsTileBorder"
+                                        Property="Opacity"
+                                        Value="0.82" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -688,80 +741,20 @@
                                FontWeight="Normal"
                                VerticalAlignment="Center" />
 
-                    <Grid Grid.Column="1">
-                        <ToggleButton x:Name="SettingsToggle"
-                                      MinWidth="250"
-                                      Style="{StaticResource HomeGlassToggleStyle}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE713;"
-                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                           FontSize="28"
-                                           Margin="0,0,12,0" />
-                                <TextBlock Text="Настройки"
-                                           VerticalAlignment="Center" />
-                            </StackPanel>
-                        </ToggleButton>
-
-                        <Popup PlacementTarget="{Binding ElementName=SettingsToggle}"
-                               Placement="Bottom"
-                               HorizontalOffset="-100"
-                               VerticalOffset="12"
-                               AllowsTransparency="True"
-                               StaysOpen="False"
-                               IsOpen="{Binding IsChecked, ElementName=SettingsToggle}">
-                            <Border Padding="20"
-                                    Background="#D12C245A"
-                                    BorderBrush="#BFFFFFFF"
-                                    BorderThickness="1"
-                                    CornerRadius="28">
-                                <StackPanel>
-                                    <TextBlock x:Name="ActiveSessionText"
-                                               Foreground="White"
-                                               FontSize="16"
-                                               TextAlignment="Center"
-                                               TextWrapping="Wrap"
-                                               Margin="8,4,8,16" />
-
-                                    <Button Style="{StaticResource HomeMenuButtonStyle}"
-                                            Click="PrintHistoryButton_Click">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE81C;"
-                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                                       FontSize="24"
-                                                       Margin="0,0,12,0" />
-                                            <TextBlock Text="История печати"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-
-                                    <Button Style="{StaticResource HomeMenuButtonStyle}"
-                                            Click="ChangeSessionButton_Click">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE8D7;"
-                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                                       FontSize="24"
-                                                       Margin="0,0,12,0" />
-                                            <TextBlock Text="Сменить сессию"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-
-                                    <Button Style="{StaticResource HomeMenuButtonStyle}"
-                                            Margin="0"
-                                            Click="ExitButton_Click">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE7E8;"
-                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                                       FontSize="24"
-                                                       Margin="0,0,12,0" />
-                                            <TextBlock Text="Выход"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                            </Border>
-                        </Popup>
-                    </Grid>
+                    <Button x:Name="SettingsButton"
+                            Grid.Column="1"
+                            MinWidth="250"
+                            Style="{StaticResource HomeGlassPillStyle}"
+                            Click="SettingsButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE713;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="28"
+                                       Margin="0,0,12,0" />
+                            <TextBlock Text="Настройки"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </Grid>
 
                 <Button Grid.Row="1"
@@ -891,6 +884,300 @@
                         </Border>
                     </Popup>
                 </Grid>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="SettingsPinPanel"
+              Visibility="Collapsed"
+              Background="{StaticResource HomeBackgroundBrush}">
+            <Grid Margin="38,30">
+                <Button HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Style="{StaticResource HomeAuxiliaryButtonStyle}"
+                        Click="SettingsPinCancelButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE72B;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="25"
+                                   Margin="0,0,10,0" />
+                        <TextBlock Text="Назад"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Border Width="520"
+                        Padding="44,28"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#28FFFFFF"
+                        BorderBrush="#B8FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="42">
+                    <StackPanel>
+                        <Border Width="82"
+                                Height="82"
+                                HorizontalAlignment="Center"
+                                Background="#24FFFFFF"
+                                BorderBrush="#B8FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="41"
+                                Margin="0,0,0,18">
+                            <TextBlock Text="&#xE72E;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="White"
+                                       FontSize="38"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+
+                        <TextBlock Text="Введите код доступа"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Операторские настройки"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="17"
+                                   TextAlignment="Center"
+                                   Margin="0,5,0,14" />
+
+                        <TextBlock x:Name="SettingsPinDisplay"
+                                   Text="○  ○  ○  ○"
+                                   Foreground="White"
+                                   FontSize="31"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,8" />
+
+                        <TextBlock x:Name="SettingsPinErrorText"
+                                   Foreground="#FFFFD8"
+                                   FontSize="16"
+                                   MinHeight="24"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,6" />
+
+                        <UniformGrid Columns="3"
+                                     HorizontalAlignment="Center">
+                            <Button Content="1" Tag="1" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="2" Tag="2" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="3" Tag="3" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="4" Tag="4" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="5" Tag="5" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="6" Tag="6" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="7" Tag="7" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="8" Tag="8" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="9" Tag="9" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Content="C" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinClearButton_Click" />
+                            <Button Content="0" Tag="0" Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinDigitButton_Click" />
+                            <Button Style="{StaticResource PinKeyButtonStyle}" Click="SettingsPinBackspaceButton_Click">
+                                <TextBlock Text="&#xE750;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           FontSize="27" />
+                            </Button>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="SettingsPanel"
+              Visibility="Collapsed"
+              Background="{StaticResource TemplatesBackgroundBrush}">
+            <Grid Margin="34,30">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button HorizontalAlignment="Left"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
+                            Click="SettingsBackButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="25"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="На главную"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Настройки"
+                                   Foreground="#172238"
+                                   FontSize="40"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Операторский режим"
+                                   Foreground="#5E6B83"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <TextBlock x:Name="ActiveSessionText"
+                               Grid.Column="2"
+                               Foreground="#5E6B83"
+                               FontSize="16"
+                               TextAlignment="Right"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center" />
+                </Grid>
+
+                <Grid Grid.Row="1"
+                      Margin="0,22,0,16">
+                    <WrapPanel HorizontalAlignment="Center"
+                               VerticalAlignment="Center">
+                        <Button Tag="Система"
+                                Style="{StaticResource SettingsTileButtonStyle}"
+                                Click="SettingsSectionButton_Click">
+                            <StackPanel>
+                                <TextBlock Text="&#xE7E8;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="38" />
+                                <TextBlock Text="Система"
+                                           FontSize="23"
+                                           FontWeight="SemiBold"
+                                           Margin="0,12,0,4" />
+                                <TextBlock Text="Перезагрузка компьютера"
+                                           Foreground="#68758C"
+                                           FontSize="15"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Tag="Камера"
+                                Style="{StaticResource SettingsTileButtonStyle}"
+                                Click="SettingsSectionButton_Click">
+                            <StackPanel>
+                                <TextBlock Text="&#xE722;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="38" />
+                                <TextBlock Text="Камера"
+                                           FontSize="23"
+                                           FontWeight="SemiBold"
+                                           Margin="0,12,0,4" />
+                                <TextBlock Text="ISO, выдержка, диафрагма"
+                                           Foreground="#68758C"
+                                           FontSize="15"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Tag="Калибровка экрана"
+                                Style="{StaticResource SettingsTileButtonStyle}"
+                                Click="SettingsSectionButton_Click">
+                            <StackPanel>
+                                <TextBlock Text="&#xE7C9;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="38" />
+                                <TextBlock Text="Экран"
+                                           FontSize="23"
+                                           FontWeight="SemiBold"
+                                           Margin="0,12,0,4" />
+                                <TextBlock Text="Калибровка сенсора"
+                                           Foreground="#68758C"
+                                           FontSize="15" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Tag="Принтер"
+                                Style="{StaticResource SettingsTileButtonStyle}"
+                                Click="SettingsSectionButton_Click">
+                            <StackPanel>
+                                <TextBlock Text="&#xE749;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="38" />
+                                <TextBlock Text="Принтер"
+                                           FontSize="23"
+                                           FontWeight="SemiBold"
+                                           Margin="0,12,0,4" />
+                                <TextBlock Text="DNP и параметры печати"
+                                           Foreground="#68758C"
+                                           FontSize="15" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Tag="Таймер работы"
+                                Style="{StaticResource SettingsTileButtonStyle}"
+                                Click="SettingsSectionButton_Click">
+                            <StackPanel>
+                                <TextBlock Text="&#xE823;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           Foreground="#7B61FF"
+                                           FontSize="38" />
+                                <TextBlock Text="Таймер работы"
+                                           FontSize="23"
+                                           FontWeight="SemiBold"
+                                           Margin="0,12,0,4" />
+                                <TextBlock Text="Расписание фотобудки"
+                                           Foreground="#68758C"
+                                           FontSize="15" />
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+
+                    <TextBlock x:Name="SettingsSectionStatusText"
+                               Foreground="#5E6B83"
+                               FontSize="16"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Bottom" />
+                </Grid>
+
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                    <Button Width="240"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
+                            Margin="0,0,12,0"
+                            Click="PrintHistoryButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE81C;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="24"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="История печати" />
+                        </StackPanel>
+                    </Button>
+                    <Button Width="240"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
+                            Margin="0,0,12,0"
+                            Click="ChangeSessionButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8D7;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="24"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="Сменить сессию" />
+                        </StackPanel>
+                    </Button>
+                    <Button Width="190"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
+                            Click="ExitButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE7E8;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="24"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="Выход" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Grid>
 

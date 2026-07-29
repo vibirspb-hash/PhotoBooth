@@ -15,6 +15,7 @@ namespace PhotoBooth.Views;
 public partial class MainWindow : Window
 {
     private const int InitialCountdownValue = 3;
+    private const string SettingsAccessCode = "2016";
 
     private readonly DispatcherTimer _countdownTimer;
     private readonly DispatcherTimer _completionTimer;
@@ -38,6 +39,7 @@ public partial class MainWindow : Window
     private bool _isHistoryPreview;
     private string _currentCaptureId = string.Empty;
     private string _currentResultPath = string.Empty;
+    private string _settingsPinEntry = string.Empty;
     private PhotoSession? _activeSession;
     private IReadOnlyList<string> _preparedShots = [];
     private PhotoSession? _recoverableSession;
@@ -100,6 +102,8 @@ public partial class MainWindow : Window
         HistoryPanel.Visibility = Visibility.Collapsed;
         PrintProgressPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
+        SettingsPinPanel.Visibility = Visibility.Collapsed;
+        SettingsPanel.Visibility = Visibility.Collapsed;
         SessionPanel.Visibility = Visibility.Visible;
 
         if (_recoverableSession is null)
@@ -182,6 +186,103 @@ public partial class MainWindow : Window
         ShowSessionStartup();
     }
 
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        _settingsPinEntry = string.Empty;
+        SettingsPinErrorText.Text = string.Empty;
+        UpdateSettingsPinDisplay();
+
+        HomePanel.Visibility = Visibility.Collapsed;
+        SettingsPanel.Visibility = Visibility.Collapsed;
+        SettingsPinPanel.Visibility = Visibility.Visible;
+    }
+
+    private void SettingsPinDigitButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string digit } || _settingsPinEntry.Length >= 4)
+        {
+            return;
+        }
+
+        SettingsPinErrorText.Text = string.Empty;
+        _settingsPinEntry += digit;
+        UpdateSettingsPinDisplay();
+
+        if (_settingsPinEntry.Length < 4)
+        {
+            return;
+        }
+
+        if (_settingsPinEntry == SettingsAccessCode)
+        {
+            ShowSettingsPanel();
+            return;
+        }
+
+        SettingsPinErrorText.Text = "Неверный код. Попробуйте ещё раз.";
+        _settingsPinEntry = string.Empty;
+        UpdateSettingsPinDisplay();
+    }
+
+    private void SettingsPinClearButton_Click(object sender, RoutedEventArgs e)
+    {
+        _settingsPinEntry = string.Empty;
+        SettingsPinErrorText.Text = string.Empty;
+        UpdateSettingsPinDisplay();
+    }
+
+    private void SettingsPinBackspaceButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_settingsPinEntry.Length > 0)
+        {
+            _settingsPinEntry = _settingsPinEntry[..^1];
+        }
+
+        SettingsPinErrorText.Text = string.Empty;
+        UpdateSettingsPinDisplay();
+    }
+
+    private void SettingsPinCancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowHomeScreen();
+    }
+
+    private void UpdateSettingsPinDisplay()
+    {
+        SettingsPinDisplay.Text = string.Join(
+            "  ",
+            Enumerable.Range(0, 4)
+                .Select(index => index < _settingsPinEntry.Length ? "●" : "○"));
+    }
+
+    private void ShowSettingsPanel()
+    {
+        _settingsPinEntry = string.Empty;
+        SettingsPinErrorText.Text = string.Empty;
+        SettingsSectionStatusText.Text = string.Empty;
+        ActiveSessionText.Text = _activeSession is null
+            ? string.Empty
+            : $"Сессия: {_activeSession.Name}";
+
+        SettingsPinPanel.Visibility = Visibility.Collapsed;
+        HomePanel.Visibility = Visibility.Collapsed;
+        SettingsPanel.Visibility = Visibility.Visible;
+    }
+
+    private void SettingsBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowHomeScreen();
+    }
+
+    private void SettingsSectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string sectionName })
+        {
+            SettingsSectionStatusText.Text =
+                $"{sectionName}: подключим функции на следующем этапе.";
+        }
+    }
+
     private void StartButton_Click(object sender, RoutedEventArgs e)
     {
         string templatesPath = ResolveAppPath(_config.TemplatesPath);
@@ -221,6 +322,8 @@ public partial class MainWindow : Window
         HistorySessionNameText.Text = $"Сессия: {_activeSession.Name}";
 
         HomePanel.Visibility = Visibility.Collapsed;
+        SettingsPinPanel.Visibility = Visibility.Collapsed;
+        SettingsPanel.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         PrintProgressPanel.Visibility = Visibility.Collapsed;
@@ -948,6 +1051,8 @@ public partial class MainWindow : Window
         PrintProgressPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
+        SettingsPinPanel.Visibility = Visibility.Collapsed;
+        SettingsPanel.Visibility = Visibility.Collapsed;
         ResultPreviewImage.Source = null;
         LivePreviewImage.Source = null;
         TemplatePreviewImage.Source = null;
