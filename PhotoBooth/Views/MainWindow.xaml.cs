@@ -272,6 +272,7 @@ public partial class MainWindow : Window
         _countdownTimer.Stop();
         _completionTimer.Stop();
         CountdownPanel.Visibility = Visibility.Collapsed;
+        ShotReviewOverlay.Visibility = Visibility.Collapsed;
         TemplatePreviewOverlay.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Visible;
     }
@@ -403,6 +404,7 @@ public partial class MainWindow : Window
         PreviewPanel.Visibility = Visibility.Collapsed;
         CaptureReadyOverlay.Visibility = Visibility.Visible;
         CountdownOverlay.Visibility = Visibility.Collapsed;
+        ShotReviewOverlay.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Visible;
     }
 
@@ -417,6 +419,7 @@ public partial class MainWindow : Window
 
         CaptureReadyOverlay.Visibility = Visibility.Collapsed;
         CountdownOverlay.Visibility = Visibility.Visible;
+        ShotReviewOverlay.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         CountdownPanel.Visibility = Visibility.Visible;
 
@@ -447,7 +450,7 @@ public partial class MainWindow : Window
         _countdownTimer.Stop();
         CountdownText.Text = "СНЯТО";
         CountdownText.FontSize = 96;
-        CountdownCaption.Text = $"Кадр {_currentShotNumber} сохранён";
+        CountdownCaption.Text = $"Снимок {_currentShotNumber} готов";
 
         _completionTimer.Start();
     }
@@ -462,14 +465,42 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_currentShotNumber < _selectedDefinition.RequiredShotCount)
+        ShowCurrentShotReview();
+    }
+
+    private void ShowCurrentShotReview()
+    {
+        int shotCount = _selectedDefinition?.RequiredShotCount ?? 0;
+        ShotReviewProgressText.Text = $"Фото {_currentShotNumber} из {shotCount}";
+        CaptureReadyOverlay.Visibility = Visibility.Collapsed;
+        CountdownOverlay.Visibility = Visibility.Collapsed;
+        ShotReviewOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void RetakeCurrentShotButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShotReviewOverlay.Visibility = Visibility.Collapsed;
+        StartCurrentShotCountdown();
+    }
+
+    private void AcceptCurrentShotButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShotReviewOverlay.Visibility = Visibility.Collapsed;
+
+        if (_selectedDefinition is null)
         {
-            _currentShotNumber++;
-            StartCurrentShotCountdown();
+            ShowHomeScreen();
             return;
         }
 
-        ShowComposedPreview();
+        if (_currentShotNumber >= _selectedDefinition.RequiredShotCount)
+        {
+            ShowComposedPreview();
+            return;
+        }
+
+        _currentShotNumber++;
+        StartCurrentShotCountdown();
     }
 
     private void ShowComposedPreview()

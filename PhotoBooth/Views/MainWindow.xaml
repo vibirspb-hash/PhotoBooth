@@ -1257,6 +1257,84 @@
                         </Grid>
                     </Border>
                 </Grid>
+
+                <Grid x:Name="ShotReviewOverlay"
+                      Grid.Row="1"
+                      Visibility="Collapsed">
+                    <Border Width="860"
+                            Padding="26"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom"
+                            Background="#B51B1F2A"
+                            BorderBrush="#85FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="32"
+                            Margin="0,0,0,22">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Text="Как получился кадр?"
+                                           Foreground="White"
+                                           FontSize="25"
+                                           FontWeight="SemiBold"
+                                           TextAlignment="Center" />
+                                <TextBlock x:Name="ShotReviewProgressText"
+                                           Text="Фото 1 из 4"
+                                           Foreground="#D8FFFFFF"
+                                           FontSize="17"
+                                           TextAlignment="Center"
+                                           Margin="0,5,0,0" />
+                            </StackPanel>
+
+                            <Grid Grid.Row="1"
+                                  Margin="0,20,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Button Width="360"
+                                        Height="76"
+                                        HorizontalAlignment="Right"
+                                        Style="{StaticResource HomeGlassPillStyle}"
+                                        Click="RetakeCurrentShotButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE777;"
+                                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                   FontSize="28"
+                                                   Margin="0,0,12,0" />
+                                        <TextBlock Text="Переснять"
+                                                   FontSize="23"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Column="2"
+                                        Width="360"
+                                        Height="76"
+                                        HorizontalAlignment="Left"
+                                        Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                                        Click="AcceptCurrentShotButton_Click">
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Center">
+                                        <TextBlock Text="&#xE73E;"
+                                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                   FontSize="28"
+                                                   Margin="0,0,12,0" />
+                                        <TextBlock Text="Мне нравится"
+                                                   FontSize="23"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
             </Grid>
         </Grid>
 
