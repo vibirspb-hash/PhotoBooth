@@ -18,6 +18,7 @@ public partial class MainWindow : Window
 
     private readonly DispatcherTimer _countdownTimer;
     private readonly DispatcherTimer _completionTimer;
+    private readonly DispatcherTimer _finalPreviewTimer;
     private readonly DispatcherTimer _printCompletionTimer;
     private readonly AppConfig _config;
     private readonly ICameraService _cameraService;
@@ -72,6 +73,13 @@ public partial class MainWindow : Window
         };
 
         _completionTimer.Tick += CompletionTimer_Tick;
+
+        _finalPreviewTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(650)
+        };
+
+        _finalPreviewTimer.Tick += FinalPreviewTimer_Tick;
 
         _printCompletionTimer = new DispatcherTimer
         {
@@ -273,6 +281,8 @@ public partial class MainWindow : Window
     {
         _countdownTimer.Stop();
         _completionTimer.Stop();
+        _finalPreviewTimer.Stop();
+        CountdownPanel.IsHitTestVisible = true;
         CountdownPanel.Visibility = Visibility.Collapsed;
         ShotReviewOverlay.Visibility = Visibility.Collapsed;
         TemplatePreviewOverlay.Visibility = Visibility.Collapsed;
@@ -358,6 +368,7 @@ public partial class MainWindow : Window
     private void PrepareCaptureScreen()
     {
         _completionTimer.Stop();
+        _finalPreviewTimer.Stop();
         _printCompletionTimer.Stop();
         _acceptedShots.Clear();
         AcceptedShotsPanel.Children.Clear();
@@ -653,12 +664,20 @@ public partial class MainWindow : Window
 
         if (_currentShotNumber >= _selectedDefinition.RequiredShotCount)
         {
-            ShowComposedPreview();
+            CountdownPanel.IsHitTestVisible = false;
+            _finalPreviewTimer.Start();
             return;
         }
 
         _currentShotNumber++;
         StartCurrentShotCountdown();
+    }
+
+    private void FinalPreviewTimer_Tick(object? sender, EventArgs e)
+    {
+        _finalPreviewTimer.Stop();
+        CountdownPanel.IsHitTestVisible = true;
+        ShowComposedPreview();
     }
 
     private void ShowComposedPreview()
@@ -852,7 +871,9 @@ public partial class MainWindow : Window
     {
         _countdownTimer.Stop();
         _completionTimer.Stop();
+        _finalPreviewTimer.Stop();
         _printCompletionTimer.Stop();
+        CountdownPanel.IsHitTestVisible = true;
         CountdownPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Visible;
@@ -918,7 +939,9 @@ public partial class MainWindow : Window
     {
         _countdownTimer.Stop();
         _completionTimer.Stop();
+        _finalPreviewTimer.Stop();
         _printCompletionTimer.Stop();
+        CountdownPanel.IsHitTestVisible = true;
 
         TemplatesPanel.Visibility = Visibility.Collapsed;
         HistoryPanel.Visibility = Visibility.Collapsed;
