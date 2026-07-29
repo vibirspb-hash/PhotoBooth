@@ -106,6 +106,13 @@
             <Setter Property="Padding" Value="22,13" />
         </Style>
 
+        <Style x:Key="HomeAuxiliaryButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource HomeGlassPillStyle}">
+            <Setter Property="MinWidth" Value="190" />
+            <Setter Property="Padding" Value="28,13" />
+        </Style>
+
         <LinearGradientBrush x:Key="TemplatesBackgroundBrush"
                              StartPoint="0,0"
                              EndPoint="1,1">
@@ -156,6 +163,13 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <Style x:Key="TemplatesAuxiliaryButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource TemplatesGlassButtonStyle}">
+            <Setter Property="MinWidth" Value="190" />
+            <Setter Property="Padding" Value="28,13" />
         </Style>
 
         <Style x:Key="TemplateListItemStyle"
@@ -676,6 +690,7 @@
 
                     <Grid Grid.Column="1">
                         <ToggleButton x:Name="SettingsToggle"
+                                      MinWidth="250"
                                       Style="{StaticResource HomeGlassToggleStyle}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="&#xE713;"
@@ -689,7 +704,7 @@
 
                         <Popup PlacementTarget="{Binding ElementName=SettingsToggle}"
                                Placement="Bottom"
-                               HorizontalOffset="-150"
+                               HorizontalOffset="-100"
                                VerticalOffset="12"
                                AllowsTransparency="True"
                                StaysOpen="False"
@@ -926,7 +941,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Button HorizontalAlignment="Left"
-                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
                             Click="HistoryBackButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE72B;"
@@ -1084,7 +1099,7 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Button Style="{StaticResource TemplatesGlassButtonStyle}"
+                    <Button Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
                             Click="BackToHomeButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE72B;"
@@ -1113,7 +1128,7 @@
 
                     <Button x:Name="TemplatePreviewButton"
                             Grid.Column="2"
-                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
                             Click="TemplatePreviewButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE80A;"
@@ -1300,7 +1315,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Button HorizontalAlignment="Left"
-                            Style="{StaticResource HomeGlassPillStyle}"
+                            Style="{StaticResource HomeAuxiliaryButtonStyle}"
                             Click="CaptureBackButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE72B;"
@@ -1739,7 +1754,7 @@
 
                     <Button x:Name="PreviewBackButton"
                             HorizontalAlignment="Left"
-                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
                             Click="PreviewHomeButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE72B;"
@@ -1902,7 +1917,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Button HorizontalAlignment="Left"
-                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
                             Click="PrintProgressBackButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE72B;"
@@ -2202,10 +2217,19 @@
                             Style="{StaticResource TemplatesPrimaryButtonStyle}"
                             Click="PrintNextPhotoButton_Click">
                         <Grid Margin="28,0">
-                            <TextBlock Text="Следующее фото"
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock x:Name="PrintNextPhotoButtonText"
+                                       Grid.Column="1"
+                                       Text="Следующее фото"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
-                            <TextBlock Text="&#xE72A;"
+                            <TextBlock Grid.Column="2"
+                                       Text="&#xE72A;"
                                        FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                                        FontSize="29"
                                        HorizontalAlignment="Right"

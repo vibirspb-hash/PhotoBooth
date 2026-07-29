@@ -787,7 +787,7 @@ public partial class MainWindow : Window
         PrintCompletionPhaseText.Text = "Ожидание";
         PrintCompletionPhaseText.Foreground = new SolidColorBrush(
             Color.FromRgb(104, 117, 140));
-        PrintNextPhotoButton.Content = _isHistoryPreview
+        PrintNextPhotoButtonText.Text = _isHistoryPreview
             ? "К истории"
             : "Следующее фото";
 
