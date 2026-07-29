@@ -457,6 +457,16 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="ScheduleStepButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource TemplatesGlassButtonStyle}">
+            <Setter Property="Width" Value="62" />
+            <Setter Property="Height" Value="54" />
+            <Setter Property="MinHeight" Value="54" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontSize" Value="30" />
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -1179,6 +1189,268 @@
                     </Button>
                 </StackPanel>
             </Grid>
+        </Grid>
+
+        <Grid x:Name="ScheduleSettingsPanel"
+              Visibility="Collapsed"
+              Background="{StaticResource TemplatesBackgroundBrush}">
+            <Grid Margin="34,30">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Button HorizontalAlignment="Left"
+                            Style="{StaticResource TemplatesAuxiliaryButtonStyle}"
+                            Click="ScheduleBackButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="25"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="Настройки"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="Таймер работы"
+                                   Foreground="#172238"
+                                   FontSize="40"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Расписание доступности фотобудки"
+                                   Foreground="#5E6B83"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,5,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Width="850"
+                        Padding="42,30"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#48FFFFFF"
+                        BorderBrush="#88FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="30">
+                    <StackPanel>
+                        <CheckBox x:Name="ScheduleEnabledCheckBox"
+                                  Content="Включить расписание работы"
+                                  Foreground="#172238"
+                                  FontSize="21"
+                                  FontWeight="SemiBold"
+                                  HorizontalAlignment="Center"
+                                  Margin="0,0,0,24" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Начало работы"
+                                           Foreground="#5E6B83"
+                                           FontSize="18"
+                                           TextAlignment="Center"
+                                           Margin="0,0,0,12" />
+                                <Grid HorizontalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="36" />
+                                        <ColumnDefinition Width="90" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+                                        <Button Content="+"
+                                                Tag="start-hour:1"
+                                                Style="{StaticResource ScheduleStepButtonStyle}"
+                                                Click="ScheduleStepButton_Click" />
+                                        <TextBlock x:Name="ScheduleStartHourText"
+                                                   Text="09"
+                                                   Foreground="#172238"
+                                                   FontSize="40"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,4" />
+                                        <Button Content="−"
+                                                Tag="start-hour:-1"
+                                                Style="{StaticResource ScheduleStepButtonStyle}"
+                                                Click="ScheduleStepButton_Click" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text=":"
+                                               Foreground="#172238"
+                                               FontSize="40"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+
+                                    <StackPanel Grid.Column="2">
+                                        <Button Content="+"
+                                                Tag="start-minute:5"
+                                                Style="{StaticResource ScheduleStepButtonStyle}"
+                                                Click="ScheduleStepButton_Click" />
+                                        <TextBlock x:Name="ScheduleStartMinuteText"
+                                                   Text="30"
+                                                   Foreground="#172238"
+                                                   FontSize="40"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,4" />
+                                        <Button Content="−"
+                                                Tag="start-minute:-5"
+                                                Style="{StaticResource ScheduleStepButtonStyle}"
+                                                Click="ScheduleStepButton_Click" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+
+                            <Border Grid.Column="1"
+                                    Width="1"
+                                    Background="#55FFFFFF"
+                                    HorizontalAlignment="Center" />
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Завершение работы"
+                                           Foreground="#5E6B83"
+                                           FontSize="18"
+                                           TextAlignment="Center"
+                                           Margin="0,0,0,12" />
+                                <Grid HorizontalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="36" />
+                                        <ColumnDefinition Width="90" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+                                        <Button Content="+"
+                                                Tag="end-hour:1"
+                                                Style="{StaticResource ScheduleStepButtonStyle}"
+                                                Click="ScheduleStepButton_Click" />
+                                        <TextBlock x:Name="ScheduleEndHourText"
+                                                   Text="22"
+                                                   Foreground="#172238"
+                                                   FontSize="40"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,4" />
+                                        <Button Content="−"
+                                                Tag="end-hour:-1"
+                                                Style="{StaticResource ScheduleStepButtonStyle}"
+                                                Click="ScheduleStepButton_Click" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text=":"
+                                               Foreground="#172238"
+                                               FontSize="40"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+
+                                    <StackPanel Grid.Column="2">
+                                        <Button Content="+"
+                                                Tag="end-minute:5"
+                                                Style="{StaticResource ScheduleStepButtonStyle}"
+                                                Click="ScheduleStepButton_Click" />
+                                        <TextBlock x:Name="ScheduleEndMinuteText"
+                                                   Text="00"
+                                                   Foreground="#172238"
+                                                   FontSize="40"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,4" />
+                                        <Button Content="−"
+                                                Tag="end-minute:-5"
+                                                Style="{StaticResource ScheduleStepButtonStyle}"
+                                                Click="ScheduleStepButton_Click" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox x:Name="ScheduleShutdownCheckBox"
+                                  Content="Выключать компьютер после окончания работы"
+                                  Foreground="#172238"
+                                  FontSize="18"
+                                  HorizontalAlignment="Center"
+                                  Margin="0,24,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="2"
+                            HorizontalAlignment="Center">
+                    <TextBlock x:Name="ScheduleSaveStatusText"
+                               Foreground="#5E6B83"
+                               FontSize="16"
+                               TextAlignment="Center"
+                               MinHeight="24"
+                               Margin="0,0,0,6" />
+                    <Button Width="560"
+                            Height="68"
+                            Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                            Click="ScheduleSaveButton_Click">
+                        <TextBlock Text="Сохранить расписание"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="OffHoursPanel"
+              Visibility="Collapsed"
+              Background="{StaticResource HomeBackgroundBrush}">
+            <StackPanel Width="680"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <Border Width="120"
+                        Height="120"
+                        HorizontalAlignment="Center"
+                        Background="#24FFFFFF"
+                        BorderBrush="#B8FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="60"
+                        Margin="0,0,0,22">
+                    <TextBlock Text="&#xE823;"
+                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                               Foreground="White"
+                               FontSize="54"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="Фотобудка сейчас не работает"
+                           Foreground="White"
+                           FontSize="42"
+                           FontWeight="SemiBold"
+                           TextAlignment="Center" />
+                <TextBlock x:Name="OffHoursScheduleText"
+                           Foreground="#E5FFFFFF"
+                           FontSize="22"
+                           TextAlignment="Center"
+                           Margin="0,10,0,28" />
+                <Button Width="340"
+                        HorizontalAlignment="Center"
+                        Style="{StaticResource HomeAuxiliaryButtonStyle}"
+                        Click="OffHoursSettingsButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE713;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="25"
+                                   Margin="0,0,10,0" />
+                        <TextBlock Text="Настройки оператора"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
         </Grid>
 
         <Grid x:Name="HistoryPanel"

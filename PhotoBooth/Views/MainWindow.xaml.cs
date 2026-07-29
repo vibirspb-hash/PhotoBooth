@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,7 +22,9 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _completionTimer;
     private readonly DispatcherTimer _finalPreviewTimer;
     private readonly DispatcherTimer _printCompletionTimer;
+    private readonly DispatcherTimer _scheduleTimer;
     private readonly AppConfig _config;
+    private readonly ConfigService _configService;
     private readonly ICameraService _cameraService;
     private readonly ImageComposer _imageComposer;
     private readonly PrintHistoryService _printHistoryService;
@@ -37,6 +40,11 @@ public partial class MainWindow : Window
     private bool _isCursorHidden;
     private bool _isFullscreen;
     private bool _isHistoryPreview;
+    private bool _shutdownScheduled;
+    private int _scheduleEndHour;
+    private int _scheduleEndMinute;
+    private int _scheduleStartHour;
+    private int _scheduleStartMinute;
     private string _currentCaptureId = string.Empty;
     private string _currentResultPath = string.Empty;
     private string _settingsPinEntry = string.Empty;
@@ -50,7 +58,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        _config = new ConfigService().Load();
+        _configService = new ConfigService();
+        _config = _configService.Load();
         _cameraService = new DemoPhotoService();
         _imageComposer = new ImageComposer();
         _printHistoryService = new PrintHistoryService();
@@ -90,6 +99,14 @@ public partial class MainWindow : Window
 
         _printCompletionTimer.Tick += PrintCompletionTimer_Tick;
 
+        _scheduleTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(15)
+        };
+
+        _scheduleTimer.Tick += ScheduleTimer_Tick;
+        _scheduleTimer.Start();
+
         ShowSessionStartup();
     }
 
@@ -104,6 +121,8 @@ public partial class MainWindow : Window
         PreviewPanel.Visibility = Visibility.Collapsed;
         SettingsPinPanel.Visibility = Visibility.Collapsed;
         SettingsPanel.Visibility = Visibility.Collapsed;
+        ScheduleSettingsPanel.Visibility = Visibility.Collapsed;
+        OffHoursPanel.Visibility = Visibility.Collapsed;
         SessionPanel.Visibility = Visibility.Visible;
 
         if (_recoverableSession is null)
@@ -179,6 +198,7 @@ public partial class MainWindow : Window
         ActiveSessionText.Text = $"Сессия: {session.Name}";
         SessionPanel.Visibility = Visibility.Collapsed;
         HomePanel.Visibility = Visibility.Visible;
+        EvaluateWorkSchedule();
     }
 
     private void ChangeSessionButton_Click(object sender, RoutedEventArgs e)
@@ -188,12 +208,15 @@ public partial class MainWindow : Window
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
+        CancelScheduledShutdown();
         _settingsPinEntry = string.Empty;
         SettingsPinErrorText.Text = string.Empty;
         UpdateSettingsPinDisplay();
 
         HomePanel.Visibility = Visibility.Collapsed;
+        OffHoursPanel.Visibility = Visibility.Collapsed;
         SettingsPanel.Visibility = Visibility.Collapsed;
+        ScheduleSettingsPanel.Visibility = Visibility.Collapsed;
         SettingsPinPanel.Visibility = Visibility.Visible;
     }
 
@@ -266,6 +289,8 @@ public partial class MainWindow : Window
 
         SettingsPinPanel.Visibility = Visibility.Collapsed;
         HomePanel.Visibility = Visibility.Collapsed;
+        ScheduleSettingsPanel.Visibility = Visibility.Collapsed;
+        OffHoursPanel.Visibility = Visibility.Collapsed;
         SettingsPanel.Visibility = Visibility.Visible;
     }
 
@@ -276,11 +301,351 @@ public partial class MainWindow : Window
 
     private void SettingsSectionButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button { Tag: string sectionName })
+        if (sender is not Button { Tag: string sectionName })
+        {
+            return;
+        }
+
+        switch (sectionName)
+        {
+            case "Система":
+                RestartComputer();
+                break;
+            case "Калибровка экрана":
+                LaunchScreenCalibration();
+                break;
+            case "Таймер работы":
+                ShowScheduleSettings();
+                break;
+            case "Камера":
+                SettingsSectionStatusText.Text =
+                    "Камера: подключим параметры после установки Canon SDK.";
+                break;
+            case "Принтер":
+                SettingsSectionStatusText.Text =
+                    "Принтер: подключим параметры после проверки драйвера DNP.";
+                break;
+        }
+    }
+
+    private void RestartComputer()
+    {
+        MessageBoxResult result = MessageBox.Show(
+            this,
+            "Перезагрузить компьютер прямо сейчас?",
+            "Перезагрузка",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "shutdown.exe",
+                Arguments = "/r /t 0",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+        }
+        catch (Exception exception)
         {
             SettingsSectionStatusText.Text =
-                $"{sectionName}: подключим функции на следующем этапе.";
+                $"Не удалось перезагрузить компьютер: {exception.Message}";
         }
+    }
+
+    private void LaunchScreenCalibration()
+    {
+        try
+        {
+            Topmost = false;
+            Process? calibrationProcess = Process.Start(new ProcessStartInfo
+            {
+                FileName = "tabcal.exe",
+                UseShellExecute = true
+            });
+
+            if (calibrationProcess is null)
+            {
+                throw new InvalidOperationException(
+                    "Windows не запустила мастер калибровки.");
+            }
+
+            calibrationProcess.EnableRaisingEvents = true;
+            calibrationProcess.Exited += (_, _) =>
+                Dispatcher.Invoke(() =>
+                {
+                    WindowState = WindowState.Maximized;
+                    Topmost = _isFullscreen;
+                    Activate();
+                });
+
+            WindowState = WindowState.Minimized;
+            SettingsSectionStatusText.Text =
+                "Открыта штатная калибровка сенсорного экрана Windows.";
+        }
+        catch (Exception exception)
+        {
+            SettingsSectionStatusText.Text =
+                $"Не удалось открыть калибровку: {exception.Message}";
+        }
+    }
+
+    private void ShowScheduleSettings()
+    {
+        _scheduleStartHour = NormalizeHour(_config.WorkStartHour);
+        _scheduleStartMinute = NormalizeMinute(_config.WorkStartMinute);
+        _scheduleEndHour = NormalizeHour(_config.WorkEndHour);
+        _scheduleEndMinute = NormalizeMinute(_config.WorkEndMinute);
+
+        ScheduleEnabledCheckBox.IsChecked = _config.WorkScheduleEnabled;
+        ScheduleShutdownCheckBox.IsChecked = _config.ShutdownOutsideWorkHours;
+        ScheduleSaveStatusText.Text = string.Empty;
+        UpdateScheduleTimeText();
+
+        SettingsPanel.Visibility = Visibility.Collapsed;
+        ScheduleSettingsPanel.Visibility = Visibility.Visible;
+    }
+
+    private void ScheduleStepButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string command })
+        {
+            return;
+        }
+
+        string[] parts = command.Split(':');
+
+        if (parts.Length != 2 || !int.TryParse(parts[1], out int delta))
+        {
+            return;
+        }
+
+        switch (parts[0])
+        {
+            case "start-hour":
+                _scheduleStartHour = Wrap(_scheduleStartHour + delta, 24);
+                break;
+            case "start-minute":
+                _scheduleStartMinute = Wrap(_scheduleStartMinute + delta, 60);
+                break;
+            case "end-hour":
+                _scheduleEndHour = Wrap(_scheduleEndHour + delta, 24);
+                break;
+            case "end-minute":
+                _scheduleEndMinute = Wrap(_scheduleEndMinute + delta, 60);
+                break;
+        }
+
+        ScheduleSaveStatusText.Text = string.Empty;
+        UpdateScheduleTimeText();
+    }
+
+    private void UpdateScheduleTimeText()
+    {
+        ScheduleStartHourText.Text = _scheduleStartHour.ToString("00");
+        ScheduleStartMinuteText.Text = _scheduleStartMinute.ToString("00");
+        ScheduleEndHourText.Text = _scheduleEndHour.ToString("00");
+        ScheduleEndMinuteText.Text = _scheduleEndMinute.ToString("00");
+    }
+
+    private void ScheduleSaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        bool shutdownEnabled = ScheduleShutdownCheckBox.IsChecked == true;
+
+        if (shutdownEnabled)
+        {
+            MessageBoxResult confirmation = MessageBox.Show(
+                this,
+                "После завершения рабочего времени компьютер будет автоматически выключен с предупреждением 60 секунд. Включить эту настройку?",
+                "Автоматическое выключение",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (confirmation != MessageBoxResult.Yes)
+            {
+                ScheduleShutdownCheckBox.IsChecked = false;
+                shutdownEnabled = false;
+            }
+        }
+
+        _config.WorkScheduleEnabled = ScheduleEnabledCheckBox.IsChecked == true;
+        _config.WorkStartHour = _scheduleStartHour;
+        _config.WorkStartMinute = _scheduleStartMinute;
+        _config.WorkEndHour = _scheduleEndHour;
+        _config.WorkEndMinute = _scheduleEndMinute;
+        _config.ShutdownOutsideWorkHours = shutdownEnabled;
+
+        try
+        {
+            _configService.Save(_config);
+            ScheduleSaveStatusText.Text = "Расписание сохранено";
+            EvaluateWorkSchedule();
+        }
+        catch (Exception exception)
+        {
+            ScheduleSaveStatusText.Text =
+                $"Не удалось сохранить расписание: {exception.Message}";
+        }
+    }
+
+    private void ScheduleBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        ScheduleSettingsPanel.Visibility = Visibility.Collapsed;
+        SettingsPanel.Visibility = Visibility.Visible;
+    }
+
+    private void ScheduleTimer_Tick(object? sender, EventArgs e)
+    {
+        EvaluateWorkSchedule();
+    }
+
+    private void EvaluateWorkSchedule()
+    {
+        if (!_config.WorkScheduleEnabled)
+        {
+            CancelScheduledShutdown();
+            OffHoursPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        if (SettingsPinPanel.Visibility == Visibility.Visible ||
+            SettingsPanel.Visibility == Visibility.Visible ||
+            ScheduleSettingsPanel.Visibility == Visibility.Visible)
+        {
+            return;
+        }
+
+        bool isWithinWorkHours = IsWithinWorkHours(DateTime.Now.TimeOfDay);
+
+        if (isWithinWorkHours)
+        {
+            CancelScheduledShutdown();
+
+            if (OffHoursPanel.Visibility == Visibility.Visible)
+            {
+                OffHoursPanel.Visibility = Visibility.Collapsed;
+                HomePanel.Visibility = Visibility.Visible;
+            }
+
+            return;
+        }
+
+        if (HomePanel.Visibility != Visibility.Visible &&
+            OffHoursPanel.Visibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        HomePanel.Visibility = Visibility.Collapsed;
+        OffHoursScheduleText.Text =
+            $"Время работы: {_config.WorkStartHour:00}:{_config.WorkStartMinute:00}–" +
+            $"{_config.WorkEndHour:00}:{_config.WorkEndMinute:00}";
+        OffHoursPanel.Visibility = Visibility.Visible;
+
+        if (_config.ShutdownOutsideWorkHours)
+        {
+            ScheduleComputerShutdown();
+        }
+    }
+
+    private bool IsWithinWorkHours(TimeSpan currentTime)
+    {
+        TimeSpan start = new(
+            NormalizeHour(_config.WorkStartHour),
+            NormalizeMinute(_config.WorkStartMinute),
+            0);
+        TimeSpan end = new(
+            NormalizeHour(_config.WorkEndHour),
+            NormalizeMinute(_config.WorkEndMinute),
+            0);
+
+        if (start == end)
+        {
+            return true;
+        }
+
+        return start < end
+            ? currentTime >= start && currentTime < end
+            : currentTime >= start || currentTime < end;
+    }
+
+    private void ScheduleComputerShutdown()
+    {
+        if (_shutdownScheduled)
+        {
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "shutdown.exe",
+                Arguments = "/s /t 60 /c \"PhotoBooth: завершено рабочее время\"",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+            _shutdownScheduled = true;
+        }
+        catch (Exception exception)
+        {
+            OffHoursScheduleText.Text +=
+                $"\nНе удалось запланировать выключение: {exception.Message}";
+        }
+    }
+
+    private void CancelScheduledShutdown()
+    {
+        if (!_shutdownScheduled)
+        {
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "shutdown.exe",
+                Arguments = "/a",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+        }
+        catch
+        {
+            // Windows may report that there is no active shutdown to cancel.
+        }
+        finally
+        {
+            _shutdownScheduled = false;
+        }
+    }
+
+    private void OffHoursSettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        OffHoursPanel.Visibility = Visibility.Collapsed;
+        SettingsButton_Click(sender, e);
+    }
+
+    private static int NormalizeHour(int value)
+    {
+        return value is >= 0 and <= 23 ? value : 0;
+    }
+
+    private static int NormalizeMinute(int value)
+    {
+        return value is >= 0 and <= 59 ? value : 0;
+    }
+
+    private static int Wrap(int value, int maximum)
+    {
+        return (value % maximum + maximum) % maximum;
     }
 
     private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -324,6 +689,8 @@ public partial class MainWindow : Window
         HomePanel.Visibility = Visibility.Collapsed;
         SettingsPinPanel.Visibility = Visibility.Collapsed;
         SettingsPanel.Visibility = Visibility.Collapsed;
+        ScheduleSettingsPanel.Visibility = Visibility.Collapsed;
+        OffHoursPanel.Visibility = Visibility.Collapsed;
         TemplatesPanel.Visibility = Visibility.Collapsed;
         PreviewPanel.Visibility = Visibility.Collapsed;
         PrintProgressPanel.Visibility = Visibility.Collapsed;
@@ -1053,6 +1420,8 @@ public partial class MainWindow : Window
         PreviewPanel.Visibility = Visibility.Collapsed;
         SettingsPinPanel.Visibility = Visibility.Collapsed;
         SettingsPanel.Visibility = Visibility.Collapsed;
+        ScheduleSettingsPanel.Visibility = Visibility.Collapsed;
+        OffHoursPanel.Visibility = Visibility.Collapsed;
         ResultPreviewImage.Source = null;
         LivePreviewImage.Source = null;
         TemplatePreviewImage.Source = null;
@@ -1061,6 +1430,7 @@ public partial class MainWindow : Window
         SessionPanel.Visibility = Visibility.Collapsed;
         ActiveSessionText.Text = _activeSession is null ? string.Empty : $"Сессия: {_activeSession.Name}";
         HomePanel.Visibility = Visibility.Visible;
+        EvaluateWorkSchedule();
     }
 
     private static string ResolveAppPath(string path)

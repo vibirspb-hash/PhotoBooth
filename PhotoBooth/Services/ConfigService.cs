@@ -20,4 +20,17 @@ public sealed class ConfigService
         string json = File.ReadAllText(configPath);
         return JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
     }
+
+    public void Save(AppConfig config)
+    {
+        string configPath = Path.Combine(AppContext.BaseDirectory, ConfigFileName);
+        string json = JsonSerializer.Serialize(
+            config,
+            new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+        File.WriteAllText(configPath, json);
+    }
 }
