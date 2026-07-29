@@ -305,85 +305,261 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="SessionTextBoxStyle"
+               TargetType="TextBox">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CaretBrush" Value="White" />
+            <Setter Property="Background" Value="#20FFFFFF" />
+            <Setter Property="BorderBrush" Value="#A8FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="22,14" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="SelectionBrush" Value="#887B61FF" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="InputBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="22">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="InputBorder"
+                                        Property="Background"
+                                        Value="#32FFFFFF" />
+                                <Setter TargetName="InputBorder"
+                                        Property="BorderBrush"
+                                        Value="White" />
+                                <Setter TargetName="InputBorder"
+                                        Property="BorderThickness"
+                                        Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
         <Grid x:Name="SessionPanel"
-              Margin="80">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Width="560">
-                <TextBlock Text="PHOTOBOOTH"
+              Background="{StaticResource HomeBackgroundBrush}"
+              ClipToBounds="True">
+            <Grid>
+                <Ellipse Width="760"
+                         Height="760"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Bottom"
+                         Margin="-280,0,0,-380"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#805AA7FF" Offset="0" />
+                            <GradientStop Color="#005AA7FF" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <Ellipse Width="680"
+                         Height="680"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Margin="0,-280,-200,0"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#78FF6EC7" Offset="0" />
+                            <GradientStop Color="#00FF6EC7" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <Ellipse Width="560"
+                         Height="560"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Bottom"
+                         Margin="0,0,-180,-300"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#80FFE7B8" Offset="0" />
+                            <GradientStop Color="#00FFE7B8" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
+
+            <Grid Margin="42,32">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="P H O T O   S T A R  ✦"
                            Foreground="White"
-                           FontSize="44"
-                           FontWeight="Bold"
-                           TextAlignment="Center"
-                           Margin="0,0,0,34" />
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
 
-                <StackPanel x:Name="CurrentSessionPanel"
-                            Visibility="Collapsed">
-                    <TextBlock Text="Найдена текущая сессия"
-                               Foreground="#C9CED8"
-                               FontSize="22"
-                               TextAlignment="Center" />
+                <Border Grid.Row="1"
+                        Width="760"
+                        MinHeight="470"
+                        Padding="64,46"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#25FFFFFF"
+                        BorderBrush="#B8FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="46">
+                    <StackPanel Width="590"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <Border Width="92"
+                                Height="92"
+                                HorizontalAlignment="Center"
+                                Background="#28FFFFFF"
+                                BorderBrush="#C8FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="46"
+                                Margin="0,0,0,20">
+                            <TextBlock Text="&#xE8B7;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="White"
+                                       FontSize="42"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
 
-                    <TextBlock x:Name="CurrentSessionNameText"
-                               Foreground="White"
-                               FontSize="34"
-                               FontWeight="SemiBold"
-                               TextAlignment="Center"
-                               TextWrapping="Wrap"
-                               Margin="0,12,0,28" />
+                        <StackPanel x:Name="CurrentSessionPanel"
+                                    Visibility="Collapsed">
+                            <TextBlock Text="Продолжить работу"
+                                       Foreground="White"
+                                       FontSize="36"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="Найдена незавершённая сессия"
+                                       Foreground="#D8FFFFFF"
+                                       FontSize="18"
+                                       TextAlignment="Center"
+                                       Margin="0,6,0,22" />
 
-                    <Button Content="Продолжить сессию"
-                            Height="64"
-                            FontSize="22"
-                            FontWeight="SemiBold"
-                            Margin="0,0,0,14"
-                            Click="ContinueSessionButton_Click" />
+                            <Border Padding="22,16"
+                                    Background="#1AFFFFFF"
+                                    BorderBrush="#80FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="20"
+                                    Margin="0,0,0,22">
+                                <TextBlock x:Name="CurrentSessionNameText"
+                                           Foreground="White"
+                                           FontSize="25"
+                                           FontWeight="SemiBold"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap" />
+                            </Border>
 
-                    <Button Content="Начать новую сессию"
-                            Height="52"
-                            FontSize="18"
-                            Click="ShowNewSessionButton_Click" />
+                            <Button Height="68"
+                                    Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                                    Margin="0,0,0,12"
+                                    Click="ContinueSessionButton_Click">
+                                <Grid Margin="26,0">
+                                    <TextBlock Text="&#xE768;"
+                                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                               FontSize="28"
+                                               HorizontalAlignment="Left"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Text="Продолжить сессию"
+                                               FontSize="23"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+
+                            <Button Height="60"
+                                    Style="{StaticResource HomeGlassPillStyle}"
+                                    Click="ShowNewSessionButton_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE710;"
+                                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                               FontSize="24"
+                                               Margin="0,0,10,0" />
+                                    <TextBlock Text="Начать новую сессию"
+                                               FontSize="20"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <StackPanel x:Name="NewSessionPanel"
+                                    Visibility="Collapsed">
+                            <TextBlock Text="Новая сессия"
+                                       Foreground="White"
+                                       FontSize="36"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="Создайте папку для фотографий мероприятия"
+                                       Foreground="#D8FFFFFF"
+                                       FontSize="18"
+                                       TextAlignment="Center"
+                                       Margin="0,6,0,24" />
+
+                            <TextBlock Text="Название мероприятия"
+                                       Foreground="White"
+                                       FontSize="17"
+                                       FontWeight="SemiBold"
+                                       Margin="4,0,0,9" />
+
+                            <TextBox x:Name="SessionNameTextBox"
+                                     Height="62"
+                                     MaxLength="80"
+                                     Style="{StaticResource SessionTextBoxStyle}"
+                                     KeyDown="SessionNameTextBox_KeyDown" />
+
+                            <TextBlock x:Name="SessionErrorText"
+                                       Foreground="#FFFFD8"
+                                       FontSize="16"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       MinHeight="26"
+                                       Margin="0,9,0,5" />
+
+                            <Button Height="68"
+                                    Style="{StaticResource TemplatesPrimaryButtonStyle}"
+                                    Click="CreateSessionButton_Click">
+                                <Grid Margin="26,0">
+                                    <TextBlock Text="&#xE710;"
+                                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                               FontSize="28"
+                                               HorizontalAlignment="Left"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Text="Создать сессию"
+                                               FontSize="23"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal">
+                    <TextBlock Text="&#xE946;"
+                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                               Foreground="#C8FFFFFF"
+                               FontSize="21"
+                               Margin="0,0,10,0" />
+                    <TextBlock Text="Все фотографии сохраняются внутри выбранной сессии"
+                               Foreground="#D8FFFFFF"
+                               FontSize="16"
+                               VerticalAlignment="Center" />
                 </StackPanel>
-
-                <StackPanel x:Name="NewSessionPanel"
-                            Visibility="Collapsed">
-                    <TextBlock Text="Новая сессия"
-                               Foreground="White"
-                               FontSize="32"
-                               FontWeight="SemiBold"
-                               TextAlignment="Center"
-                               Margin="0,0,0,22" />
-
-                    <TextBlock Text="Название мероприятия"
-                               Foreground="#C9CED8"
-                               FontSize="18"
-                               Margin="0,0,0,8" />
-
-                    <TextBox x:Name="SessionNameTextBox"
-                             Height="54"
-                             FontSize="22"
-                             Padding="12,8"
-                             MaxLength="80"
-                             KeyDown="SessionNameTextBox_KeyDown" />
-
-                    <TextBlock x:Name="SessionErrorText"
-                               Foreground="#FFB4A8"
-                               FontSize="17"
-                               TextAlignment="Center"
-                               TextWrapping="Wrap"
-                               MinHeight="28"
-                               Margin="0,10,0,4" />
-
-                    <Button Content="Создать сессию"
-                            Height="64"
-                            FontSize="22"
-                            FontWeight="SemiBold"
-                            Click="CreateSessionButton_Click" />
-                </StackPanel>
-            </StackPanel>
+            </Grid>
         </Grid>
 
         <Grid x:Name="HomePanel"
