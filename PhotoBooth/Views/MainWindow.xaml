@@ -1092,6 +1092,33 @@
                                FontWeight="SemiBold" />
                 </Border>
 
+                <Border x:Name="AcceptedShotsRail"
+                        Grid.Row="1"
+                        Width="132"
+                        MaxHeight="500"
+                        Padding="12"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Background="#A31B1F2A"
+                        BorderBrush="#70FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="22"
+                        Margin="0,64,0,0"
+                        Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock Text="ГОТОВО"
+                                   Foreground="White"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,10" />
+                        <ScrollViewer MaxHeight="440"
+                                      VerticalScrollBarVisibility="Hidden">
+                            <StackPanel x:Name="AcceptedShotsPanel" />
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+
                 <Grid x:Name="CaptureReadyOverlay"
                       Grid.Row="1">
                     <StackPanel HorizontalAlignment="Center"
@@ -1335,6 +1362,31 @@
                         </Grid>
                     </Border>
                 </Grid>
+
+                <Border x:Name="ShotFlyCard"
+                        Grid.Row="1"
+                        Width="560"
+                        Height="380"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#F2FFFFFF"
+                        BorderBrush="White"
+                        BorderThickness="6"
+                        CornerRadius="20"
+                        Visibility="Collapsed"
+                        IsHitTestVisible="False"
+                        RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="ShotFlyScale"
+                                            ScaleX="1"
+                                            ScaleY="1" />
+                            <TranslateTransform x:Name="ShotFlyTranslate" />
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <Image x:Name="ShotFlyImage"
+                           Stretch="UniformToFill" />
+                </Border>
             </Grid>
         </Grid>
 

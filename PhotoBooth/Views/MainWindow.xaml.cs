@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using PhotoBooth.Models;
@@ -27,6 +28,7 @@ public partial class MainWindow : Window
     private readonly TemplateDefinitionService _templateDefinitionService;
     private readonly TemplateManager _templateManager;
     private readonly string _outputRootPath;
+    private readonly List<string> _acceptedShots = [];
     private int _countdownValue = InitialCountdownValue;
     private int _copyCount = 1;
     private int _currentShotNumber;
@@ -357,6 +359,12 @@ public partial class MainWindow : Window
     {
         _completionTimer.Stop();
         _printCompletionTimer.Stop();
+        _acceptedShots.Clear();
+        AcceptedShotsPanel.Children.Clear();
+        AcceptedShotsRail.Visibility = Visibility.Collapsed;
+        ShotFlyCard.Visibility = Visibility.Collapsed;
+        ShotReviewOverlay.IsHitTestVisible = true;
+        CountdownPanel.IsHitTestVisible = true;
         PrintStatusText.Text = string.Empty;
         PrintButton.IsEnabled = true;
         CopyOptionsPanel.IsEnabled = true;
@@ -484,6 +492,140 @@ public partial class MainWindow : Window
     }
 
     private void AcceptCurrentShotButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedDefinition is null)
+        {
+            ShowHomeScreen();
+            return;
+        }
+
+        AnimateAcceptedShot();
+    }
+
+    private void AnimateAcceptedShot()
+    {
+        int shotIndex = _currentShotNumber - 1;
+
+        if (shotIndex < 0 || shotIndex >= _preparedShots.Count)
+        {
+            ShowCaptureError("Не удалось найти текущий снимок.");
+            return;
+        }
+
+        string shotPath = _preparedShots[shotIndex];
+        Duration duration = new(TimeSpan.FromMilliseconds(480));
+        QuadraticEase easing = new()
+        {
+            EasingMode = EasingMode.EaseInOut
+        };
+
+        ShotReviewOverlay.IsHitTestVisible = false;
+        CountdownPanel.IsHitTestVisible = false;
+        ShotFlyImage.Source = LoadImage(shotPath);
+        ShotFlyCard.Opacity = 1;
+        ShotFlyScale.ScaleX = 1;
+        ShotFlyScale.ScaleY = 1;
+        ShotFlyTranslate.X = 0;
+        ShotFlyTranslate.Y = 0;
+        ShotFlyCard.Visibility = Visibility.Visible;
+
+        double targetX = -Math.Max(300, CountdownPanel.ActualWidth * 0.38);
+        double targetY = -180 + (Math.Min(_acceptedShots.Count, 4) * 88);
+
+        DoubleAnimation scaleXAnimation = new(1, 0.19, duration)
+        {
+            EasingFunction = easing
+        };
+        DoubleAnimation scaleYAnimation = new(1, 0.19, duration)
+        {
+            EasingFunction = easing
+        };
+        DoubleAnimation translateXAnimation = new(0, targetX, duration)
+        {
+            EasingFunction = easing
+        };
+        DoubleAnimation translateYAnimation = new(0, targetY, duration)
+        {
+            EasingFunction = easing
+        };
+        DoubleAnimation opacityAnimation = new(1, 0.78, duration)
+        {
+            EasingFunction = easing
+        };
+
+        opacityAnimation.Completed += (_, _) =>
+        {
+            ShotFlyCard.Visibility = Visibility.Collapsed;
+            ShotFlyCard.BeginAnimation(OpacityProperty, null);
+            ShotFlyScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            ShotFlyScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            ShotFlyTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            ShotFlyTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+            ShotFlyImage.Source = null;
+            ShotReviewOverlay.IsHitTestVisible = true;
+            CountdownPanel.IsHitTestVisible = true;
+
+            _acceptedShots.Add(shotPath);
+            AddAcceptedShotThumbnail(shotPath, _currentShotNumber);
+            AdvanceAfterAcceptedShot();
+        };
+
+        ShotFlyScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleXAnimation);
+        ShotFlyScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleYAnimation);
+        ShotFlyTranslate.BeginAnimation(TranslateTransform.XProperty, translateXAnimation);
+        ShotFlyTranslate.BeginAnimation(TranslateTransform.YProperty, translateYAnimation);
+        ShotFlyCard.BeginAnimation(OpacityProperty, opacityAnimation);
+    }
+
+    private void AddAcceptedShotThumbnail(string shotPath, int shotNumber)
+    {
+        Grid thumbnailGrid = new();
+        thumbnailGrid.Children.Add(new Image
+        {
+            Source = LoadImage(shotPath),
+            Stretch = Stretch.UniformToFill
+        });
+
+        Border numberBadge = new()
+        {
+            Width = 28,
+            Height = 28,
+            Margin = new Thickness(6),
+            Padding = new Thickness(0),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            Background = new SolidColorBrush(Color.FromArgb(220, 123, 97, 255)),
+            CornerRadius = new CornerRadius(14),
+            Child = new TextBlock
+            {
+                Text = shotNumber.ToString(),
+                Foreground = Brushes.White,
+                FontSize = 15,
+                FontWeight = FontWeights.SemiBold,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            }
+        };
+
+        thumbnailGrid.Children.Add(numberBadge);
+
+        AcceptedShotsPanel.Children.Add(new Border
+        {
+            Width = 106,
+            Height = 76,
+            Margin = new Thickness(0, 0, 0, 10),
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.FromArgb(190, 255, 255, 255)),
+            BorderThickness = new Thickness(2),
+            CornerRadius = new CornerRadius(12),
+            ClipToBounds = true,
+            Child = thumbnailGrid
+        });
+
+        AcceptedShotsRail.Visibility = Visibility.Visible;
+    }
+
+    private void AdvanceAfterAcceptedShot()
     {
         ShotReviewOverlay.Visibility = Visibility.Collapsed;
 
