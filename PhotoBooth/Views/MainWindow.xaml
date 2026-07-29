@@ -28,7 +28,8 @@
             <Setter Property="Background" Value="#18FFFFFF" />
             <Setter Property="BorderBrush" Value="#BFFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="24,14" />
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="Padding" Value="24,13" />
             <Setter Property="FontSize" Value="22" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -64,7 +65,8 @@
             <Setter Property="Background" Value="#18FFFFFF" />
             <Setter Property="BorderBrush" Value="#BFFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="24,14" />
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="Padding" Value="24,13" />
             <Setter Property="FontSize" Value="22" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -97,10 +99,11 @@
         <Style x:Key="HomeMenuButtonStyle"
                TargetType="Button"
                BasedOn="{StaticResource HomeGlassPillStyle}">
-            <Setter Property="MinWidth" Value="260" />
-            <Setter Property="Margin" Value="0,0,0,10" />
-            <Setter Property="FontSize" Value="18" />
-            <Setter Property="Padding" Value="18,12" />
+            <Setter Property="MinWidth" Value="310" />
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Padding" Value="22,13" />
         </Style>
 
         <LinearGradientBrush x:Key="TemplatesBackgroundBrush"
@@ -119,7 +122,8 @@
             <Setter Property="Background" Value="#24FFFFFF" />
             <Setter Property="BorderBrush" Value="#70FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="20,13" />
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="Padding" Value="22,13" />
             <Setter Property="FontSize" Value="20" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -338,6 +342,48 @@
                                 <Setter TargetName="InputBorder"
                                         Property="BorderThickness"
                                         Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="HistoryItemButtonStyle"
+               TargetType="Button">
+            <Setter Property="Width" Value="220" />
+            <Setter Property="Height" Value="310" />
+            <Setter Property="Margin" Value="12" />
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="#50FFFFFF" />
+            <Setter Property="BorderBrush" Value="#88FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="HistoryCardBorder"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="24">
+                            <ContentPresenter HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Stretch" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="HistoryCardBorder"
+                                        Property="Background"
+                                        Value="#78FFFFFF" />
+                                <Setter TargetName="HistoryCardBorder"
+                                        Property="BorderBrush"
+                                        Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="HistoryCardBorder"
+                                        Property="Opacity"
+                                        Value="0.82" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -643,16 +689,16 @@
 
                         <Popup PlacementTarget="{Binding ElementName=SettingsToggle}"
                                Placement="Bottom"
-                               HorizontalOffset="-94"
+                               HorizontalOffset="-150"
                                VerticalOffset="12"
                                AllowsTransparency="True"
                                StaysOpen="False"
                                IsOpen="{Binding IsChecked, ElementName=SettingsToggle}">
-                            <Border Padding="16"
-                                    Background="#D930285C"
+                            <Border Padding="20"
+                                    Background="#D12C245A"
                                     BorderBrush="#BFFFFFFF"
                                     BorderThickness="1"
-                                    CornerRadius="22">
+                                    CornerRadius="28">
                                 <StackPanel>
                                     <TextBlock x:Name="ActiveSessionText"
                                                Foreground="White"
@@ -661,18 +707,42 @@
                                                TextWrapping="Wrap"
                                                Margin="8,4,8,16" />
 
-                                    <Button Content="История печати"
-                                            Style="{StaticResource HomeMenuButtonStyle}"
-                                            Click="PrintHistoryButton_Click" />
+                                    <Button Style="{StaticResource HomeMenuButtonStyle}"
+                                            Click="PrintHistoryButton_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE81C;"
+                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                       FontSize="24"
+                                                       Margin="0,0,12,0" />
+                                            <TextBlock Text="История печати"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
 
-                                    <Button Content="Сменить сессию"
-                                            Style="{StaticResource HomeMenuButtonStyle}"
-                                            Click="ChangeSessionButton_Click" />
+                                    <Button Style="{StaticResource HomeMenuButtonStyle}"
+                                            Click="ChangeSessionButton_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE8D7;"
+                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                       FontSize="24"
+                                                       Margin="0,0,12,0" />
+                                            <TextBlock Text="Сменить сессию"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
 
-                                    <Button Content="Выход"
-                                            Style="{StaticResource HomeMenuButtonStyle}"
+                                    <Button Style="{StaticResource HomeMenuButtonStyle}"
                                             Margin="0"
-                                            Click="ExitButton_Click" />
+                                            Click="ExitButton_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE7E8;"
+                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                       FontSize="24"
+                                                       Margin="0,0,12,0" />
+                                            <TextBlock Text="Выход"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                             </Border>
                         </Popup>
@@ -697,19 +767,7 @@
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="54">
-                                <Grid ClipToBounds="True">
-                                    <Rectangle Height="170"
-                                               VerticalAlignment="Top"
-                                               IsHitTestVisible="False">
-                                        <Rectangle.Fill>
-                                            <LinearGradientBrush StartPoint="0,0"
-                                                                 EndPoint="0,1">
-                                                <GradientStop Color="#35FFFFFF" Offset="0" />
-                                                <GradientStop Color="#00FFFFFF" Offset="1" />
-                                            </LinearGradientBrush>
-                                        </Rectangle.Fill>
-                                    </Rectangle>
-
+                                <Grid>
                                     <StackPanel HorizontalAlignment="Center"
                                                 VerticalAlignment="Center">
                                         <Border Width="190"
@@ -776,27 +834,16 @@
                 <Grid Grid.Row="2"
                       HorizontalAlignment="Left">
                     <ToggleButton x:Name="InfoToggle"
-                                  Style="{StaticResource HomeGlassToggleStyle}"
-                                  Background="Transparent"
-                                  BorderBrush="Transparent"
-                                  Padding="0">
+                                  Style="{StaticResource HomeGlassToggleStyle}">
                         <StackPanel Orientation="Horizontal">
-                            <Border Width="40"
-                                    Height="40"
-                                    CornerRadius="20"
-                                    BorderBrush="White"
-                                    BorderThickness="2"
-                                    Margin="0,0,14,0">
-                                <TextBlock Text="&#xE946;"
-                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                           Foreground="White"
-                                           FontSize="22"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center" />
-                            </Border>
+                            <TextBlock Text="&#xE946;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="White"
+                                       FontSize="25"
+                                       Margin="0,0,12,0" />
                             <TextBlock Text="Инструкция по использованию"
                                        Foreground="White"
-                                       FontSize="18"
+                                       FontSize="19"
                                        VerticalAlignment="Center" />
                         </StackPanel>
                     </ToggleButton>
@@ -833,84 +880,161 @@
 
         <Grid x:Name="HistoryPanel"
               Visibility="Collapsed"
-              Margin="60,40">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+              Background="{StaticResource TemplatesBackgroundBrush}"
+              ClipToBounds="True">
+            <Grid>
+                <Ellipse Width="720"
+                         Height="720"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Bottom"
+                         Margin="-290,0,0,-380"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#705AA7FF" Offset="0" />
+                            <GradientStop Color="#005AA7FF" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
 
-            <StackPanel>
-                <TextBlock Text="История печати"
-                           Foreground="White"
-                           FontSize="40"
-                           FontWeight="Bold"
-                           TextAlignment="Center" />
+                <Ellipse Width="620"
+                         Height="620"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Margin="0,-280,-180,0"
+                         IsHitTestVisible="False">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#68FF6EC7" Offset="0" />
+                            <GradientStop Color="#00FF6EC7" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
 
-                <TextBlock x:Name="HistorySessionNameText"
-                           Foreground="#C9CED8"
-                           FontSize="18"
-                           TextAlignment="Center"
-                           Margin="0,8,0,24" />
-            </StackPanel>
+            <Grid Margin="34,30">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <ScrollViewer Grid.Row="1"
-                          VerticalScrollBarVisibility="Auto">
                 <Grid>
-                    <TextBlock x:Name="NoHistoryText"
-                               Text="В этой сессии пока нет готовых коллажей"
-                               Foreground="#C9CED8"
-                               FontSize="22"
-                               TextAlignment="Center"
-                               Visibility="Collapsed" />
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                    <ItemsControl x:Name="HistoryList">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel HorizontalAlignment="Center" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Width="220"
-                                        Height="300"
-                                        Margin="10"
-                                        Padding="8"
-                                        Click="HistoryItemButton_Click">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="*" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
+                    <Button HorizontalAlignment="Left"
+                            Style="{StaticResource TemplatesGlassButtonStyle}"
+                            Click="HistoryBackButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="25"
+                                       Margin="0,0,10,0" />
+                            <TextBlock Text="Назад"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
 
-                                        <Border Background="White"
-                                                BorderBrush="#D5D8DE"
-                                                BorderThickness="1">
-                                            <Image Source="{Binding Thumbnail}"
-                                                   Stretch="Uniform" />
-                                        </Border>
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="История печати"
+                                   Foreground="#172238"
+                                   FontSize="40"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
 
-                                        <TextBlock Grid.Row="1"
-                                                   Text="{Binding DisplayTime}"
-                                                   FontSize="17"
-                                                   TextAlignment="Center"
-                                                   Margin="0,10,0,0" />
-                                    </Grid>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        <TextBlock x:Name="HistorySessionNameText"
+                                   Foreground="#5E6B83"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
                 </Grid>
-            </ScrollViewer>
 
-            <Button Grid.Row="2"
-                    Content="На главную"
-                    Width="220"
-                    Height="52"
-                    FontSize="18"
-                    HorizontalAlignment="Center"
-                    Margin="0,20,0,0"
-                    Click="HistoryBackButton_Click" />
+                <Grid Grid.Row="1"
+                      Margin="0,24,0,0">
+                    <StackPanel x:Name="NoHistoryText"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed">
+                        <Border Width="92"
+                                Height="92"
+                                HorizontalAlignment="Center"
+                                Background="#40FFFFFF"
+                                BorderBrush="#80FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="46"
+                                Margin="0,0,0,18">
+                            <TextBlock Text="&#xE7B8;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Foreground="#7B61FF"
+                                       FontSize="40"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="История пока пуста"
+                                   Foreground="#172238"
+                                   FontSize="26"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Здесь появятся готовые коллажи этой сессии"
+                                   Foreground="#5E6B83"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,7,0,0" />
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="HistoryList">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel HorizontalAlignment="Center" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource HistoryItemButtonStyle}"
+                                            Click="HistoryItemButton_Click">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <Border Background="White"
+                                                    BorderBrush="#DDE2EC"
+                                                    BorderThickness="1"
+                                                    CornerRadius="14"
+                                                    Padding="7">
+                                                <Image Source="{Binding Thumbnail}"
+                                                       Stretch="Uniform" />
+                                            </Border>
+
+                                            <StackPanel Grid.Row="1"
+                                                        Margin="0,12,0,0">
+                                                <TextBlock Text="Готовый макет"
+                                                           Foreground="#172238"
+                                                           FontSize="17"
+                                                           FontWeight="SemiBold"
+                                                           TextAlignment="Center" />
+                                                <TextBlock Text="{Binding DisplayTime}"
+                                                           Foreground="#68758C"
+                                                           FontSize="15"
+                                                           TextAlignment="Center"
+                                                           Margin="0,3,0,0" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
         </Grid>
 
         <Grid x:Name="TemplatesPanel"
