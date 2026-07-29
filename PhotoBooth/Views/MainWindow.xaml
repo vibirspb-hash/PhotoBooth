@@ -849,6 +849,7 @@
                 <Grid Grid.Row="2"
                       HorizontalAlignment="Left">
                     <ToggleButton x:Name="InfoToggle"
+                                  MinWidth="420"
                                   Style="{StaticResource HomeGlassToggleStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE946;"
@@ -869,12 +870,12 @@
                            AllowsTransparency="True"
                            StaysOpen="False"
                            IsOpen="{Binding IsChecked, ElementName=InfoToggle}">
-                        <Border Width="360"
-                                Padding="22"
+                        <Border Width="420"
+                                Padding="24"
                                 Background="#E630285C"
                                 BorderBrush="#BFFFFFFF"
                                 BorderThickness="1"
-                                CornerRadius="22">
+                                CornerRadius="28">
                             <StackPanel>
                                 <TextBlock Text="Как сделать фото"
                                            Foreground="White"
@@ -1475,7 +1476,8 @@
 
                     <Grid HorizontalAlignment="Center"
                           VerticalAlignment="Center">
-                        <Viewbox Width="430"
+                        <Viewbox x:Name="CountdownProgressRing"
+                                 Width="430"
                                  Height="430">
                             <Grid Width="560"
                                   Height="560">
@@ -1484,10 +1486,11 @@
                                          StrokeThickness="9"
                                          StrokeDashArray="1,2.2" />
 
-                                <Path StrokeThickness="11"
+                                <Path x:Name="CountdownProgressArc"
+                                      StrokeThickness="11"
                                       StrokeStartLineCap="Round"
                                       StrokeEndLineCap="Round"
-                                      Data="M 280,25 A 255,255 0 1 1 75,432">
+                                      Data="M 280,25 A 255,255 0 0 1 280,535">
                                     <Path.Stroke>
                                         <LinearGradientBrush StartPoint="0,0"
                                                              EndPoint="1,1">

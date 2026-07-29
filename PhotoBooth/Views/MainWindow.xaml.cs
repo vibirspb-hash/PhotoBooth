@@ -422,6 +422,7 @@ public partial class MainWindow : Window
         CountdownText.Text = _countdownValue.ToString();
         CountdownText.FontSize = 112;
         CountdownCaption.Text = "Смотрите в объектив";
+        UpdateCountdownProgressRing();
         UpdateCaptureProgress();
         LivePreviewImage.Source = LoadImage(_preparedShots[_currentShotNumber - 1]);
 
@@ -448,6 +449,7 @@ public partial class MainWindow : Window
     private void CountdownTimer_Tick(object? sender, EventArgs e)
     {
         _countdownValue--;
+        UpdateCountdownProgressRing();
 
         if (_countdownValue > 0)
         {
@@ -461,6 +463,20 @@ public partial class MainWindow : Window
         CountdownCaption.Text = $"Снимок {_currentShotNumber} готов";
 
         _completionTimer.Start();
+    }
+
+    private void UpdateCountdownProgressRing()
+    {
+        if (_countdownValue <= 1)
+        {
+            CountdownProgressRing.Visibility = Visibility.Hidden;
+            return;
+        }
+
+        CountdownProgressRing.Visibility = Visibility.Visible;
+        CountdownProgressArc.Data = _countdownValue >= 3
+            ? Geometry.Parse("M 280,25 A 255,255 0 0 1 280,535")
+            : Geometry.Parse("M 280,25 A 255,255 0 0 1 535,280");
     }
 
     private void CompletionTimer_Tick(object? sender, EventArgs e)
