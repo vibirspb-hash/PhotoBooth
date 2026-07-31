@@ -15,11 +15,16 @@ publish_root="$build_root/app"
 rm -rf "$build_root" "$output_root"
 mkdir -p "$build_root" "$output_root"
 
-dotnet publish "$repo_root/PhotoBooth.Linux/PhotoBooth.Linux.csproj" \
-  -c Release \
-  -r linux-x64 \
-  --self-contained true \
-  -o "$publish_root"
+if [[ -n "${PHOTOBOOTH_PREPUBLISHED_DIR:-}" ]]; then
+  mkdir -p "$publish_root"
+  cp -a "$PHOTOBOOTH_PREPUBLISHED_DIR/." "$publish_root/"
+else
+  dotnet publish "$repo_root/PhotoBooth.Linux/PhotoBooth.Linux.csproj" \
+    -c Release \
+    -r linux-x64 \
+    --self-contained true \
+    -o "$publish_root"
+fi
 
 cd "$build_root"
 lb config noauto \
@@ -65,7 +70,11 @@ systemctl enable lightdm.service
 HOOK
 chmod +x config/hooks/live/010-photobooth-kiosk.hook.chroot
 
-sudo lb build
+if [[ "$EUID" -eq 0 ]]; then
+  lb build
+else
+  sudo lb build
+fi
 
 iso_path="$(find . -maxdepth 1 -type f -name '*.hybrid.iso' -print -quit)"
 if [[ -z "$iso_path" ]]; then

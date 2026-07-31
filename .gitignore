@@ -14,3 +14,4 @@ PhotoBooth-Linux-x64/
 SHA256SUMS
 kiosk-image/build/
 kiosk-image/output/
+kiosk-image/prebuilt-app/
