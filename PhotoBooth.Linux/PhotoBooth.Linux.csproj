@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <NoWarn>$(NoWarn);CS9057</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\PhotoBooth\Models\AppConfig.cs"
+             Link="Models\AppConfig.cs" />
+    <Compile Include="..\PhotoBooth\Models\PhotoSession.cs"
+             Link="Models\PhotoSession.cs" />
+    <Compile Include="..\PhotoBooth\Models\PrintResult.cs"
+             Link="Models\PrintResult.cs" />
+    <Compile Include="..\PhotoBooth\Models\TemplateDefinition.cs"
+             Link="Models\TemplateDefinition.cs" />
+    <Compile Include="..\PhotoBooth\Models\TemplateInfo.cs"
+             Link="Models\TemplateInfo.cs" />
+    <Compile Include="..\PhotoBooth\Models\TemplatePhotoSlot.cs"
+             Link="Models\TemplatePhotoSlot.cs" />
+    <Compile Include="..\PhotoBooth\Services\ConfigService.cs"
+             Link="Services\ConfigService.cs" />
+    <Compile Include="..\PhotoBooth\Services\DemoPrinterService.cs"
+             Link="Services\DemoPrinterService.cs" />
+    <Compile Include="..\PhotoBooth\Services\ICameraService.cs"
+             Link="Services\ICameraService.cs" />
+    <Compile Include="..\PhotoBooth\Services\IPrinterService.cs"
+             Link="Services\IPrinterService.cs" />
+    <Compile Include="..\PhotoBooth\Services\SessionManager.cs"
+             Link="Services\SessionManager.cs" />
+    <Compile Include="..\PhotoBooth\Services\TemplateDefinitionService.cs"
+             Link="Services\TemplateDefinitionService.cs" />
+    <Compile Include="..\PhotoBooth\Services\TemplateManager.cs"
+             Link="Services\TemplateManager.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PhotoBooth\Templates\**\*"
+          Link="Templates\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\PhotoBooth\DemoPhotos\**\*"
+          Link="DemoPhotos\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\INSTALL_LINUX_HARDWARE.sh"
+          Link="INSTALL_LINUX_HARDWARE.sh"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\CONFIGURE_DNP_RX1.sh"
+          Link="CONFIGURE_DNP_RX1.sh"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\CHECK_LINUX_HARDWARE.sh"
+          Link="CHECK_LINUX_HARDWARE.sh"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\SETUP_KIOSK.sh"
+          Link="SETUP_KIOSK.sh"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\START_KIOSK.sh"
+          Link="START_KIOSK.sh"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\BOOTABLE_USB_WINDOWS_RU.md"
+          Link="BOOTABLE_USB_WINDOWS_RU.md"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\BIOS_BOOT_ASUS_H81I_PLUS_RU.md"
+          Link="BIOS_BOOT_ASUS_H81I_PLUS_RU.md"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\VERIFY_KIOSK_BOOT.sh"
+          Link="VERIFY_KIOSK_BOOT.sh"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

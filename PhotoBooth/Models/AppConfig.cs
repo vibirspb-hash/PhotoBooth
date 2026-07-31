@@ -4,6 +4,18 @@ public sealed class AppConfig
 {
     public bool DemoMode { get; set; } = true;
 
+    public bool HardwareFallbackToDemo { get; set; } = true;
+
+    public string GPhotoCommand { get; set; } = "gphoto2";
+
+    public string CupsLpCommand { get; set; } = "lp";
+
+    public string CupsLpStatCommand { get; set; } = "lpstat";
+
+    public string PrinterName { get; set; } = string.Empty;
+
+    public string PrinterMedia { get; set; } = "w288h432";
+
     public bool Fullscreen { get; set; } = true;
 
     public bool HideCursor { get; set; } = true;

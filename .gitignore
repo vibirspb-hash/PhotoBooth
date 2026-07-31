@@ -6,3 +6,11 @@ obj/
 *.suo
 *.rsuser
 TestResults/
+PhotoBooth-Linux-x64/
+.DS_Store
+*.iso
+*.img
+*.zip
+SHA256SUMS
+kiosk-image/build/
+kiosk-image/output/

@@ -1,0 +1,1068 @@
+<Window x:Class="PhotoBooth.Linux.MainWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PhotoBooth"
+        Width="1280"
+        Height="720"
+        MinWidth="960"
+        MinHeight="540"
+        WindowStartupLocation="CenterScreen"
+        WindowDecorations="None"
+        Background="#5F72E9">
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="FontFamily" Value="Inter, Arial, sans-serif" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="Padding" Value="28,13" />
+            <Setter Property="CornerRadius" Value="29" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Button.glass">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#20FFFFFF" />
+            <Setter Property="BorderBrush" Value="#BFFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style Selector="Button.glass:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%"
+                                     EndPoint="100%,0%">
+                    <GradientStop Color="#9B70FF" Offset="0" />
+                    <GradientStop Color="#C378E8" Offset="0.52" />
+                    <GradientStop Color="#F37EC9" Offset="1" />
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#A8FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style Selector="TextBox.session">
+            <Setter Property="Height" Value="64" />
+            <Setter Property="Padding" Value="22,14" />
+            <Setter Property="FontSize" Value="21" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="#EFFFFFFF" />
+            <Setter Property="BorderBrush" Value="#D8FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="22" />
+            <Setter Property="SelectionBrush" Value="#887B61FF" />
+        </Style>
+
+        <Style Selector="Button.keyboardKey">
+            <Setter Property="Height" Value="46" />
+            <Setter Property="MinWidth" Value="52" />
+            <Setter Property="Padding" Value="12,4" />
+            <Setter Property="FontSize" Value="19" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="#EFFFFFFF" />
+            <Setter Property="BorderBrush" Value="#B8FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+        </Style>
+
+        <Style Selector="Button.templateCard">
+            <Setter Property="Width" Value="220" />
+            <Setter Property="Height" Value="382" />
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="#42FFFFFF" />
+            <Setter Property="BorderBrush" Value="#8AFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="30" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+
+        <Style Selector="Button.templateCard.selected">
+            <Setter Property="Background" Value="#78FFFFFF" />
+            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="BorderThickness" Value="3" />
+        </Style>
+
+        <Style Selector="Button.copyOption">
+            <Setter Property="Width" Value="106" />
+            <Setter Property="Height" Value="58" />
+            <Setter Property="Margin" Value="7" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="#E8FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D6DCE8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.copyOption.selected">
+            <Setter Property="Foreground" Value="#6F55E8" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#7B61FF" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <Style Selector="Button.historyCard">
+            <Setter Property="Width" Value="230" />
+            <Setter Property="Height" Value="320" />
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#DDE2EC" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+    </Window.Styles>
+
+    <Grid>
+        <Border>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%"
+                                     EndPoint="100%,100%">
+                    <GradientStop Color="#5AA7FF" Offset="0" />
+                    <GradientStop Color="#7B61FF" Offset="0.30" />
+                    <GradientStop Color="#B16CFF" Offset="0.52" />
+                    <GradientStop Color="#FF6EC7" Offset="0.76" />
+                    <GradientStop Color="#FFB278" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <Ellipse Width="760"
+                 Height="760"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Bottom"
+                 Margin="-300,0,0,-390"
+                 IsHitTestVisible="False">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#805AA7FF" Offset="0" />
+                    <GradientStop Color="#005AA7FF" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Ellipse Width="680"
+                 Height="680"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Top"
+                 Margin="0,-300,-210,0"
+                 IsHitTestVisible="False">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#78FF6EC7" Offset="0" />
+                    <GradientStop Color="#00FF6EC7" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Grid x:Name="SessionPanel"
+              Margin="42,32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="P H O T O   S T A R  ✦"
+                       Foreground="White"
+                       FontSize="20"
+                       FontWeight="SemiBold" />
+
+            <Border Grid.Row="1"
+                    Width="980"
+                    MinHeight="590"
+                    Padding="36,22"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="#25FFFFFF"
+                    BorderBrush="#B8FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="46"
+                    BoxShadow="0 18 50 0 #300F235A">
+                <StackPanel Width="880"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <Border Width="52"
+                            Height="52"
+                            HorizontalAlignment="Center"
+                            Background="#28FFFFFF"
+                            BorderBrush="#C8FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="26"
+                            Margin="0,0,0,8">
+                        <PathIcon Width="26"
+                                  Height="26"
+                                  Foreground="White"
+                                  Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
+                    </Border>
+
+                    <StackPanel x:Name="CurrentSessionPanel"
+                                IsVisible="False">
+                        <TextBlock Text="Продолжить работу"
+                                   Foreground="White"
+                                   FontSize="36"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Найдена незавершенная сессия"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,6,0,22" />
+
+                        <Border Padding="22,16"
+                                Background="#1AFFFFFF"
+                                BorderBrush="#80FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="20"
+                                Margin="0,0,0,22">
+                            <TextBlock x:Name="CurrentSessionNameText"
+                                       Foreground="White"
+                                       FontSize="25"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap" />
+                        </Border>
+
+                        <Button Classes="primary"
+                                Height="68"
+                                Margin="0,0,0,12"
+                                Click="ContinueSessionButton_OnClick">
+                            <TextBlock Text="Продолжить сессию"
+                                       FontSize="23" />
+                        </Button>
+
+                        <Button Classes="glass"
+                                Height="60"
+                                Click="ShowNewSessionButton_OnClick">
+                            <TextBlock Text="＋  Начать новую сессию"
+                                       FontSize="20" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel x:Name="NewSessionPanel"
+                                IsVisible="False">
+                        <TextBlock Text="Новая сессия"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Создайте папку для фотографий мероприятия"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,6,0,24" />
+
+                        <TextBlock Text="Название мероприятия"
+                                   Foreground="White"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Margin="4,0,0,9" />
+
+                        <TextBox x:Name="SessionNameTextBox"
+                                 Classes="session"
+                                 MaxLength="80"
+                                 KeyDown="SessionNameTextBox_OnKeyDown" />
+
+                        <TextBlock x:Name="SessionErrorText"
+                                   Foreground="#FFFFD8"
+                                   FontSize="16"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MinHeight="26"
+                                   Margin="0,9,0,5" />
+
+                        <Button Classes="primary"
+                                Height="68"
+                                Click="CreateSessionButton_OnClick">
+                            <TextBlock Text="Создать сессию"
+                                       FontSize="23" />
+                        </Button>
+
+                        <StackPanel x:Name="SessionKeyboardPanel"
+                                    Spacing="6"
+                                    Margin="0,14,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Grid.Row="2"
+                       Text="ⓘ  Все фотографии сохраняются внутри выбранной сессии"
+                       Foreground="#D8FFFFFF"
+                       FontSize="16" />
+        </Grid>
+
+        <Grid x:Name="HomePanel"
+              Margin="44,36"
+              IsVisible="False">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="P H O T O   S T A R  ✦"
+                           Foreground="White"
+                           FontSize="21"
+                           VerticalAlignment="Center" />
+
+                <Button Grid.Column="1"
+                        Classes="glass"
+                        MinWidth="250"
+                        Click="SettingsButton_OnClick">
+                    <TextBlock Text="⚙  Настройки"
+                               FontSize="22" />
+                </Button>
+            </Grid>
+
+            <Button Grid.Row="1"
+                    Classes="glass"
+                    Width="780"
+                    MinHeight="410"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    CornerRadius="54"
+                    Click="StartButton_OnClick">
+                <StackPanel HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <Border Width="190"
+                            Height="190"
+                            CornerRadius="95"
+                            BorderBrush="#EFFFFFFF"
+                            BorderThickness="1"
+                            Margin="0,0,0,26">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%"
+                                                 EndPoint="100%,100%">
+                                <GradientStop Color="#B05AA7FF" Offset="0" />
+                                <GradientStop Color="#B0B16CFF" Offset="0.48" />
+                                <GradientStop Color="#B0FF6EC7" Offset="0.72" />
+                                <GradientStop Color="#B0FFB278" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <PathIcon Width="78"
+                                  Height="78"
+                                  Foreground="White"
+                                  Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
+                    </Border>
+
+                    <TextBlock Text="Начать фотосессию"
+                               Foreground="White"
+                               FontSize="50"
+                               FontWeight="SemiBold"
+                               TextAlignment="Center" />
+
+                    <TextBlock x:Name="HomeSubtitleText"
+                               Text="Создавайте яркие воспоминания"
+                               Foreground="White"
+                               FontSize="24"
+                               TextAlignment="Center"
+                               Margin="0,14,0,0" />
+                </StackPanel>
+            </Button>
+
+            <Grid Grid.Row="2">
+                <Button Classes="glass"
+                        MinWidth="420"
+                        HorizontalAlignment="Left"
+                        Click="InstructionButton_OnClick">
+                    <TextBlock Text="ⓘ  Инструкция по использованию"
+                               FontSize="19" />
+                </Button>
+
+                <TextBlock x:Name="ActiveSessionText"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Foreground="#D8FFFFFF"
+                           FontSize="16" />
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="TemplatesPanel"
+              IsVisible="False">
+            <Border>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%"
+                                         EndPoint="100%,100%">
+                        <GradientStop Color="#BED8FF" Offset="0" />
+                        <GradientStop Color="#D2C9FF" Offset="0.32" />
+                        <GradientStop Color="#E6CEFF" Offset="0.52" />
+                        <GradientStop Color="#FFD3EA" Offset="0.76" />
+                        <GradientStop Color="#FFE3C5" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <Grid Margin="38,30">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="94" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Classes="glass"
+                            MinWidth="180"
+                            HorizontalAlignment="Left"
+                            Foreground="#172238"
+                            BorderBrush="#70FFFFFF"
+                            Click="TemplatesBackButton_OnClick">
+                        <TextBlock Text="‹  Назад"
+                                   FontSize="20" />
+                    </Button>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Выбор макета"
+                                   Foreground="#172238"
+                                   FontSize="38"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Выберите подходящий макет для печати"
+                                   Foreground="#65718A"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <Border x:Name="CaptureDeviceBadge"
+                            Grid.Column="2"
+                            MinWidth="190"
+                            MinHeight="58"
+                            Padding="24,13"
+                            HorizontalAlignment="Right"
+                            Background="#24FFFFFF"
+                            BorderBrush="#70FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="29">
+                        <TextBlock x:Name="TemplatesCountText"
+                                   Foreground="#172238"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto"
+                                  Margin="0,24,0,18">
+                        <WrapPanel x:Name="TemplatesItemsPanel"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </ScrollViewer>
+
+                    <TextBlock x:Name="TemplatesEmptyText"
+                               IsVisible="False"
+                               Foreground="#536078"
+                               FontSize="25"
+                               FontWeight="SemiBold"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Grid.Row="2"
+                            HorizontalAlignment="Center">
+                    <TextBlock x:Name="SelectedTemplateText"
+                               MinHeight="28"
+                               Foreground="#65718A"
+                               FontSize="17"
+                               TextAlignment="Center"
+                               Margin="0,0,0,8" />
+
+                    <Button x:Name="TemplateContinueButton"
+                            Classes="primary"
+                            Width="760"
+                            Height="72"
+                            IsEnabled="False"
+                            Click="TemplateContinueButton_OnClick">
+                        <TextBlock Text="Продолжить  →"
+                                   FontSize="24" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="CapturePanel"
+              Background="#101525"
+              IsVisible="False">
+            <Image x:Name="LivePreviewImage"
+                   Stretch="UniformToFill" />
+            <Border Background="#220A1020" />
+
+            <Grid Margin="36,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Classes="glass"
+                            MinWidth="180"
+                            HorizontalAlignment="Left"
+                            Click="CaptureBackButton_OnClick">
+                        <TextBlock Text="‹  Назад" />
+                    </Button>
+
+                    <Border Grid.Column="1"
+                            MinWidth="330"
+                            Padding="24,12"
+                            Background="#B0202740"
+                            BorderBrush="#90FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="28">
+                        <TextBlock x:Name="CaptureProgressText"
+                                   Foreground="White"
+                                   FontSize="21"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center" />
+                    </Border>
+
+                    <Border Grid.Column="2"
+                            Padding="22,12"
+                            HorizontalAlignment="Right"
+                            Background="#B0202740"
+                            BorderBrush="#90FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="28">
+                        <TextBlock x:Name="CaptureDeviceBadgeText"
+                                   Text="CANON EOS"
+                                   Foreground="White"
+                                   FontSize="16"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Border x:Name="AcceptedShotsRail"
+                        Grid.Row="1"
+                        Width="132"
+                        Padding="12"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Background="#A0182038"
+                        BorderBrush="#70FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="22"
+                        IsVisible="False">
+                    <StackPanel x:Name="AcceptedShotsPanel" />
+                </Border>
+
+                <Grid Grid.Row="1">
+                    <StackPanel x:Name="CaptureReadyOverlay"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <Border Padding="30,20"
+                                Background="#B0182038"
+                                BorderBrush="#90FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="28">
+                            <StackPanel>
+                                <TextBlock x:Name="CaptureReadyTitleText"
+                                           Foreground="White"
+                                           FontSize="32"
+                                           FontWeight="SemiBold"
+                                           TextAlignment="Center" />
+                                <TextBlock Text="Проверьте кадр и приготовьтесь"
+                                           Foreground="#D8FFFFFF"
+                                           FontSize="18"
+                                           TextAlignment="Center"
+                                           Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+
+                    <Border x:Name="CountdownOverlay"
+                            Width="430"
+                            Height="430"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="#88182038"
+                            BorderBrush="#B8FFFFFF"
+                            BorderThickness="3"
+                            CornerRadius="215"
+                            IsVisible="False">
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                            <TextBlock x:Name="CountdownText"
+                                       Foreground="White"
+                                       FontSize="128"
+                                       FontWeight="Bold"
+                                       TextAlignment="Center" />
+                            <TextBlock x:Name="CountdownCaption"
+                                       Text="Смотрите в объектив"
+                                       Foreground="White"
+                                       FontSize="24"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel x:Name="ShotReviewOverlay"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Margin="0,0,0,18"
+                                IsVisible="False">
+                        <Border Padding="24,12"
+                                HorizontalAlignment="Center"
+                                Background="#C0182038"
+                                BorderBrush="#90FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="24">
+                            <TextBlock x:Name="ShotReviewProgressText"
+                                       Foreground="White"
+                                       FontSize="20"
+                                       FontWeight="SemiBold" />
+                        </Border>
+
+                    </StackPanel>
+
+                    <Border x:Name="ShotFlyCard"
+                            Width="620"
+                            Height="430"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="White"
+                            BorderBrush="White"
+                            BorderThickness="8"
+                            CornerRadius="20"
+                            ClipToBounds="True"
+                            RenderTransformOrigin="50%,50%"
+                            IsVisible="False">
+                        <Image x:Name="ShotFlyImage"
+                               Stretch="UniformToFill" />
+                    </Border>
+                </Grid>
+
+                <Grid Grid.Row="2"
+                      VerticalAlignment="Bottom">
+                    <Button x:Name="CaptureReadyActions"
+                            Classes="primary"
+                            Width="640"
+                            Height="82"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom"
+                            Click="StartCaptureButton_OnClick">
+                        <TextBlock Text="Снять фото"
+                                   FontSize="25" />
+                    </Button>
+
+                    <StackPanel x:Name="ShotReviewActions"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Spacing="20"
+                                IsVisible="False">
+                        <Button Classes="glass"
+                                Width="310"
+                                Height="82"
+                                Click="RetakeCurrentShotButton_OnClick">
+                            <TextBlock Text="↻  Переснять"
+                                       FontSize="23" />
+                        </Button>
+                        <Button Classes="primary"
+                                Width="310"
+                                Height="82"
+                                Click="AcceptCurrentShotButton_OnClick">
+                            <TextBlock Text="Нравится  ✓"
+                                       FontSize="23" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="3"
+                        HorizontalAlignment="Center"
+                        Padding="26,12"
+                        Background="#A0182038"
+                        BorderBrush="#70FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="24">
+                    <TextBlock x:Name="CaptureFooterText"
+                               Foreground="White"
+                               FontSize="18"
+                               Text="Таймер: 3 сек  ·  Фото сохраняются автоматически" />
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="PreviewPanel"
+              Background="#F7F9FC"
+              IsVisible="False">
+            <Grid Margin="38,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Button Classes="glass"
+                            MinWidth="190"
+                            HorizontalAlignment="Left"
+                            Foreground="#172238"
+                            BorderBrush="#D6DCE8"
+                            Click="PreviewHomeButton_OnClick">
+                        <TextBlock x:Name="PreviewBackButtonText"
+                                   Text="‹  На главную" />
+                    </Button>
+
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock x:Name="PreviewTitleText"
+                                   Text="Предпросмотр"
+                                   Foreground="#141B2A"
+                                   FontSize="38"
+                                   FontWeight="Bold"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="PreviewSubtitleText"
+                                   Text="Проверьте фото перед печатью"
+                                   Foreground="#6B758A"
+                                   FontSize="18"
+                                   TextAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Margin="0,18,0,12"
+                        Padding="12"
+                        HorizontalAlignment="Center"
+                        Background="White"
+                        CornerRadius="12"
+                        BoxShadow="0 12 34 0 #260C1732">
+                    <Image x:Name="ResultPreviewImage"
+                           MaxWidth="520"
+                           MaxHeight="480"
+                           Stretch="Uniform" />
+                </Border>
+
+                <StackPanel Grid.Row="2"
+                            HorizontalAlignment="Center">
+                    <TextBlock Text="Количество копий"
+                               Foreground="#6B758A"
+                               FontSize="18"
+                               TextAlignment="Center" />
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center">
+                        <Button x:Name="CopyOneButton"
+                                Classes="copyOption selected"
+                                Tag="1"
+                                Click="CopyCountButton_OnClick">1</Button>
+                        <Button x:Name="CopyTwoButton"
+                                Classes="copyOption"
+                                Tag="2"
+                                Click="CopyCountButton_OnClick">2</Button>
+                        <Button x:Name="CopyThreeButton"
+                                Classes="copyOption"
+                                Tag="3"
+                                Click="CopyCountButton_OnClick">3</Button>
+                    </StackPanel>
+
+                    <Button Classes="primary"
+                            Width="680"
+                            Height="72"
+                            Margin="0,8,0,0"
+                            Click="PrintButton_OnClick">
+                        <TextBlock x:Name="PrintButtonText"
+                                   Text="Печать"
+                                   FontSize="24" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="PrintProgressPanel"
+              Background="#F7F9FC"
+              IsVisible="False">
+            <StackPanel Width="760"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock Text="Печать фотографий"
+                           Foreground="#141B2A"
+                           FontSize="42"
+                           FontWeight="Bold"
+                           TextAlignment="Center" />
+                <TextBlock Text="Пожалуйста, не отключайте устройство"
+                           Foreground="#6B758A"
+                           FontSize="19"
+                           TextAlignment="Center"
+                           Margin="0,4,0,30" />
+
+                <Border Width="390"
+                        Height="390"
+                        HorizontalAlignment="Center"
+                        Background="White"
+                        BorderBrush="#E0E5EF"
+                        BorderThickness="1"
+                        CornerRadius="195"
+                        BoxShadow="0 15 45 0 #260C1732">
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="▰"
+                                   Foreground="#7B61FF"
+                                   FontSize="72"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="PrintProgressStatusText"
+                                   Text="Подготовка задания"
+                                   Foreground="#59657B"
+                                   FontSize="20"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="PrintProgressPercentText"
+                                   Text="0%"
+                                   Foreground="#141B2A"
+                                   FontSize="70"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock x:Name="PrintProgressDetailsText"
+                           Foreground="#6B758A"
+                           FontSize="18"
+                           TextAlignment="Center"
+                           Margin="0,24,0,20" />
+
+                <Button x:Name="PrintNextPhotoButton"
+                        Classes="primary"
+                        Width="560"
+                        Height="72"
+                        HorizontalAlignment="Center"
+                        IsVisible="False"
+                        Click="PrintNextPhotoButton_OnClick">
+                    <TextBlock x:Name="PrintNextPhotoButtonText"
+                               Text="Следующее фото"
+                               FontSize="24" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid x:Name="HistoryPanel"
+              Background="#F7F9FC"
+              IsVisible="False">
+            <Grid Margin="38,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Button Classes="glass"
+                            MinWidth="180"
+                            HorizontalAlignment="Left"
+                            Foreground="#172238"
+                            BorderBrush="#D6DCE8"
+                            Click="HistoryBackButton_OnClick">
+                        <TextBlock Text="‹  Назад" />
+                    </Button>
+
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="История печати"
+                                   Foreground="#141B2A"
+                                   FontSize="38"
+                                   FontWeight="Bold"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="HistorySessionNameText"
+                                   Foreground="#6B758A"
+                                   FontSize="18"
+                                   TextAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="1"
+                      Margin="0,22,0,0">
+                    <StackPanel x:Name="NoHistoryPanel"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                IsVisible="False">
+                        <Border Width="92"
+                                Height="92"
+                                HorizontalAlignment="Center"
+                                Background="#ECE9FF"
+                                CornerRadius="46"
+                                Margin="0,0,0,18">
+                            <TextBlock Text="▣"
+                                       Foreground="#7B61FF"
+                                       FontSize="44"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="История пока пуста"
+                                   Foreground="#172238"
+                                   FontSize="27"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Здесь появятся готовые макеты текущей сессии"
+                                   Foreground="#6B758A"
+                                   FontSize="18"
+                                   Margin="0,7,0,0" />
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <WrapPanel x:Name="HistoryItemsPanel"
+                                   HorizontalAlignment="Center" />
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="InstructionOverlay"
+              Background="#B8101525"
+              IsVisible="False">
+            <Border Width="760"
+                    Padding="48"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="#EE2B3150"
+                    BorderBrush="#B8FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="36">
+                <StackPanel>
+                    <TextBlock Text="Как пользоваться фотобудкой"
+                               Foreground="White"
+                               FontSize="34"
+                               FontWeight="SemiBold"
+                               TextAlignment="Center" />
+                    <TextBlock Text="1. Нажмите «Начать фотосессию».&#x0a;2. Выберите рамку.&#x0a;3. Встаньте перед камерой и нажмите «Снять фото».&#x0a;4. Подтвердите каждый удачный снимок.&#x0a;5. Выберите количество копий и нажмите «Печать»."
+                               Foreground="#E8FFFFFF"
+                               FontSize="22"
+                               LineHeight="38"
+                               Margin="0,28"
+                               TextWrapping="Wrap" />
+                    <Button Classes="primary"
+                            Height="68"
+                            Click="InstructionCloseButton_OnClick">
+                        <TextBlock Text="Понятно"
+                                   FontSize="23" />
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="SettingsOverlay"
+              Background="#D0101525"
+              IsVisible="False">
+            <Border Width="820"
+                    MinHeight="560"
+                    Padding="44"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="#F02B3150"
+                    BorderBrush="#B8FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="36">
+                <Grid>
+                    <StackPanel x:Name="SettingsPinPanel">
+                        <TextBlock Text="Настройки"
+                                   Foreground="White"
+                                   FontSize="36"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Введите код доступа"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="19"
+                                   TextAlignment="Center"
+                                   Margin="0,6,0,18" />
+                        <TextBlock x:Name="SettingsPinDisplay"
+                                   Text="○  ○  ○  ○"
+                                   Foreground="White"
+                                   FontSize="34"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,16" />
+
+                        <UniformGrid Columns="3"
+                                     Rows="4"
+                                     HorizontalAlignment="Center">
+                            <Button Classes="glass" Tag="1" Margin="5" Click="SettingsPinDigitButton_OnClick">1</Button>
+                            <Button Classes="glass" Tag="2" Margin="5" Click="SettingsPinDigitButton_OnClick">2</Button>
+                            <Button Classes="glass" Tag="3" Margin="5" Click="SettingsPinDigitButton_OnClick">3</Button>
+                            <Button Classes="glass" Tag="4" Margin="5" Click="SettingsPinDigitButton_OnClick">4</Button>
+                            <Button Classes="glass" Tag="5" Margin="5" Click="SettingsPinDigitButton_OnClick">5</Button>
+                            <Button Classes="glass" Tag="6" Margin="5" Click="SettingsPinDigitButton_OnClick">6</Button>
+                            <Button Classes="glass" Tag="7" Margin="5" Click="SettingsPinDigitButton_OnClick">7</Button>
+                            <Button Classes="glass" Tag="8" Margin="5" Click="SettingsPinDigitButton_OnClick">8</Button>
+                            <Button Classes="glass" Tag="9" Margin="5" Click="SettingsPinDigitButton_OnClick">9</Button>
+                            <Button Classes="glass" Margin="5" Click="SettingsPinClearButton_OnClick">C</Button>
+                            <Button Classes="glass" Tag="0" Margin="5" Click="SettingsPinDigitButton_OnClick">0</Button>
+                            <Button Classes="glass" Margin="5" Click="SettingsPinBackspaceButton_OnClick">⌫</Button>
+                        </UniformGrid>
+
+                        <TextBlock x:Name="SettingsPinErrorText"
+                                   MinHeight="28"
+                                   Foreground="#FFFFD8"
+                                   FontSize="17"
+                                   TextAlignment="Center"
+                                   Margin="0,8" />
+                        <Button Classes="glass"
+                                Click="SettingsCloseButton_OnClick">Отмена</Button>
+                    </StackPanel>
+
+                    <StackPanel x:Name="SettingsMenuPanel"
+                                IsVisible="False">
+                        <TextBlock Text="Панель управления"
+                                   Foreground="White"
+                                   FontSize="34"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="SettingsSectionStatusText"
+                                   Text="Выберите раздел"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="17"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MinHeight="50"
+                                   Margin="0,6,0,14" />
+
+                        <WrapPanel HorizontalAlignment="Center">
+                            <Button Classes="glass" Width="330" Margin="7" Tag="history" Click="SettingsSectionButton_OnClick">История печати</Button>
+                            <Button Classes="glass" Width="330" Margin="7" Tag="camera" Click="SettingsSectionButton_OnClick">Камера</Button>
+                            <Button Classes="glass" Width="330" Margin="7" Tag="printer" Click="SettingsSectionButton_OnClick">Принтер</Button>
+                            <Button Classes="glass" Width="330" Margin="7" Tag="calibration" Click="SettingsSectionButton_OnClick">Калибровка экрана</Button>
+                            <Button Classes="glass" Width="330" Margin="7" Tag="schedule" Click="SettingsSectionButton_OnClick">Таймер работы</Button>
+                            <Button Classes="glass" Width="330" Margin="7" Tag="restart" Click="SettingsSectionButton_OnClick">Перезагрузка</Button>
+                            <Button Classes="glass" Width="330" Margin="7" Tag="session" Click="SettingsSectionButton_OnClick">Сменить сессию</Button>
+                        </WrapPanel>
+
+                        <Button Classes="primary"
+                                Height="68"
+                                Margin="7,18,7,0"
+                                Click="SettingsCloseButton_OnClick">Готово</Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$(uname -s)" != "Linux" ]]; then
+  echo "This image must be built on Linux (GitHub Actions is supported)."
+  exit 1
+fi
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+image_root="$repo_root/kiosk-image"
+build_root="$image_root/build"
+output_root="$image_root/output"
+publish_root="$build_root/app"
+
+rm -rf "$build_root" "$output_root"
+mkdir -p "$build_root" "$output_root"
+
+dotnet publish "$repo_root/PhotoBooth.Linux/PhotoBooth.Linux.csproj" \
+  -c Release \
+  -r linux-x64 \
+  --self-contained true \
+  -o "$publish_root"
+
+cd "$build_root"
+lb config noauto \
+  --mode debian \
+  --distribution trixie \
+  --architectures amd64 \
+  --binary-images iso-hybrid \
+  --debian-installer none \
+  --archive-areas "main contrib non-free-firmware" \
+  --bootappend-live "boot=live components persistence quiet splash locales=ru_RU.UTF-8 keyboard-layouts=ru username=user hostname=photobooth user-default-groups=audio,video,plugdev,netdev,lp,lpadmin,scanner"
+
+mkdir -p config/package-lists
+cp "$image_root/packages.list.chroot" config/package-lists/photobooth.list.chroot
+
+mkdir -p config/includes.chroot/opt/photobooth
+cp -a "$publish_root/." config/includes.chroot/opt/photobooth/
+
+mkdir -p config/includes.chroot/etc/lightdm/lightdm.conf.d
+cp "$image_root/lightdm-photobooth.conf" \
+  config/includes.chroot/etc/lightdm/lightdm.conf.d/50-photobooth.conf
+
+mkdir -p config/includes.chroot/etc/xdg/openbox
+cp "$image_root/openbox-autostart" config/includes.chroot/etc/xdg/openbox/autostart
+
+mkdir -p config/includes.chroot/usr/local/sbin
+cp "$image_root/photobooth-first-boot" \
+  config/includes.chroot/usr/local/sbin/photobooth-first-boot
+
+mkdir -p config/includes.chroot/etc/systemd/system
+cp "$image_root/photobooth-persistence.service" \
+  config/includes.chroot/etc/systemd/system/photobooth-persistence.service
+
+mkdir -p config/hooks/live
+cat > config/hooks/live/010-photobooth-kiosk.hook.chroot <<'HOOK'
+#!/bin/sh
+set -eu
+chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
+chmod +x /usr/local/sbin/photobooth-first-boot
+chown -R 1000:1000 /opt/photobooth
+systemctl enable photobooth-persistence.service
+systemctl enable cups.service
+systemctl enable lightdm.service
+HOOK
+chmod +x config/hooks/live/010-photobooth-kiosk.hook.chroot
+
+sudo lb build
+
+iso_path="$(find . -maxdepth 1 -type f -name '*.hybrid.iso' -print -quit)"
+if [[ -z "$iso_path" ]]; then
+  echo "The kiosk ISO was not produced."
+  exit 1
+fi
+
+cp "$iso_path" "$output_root/PhotoBooth-Kiosk-amd64.iso"
+(
+  cd "$output_root"
+  sha256sum PhotoBooth-Kiosk-amd64.iso > PhotoBooth-Kiosk-amd64.iso.sha256
+  split -b 1500M -d -a 2 PhotoBooth-Kiosk-amd64.iso PhotoBooth-Kiosk-amd64.iso.part-
+)
+
+echo "Kiosk image created in $output_root"

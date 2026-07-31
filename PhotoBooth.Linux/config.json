@@ -1,0 +1,20 @@
+{
+  "DemoMode": false,
+  "HardwareFallbackToDemo": true,
+  "GPhotoCommand": "gphoto2",
+  "CupsLpCommand": "lp",
+  "CupsLpStatCommand": "lpstat",
+  "PrinterName": "",
+  "PrinterMedia": "w288h432",
+  "Fullscreen": true,
+  "HideCursor": true,
+  "TemplatesPath": "Templates",
+  "DemoPhotosPath": "DemoPhotos",
+  "OutputPath": "Output",
+  "WorkScheduleEnabled": false,
+  "WorkStartHour": 9,
+  "WorkStartMinute": 30,
+  "WorkEndHour": 22,
+  "WorkEndMinute": 0,
+  "ShutdownOutsideWorkHours": false
+}

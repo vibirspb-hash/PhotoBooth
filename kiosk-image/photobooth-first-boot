@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_file="/var/log/photobooth-first-boot.log"
+exec >>"$log_file" 2>&1
+
+echo "$(date --iso-8601=seconds) Checking persistent storage"
+
+if blkid -L persistence >/dev/null 2>&1; then
+  echo "Persistence volume already exists"
+  exit 0
+fi
+
+medium_source="$(findmnt -nro SOURCE /run/live/medium 2>/dev/null || true)"
+if [[ -z "$medium_source" ]]; then
+  echo "Live medium was not found; skipping automatic partitioning"
+  exit 0
+fi
+
+if [[ "$(lsblk -ndo TYPE "$medium_source" 2>/dev/null || true)" == "disk" ]]; then
+  disk="$medium_source"
+else
+  parent="$(lsblk -ndo PKNAME "$medium_source" 2>/dev/null || true)"
+  disk="/dev/$parent"
+fi
+
+if [[ ! -b "$disk" ]]; then
+  echo "Unable to determine boot disk from $medium_source"
+  exit 1
+fi
+
+if [[ "$(lsblk -ndo RM "$disk" 2>/dev/null || echo 0)" != "1" ]]; then
+  echo "Refusing to partition non-removable device $disk"
+  exit 1
+fi
+
+iso_bytes="$(isosize "$disk" 2>/dev/null || true)"
+disk_bytes="$(blockdev --getsize64 "$disk")"
+if [[ ! "$iso_bytes" =~ ^[0-9]+$ ]] || (( iso_bytes < 1000000000 )); then
+  echo "Unable to determine ISO size on $disk"
+  exit 1
+fi
+
+start_mib=$(( (iso_bytes + 1048575) / 1048576 + 8 ))
+disk_mib=$(( disk_bytes / 1048576 ))
+if (( disk_mib - start_mib < 2048 )); then
+  echo "Not enough free space for persistence: ${disk_mib} MiB total"
+  exit 1
+fi
+
+echo "Creating persistence partition on $disk from ${start_mib} MiB"
+parted --script "$disk" unit MiB mkpart primary ext4 "$start_mib" 100%
+partprobe "$disk" || true
+udevadm settle
+
+persistence_part="$(lsblk -lnpo NAME,TYPE,FSTYPE "$disk" | awk '$2 == "part" && $3 == "" {print $1}' | tail -n 1)"
+if [[ -z "$persistence_part" || ! -b "$persistence_part" ]]; then
+  echo "New persistence partition was not detected"
+  exit 1
+fi
+
+mkfs.ext4 -F -L persistence "$persistence_part"
+mkdir -p /mnt/photobooth-persistence
+mount "$persistence_part" /mnt/photobooth-persistence
+printf '/ union\n' > /mnt/photobooth-persistence/persistence.conf
+sync
+umount /mnt/photobooth-persistence
+
+echo "Persistence is ready; rebooting into kiosk mode"
+systemctl reboot

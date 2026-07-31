@@ -1,0 +1,51 @@
+name: Build PhotoBooth Kiosk ISO
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/kiosk-image
+    paths:
+      - '.github/workflows/build-kiosk-iso.yml'
+      - 'kiosk-image/**'
+      - 'PhotoBooth.Linux/**'
+      - 'PhotoBooth/**'
+      - 'START_KIOSK.sh'
+      - 'SETUP_KIOSK.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Debian live-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y live-build
+
+      - name: Build kiosk image
+        run: |
+          chmod +x kiosk-image/BUILD_KIOSK_ISO.sh
+          ./kiosk-image/BUILD_KIOSK_ISO.sh
+
+      - name: Upload image parts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoBooth-Kiosk-amd64
+          path: |
+            kiosk-image/output/PhotoBooth-Kiosk-amd64.iso.part-*
+            kiosk-image/output/PhotoBooth-Kiosk-amd64.iso.sha256
+          compression-level: 0
+          retention-days: 7

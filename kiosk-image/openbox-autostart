@@ -1,0 +1,5 @@
+xset s off
+xset s noblank
+xset -dpms
+unclutter -idle 0.2 -root &
+/opt/photobooth/START_KIOSK.sh &
