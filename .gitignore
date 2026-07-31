@@ -13,5 +13,6 @@ PhotoBooth-Linux-x64/
 *.zip
 SHA256SUMS
 kiosk-image/build/
+kiosk-image/download/
 kiosk-image/output/
 kiosk-image/prebuilt-app/
