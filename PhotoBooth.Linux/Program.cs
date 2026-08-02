@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Rendering;
+using Avalonia.X11;
 using System.Reflection;
 
 namespace PhotoBooth.Linux;
@@ -23,6 +24,16 @@ internal static class Program
         AppBuilder builder = AppBuilder
             .Configure<App>()
             .UsePlatformDetect();
+
+        if (OperatingSystem.IsLinux())
+        {
+            builder.With(new X11PlatformOptions
+            {
+                RenderingMode = [X11RenderingMode.Software],
+                ShouldRenderOnUIThread = true,
+                UseRetainedFramebuffer = true
+            });
+        }
 
         if (OperatingSystem.IsMacOS())
         {
