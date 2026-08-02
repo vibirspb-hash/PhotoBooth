@@ -64,6 +64,10 @@ set -eu
 chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
 chmod +x /usr/local/sbin/photobooth-first-boot
 chown -R 1000:1000 /opt/photobooth
+mkdir -p /media/user/PHOTOBOOTH
+chown 1000:1000 /media/user/PHOTOBOOTH
+printf 'LABEL=PHOTOBOOTH /media/user/PHOTOBOOTH vfat defaults,nofail,uid=1000,gid=1000,umask=0022 0 0\n' \
+  >> /etc/fstab
 printf 'user ALL=(root) NOPASSWD: /usr/bin/systemctl reboot\n' \
   > /etc/sudoers.d/photobooth-reboot
 chmod 440 /etc/sudoers.d/photobooth-reboot

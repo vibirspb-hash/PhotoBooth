@@ -4,11 +4,18 @@ set -euo pipefail
 log_file="/var/log/photobooth-first-boot.log"
 exec >>"$log_file" 2>&1
 
-echo "$(date --iso-8601=seconds) Checking persistent storage"
+echo "$(date --iso-8601=seconds) Checking PhotoBooth storage"
 
-if blkid -L persistence >/dev/null 2>&1; then
-  echo "Persistence volume already exists"
+if blkid -L persistence >/dev/null 2>&1 &&
+   blkid -L PHOTOBOOTH >/dev/null 2>&1; then
+  echo "Persistence and template volumes already exist"
   exit 0
+fi
+
+if blkid -L persistence >/dev/null 2>&1 ||
+   blkid -L PHOTOBOOTH >/dev/null 2>&1; then
+  echo "Storage layout is incomplete; reflash the PhotoBooth image"
+  exit 1
 fi
 
 medium_source="$(findmnt -nro SOURCE /run/live/medium 2>/dev/null || true)"
@@ -42,22 +49,49 @@ if [[ ! "$iso_bytes" =~ ^[0-9]+$ ]] || (( iso_bytes < 1000000000 )); then
 fi
 
 start_mib=$(( (iso_bytes + 1048575) / 1048576 + 8 ))
+data_size_mib=1024
+data_end_mib=$((start_mib + data_size_mib))
 disk_mib=$(( disk_bytes / 1048576 ))
-if (( disk_mib - start_mib < 2048 )); then
-  echo "Not enough free space for persistence: ${disk_mib} MiB total"
+if (( disk_mib - data_end_mib < 2048 )); then
+  echo "Not enough free space for data and persistence: ${disk_mib} MiB total"
   exit 1
 fi
 
-echo "Creating persistence partition on $disk from ${start_mib} MiB"
-parted --script "$disk" unit MiB mkpart primary ext4 "$start_mib" 100%
+echo "Creating a ${data_size_mib} MiB template partition on $disk"
+parted --script "$disk" unit MiB mkpart primary fat32 "$start_mib" "$data_end_mib"
+parted --script "$disk" unit MiB mkpart primary ext4 "$data_end_mib" 100%
 partprobe "$disk" || true
 udevadm settle
 
-persistence_part="$(lsblk -lnpo NAME,TYPE,FSTYPE "$disk" | awk '$2 == "part" && $3 == "" {print $1}' | tail -n 1)"
-if [[ -z "$persistence_part" || ! -b "$persistence_part" ]]; then
-  echo "New persistence partition was not detected"
+mapfile -t new_parts < <(
+  lsblk -lnpo NAME,TYPE,FSTYPE "$disk" |
+    awk '$2 == "part" && $3 == "" {print $1}'
+)
+if (( ${#new_parts[@]} < 2 )); then
+  echo "New PhotoBooth partitions were not detected"
   exit 1
 fi
+
+data_part="${new_parts[${#new_parts[@]} - 2]}"
+persistence_part="${new_parts[${#new_parts[@]} - 1]}"
+if [[ ! -b "$data_part" || ! -b "$persistence_part" ]]; then
+  echo "Invalid PhotoBooth partition devices"
+  exit 1
+fi
+
+mkfs.vfat -F 32 -n PHOTOBOOTH "$data_part"
+mkdir -p /mnt/photobooth-data
+mount "$data_part" /mnt/photobooth-data
+mkdir -p /mnt/photobooth-data/Templates
+cat > /mnt/photobooth-data/PUT_TEMPLATES_HERE.txt <<'EOF'
+Put each PhotoBooth template folder inside the Templates directory.
+
+Example:
+Templates/Event/2.png
+Templates/Event/2.json
+EOF
+sync
+umount /mnt/photobooth-data
 
 mkfs.ext4 -F -L persistence "$persistence_part"
 mkdir -p /mnt/photobooth-persistence
@@ -66,5 +100,5 @@ printf '/ union\n' > /mnt/photobooth-persistence/persistence.conf
 sync
 umount /mnt/photobooth-persistence
 
-echo "Persistence is ready; rebooting into kiosk mode"
+echo "PhotoBooth storage is ready; rebooting into kiosk mode"
 systemctl reboot

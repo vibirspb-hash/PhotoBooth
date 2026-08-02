@@ -15,12 +15,19 @@ fi
 
 sleep 3
 media_root="/media/$USER"
+template_source=""
 if [[ -d "$media_root" ]]; then
-  template_source="$(find "$media_root" -mindepth 2 -maxdepth 2 -type d -iname Templates -print -quit 2>/dev/null)"
-  if [[ -n "$template_source" ]]; then
-    mkdir -p "$app_dir/Templates"
-    rsync -a --delete "$template_source/" "$app_dir/Templates/"
+  own_templates="$media_root/PHOTOBOOTH/Templates"
+  if [[ -d "$own_templates" ]]; then
+    template_source="$own_templates"
+  else
+    template_source="$(find "$media_root" -mindepth 2 -maxdepth 2 -type d -iname Templates -print -quit 2>/dev/null)"
   fi
+fi
+
+if [[ -n "$template_source" ]]; then
+  mkdir -p "$app_dir/Templates"
+  rsync -a --delete "$template_source/" "$app_dir/Templates/"
 fi
 
 cd "$app_dir"

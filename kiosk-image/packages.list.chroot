@@ -4,6 +4,7 @@ lightdm
 openbox
 cups
 cups-client
+dosfstools
 printer-driver-gutenprint
 rsync
 sudo
