@@ -59,16 +59,31 @@
         </Style>
 
         <Style Selector="Button.keyboardKey">
-            <Setter Property="Height" Value="46" />
-            <Setter Property="MinWidth" Value="52" />
-            <Setter Property="Padding" Value="12,4" />
-            <Setter Property="FontSize" Value="19" />
+            <Setter Property="Height" Value="58" />
+            <Setter Property="MinWidth" Value="62" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="22" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="#172238" />
             <Setter Property="Background" Value="#EFFFFFFF" />
             <Setter Property="BorderBrush" Value="#B8FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="CornerRadius" Value="18" />
+        </Style>
+
+        <Style Selector="Button.actionButton">
+            <Setter Property="Height" Value="92" />
+            <Setter Property="MinWidth" Value="320" />
+            <Setter Property="FontSize" Value="25" />
+        </Style>
+
+        <Style Selector="Button.pinKey">
+            <Setter Property="Width" Value="124" />
+            <Setter Property="Height" Value="68" />
+            <Setter Property="FontSize" Value="25" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="CornerRadius" Value="22" />
         </Style>
 
         <Style Selector="Button.templateCard">
@@ -237,8 +252,7 @@
                                        TextWrapping="Wrap" />
                         </Border>
 
-                        <Button Classes="primary"
-                                Height="68"
+                        <Button Classes="primary actionButton"
                                 Margin="0,0,0,12"
                                 Click="ContinueSessionButton_OnClick">
                             <TextBlock Text="Продолжить сессию"
@@ -285,8 +299,7 @@
                                    MinHeight="26"
                                    Margin="0,9,0,5" />
 
-                        <Button Classes="primary"
-                                Height="68"
+                        <Button Classes="primary actionButton"
                                 Click="CreateSessionButton_OnClick">
                             <TextBlock Text="Создать сессию"
                                        FontSize="23" />
@@ -318,6 +331,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Text="P H O T O   S T A R  ✦"
@@ -325,7 +339,41 @@
                            FontSize="21"
                            VerticalAlignment="Center" />
 
-                <Button Grid.Column="1"
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            Margin="0,0,18,0"
+                            VerticalAlignment="Center">
+                    <Border x:Name="HomeCameraStatusBadge"
+                            Width="54"
+                            Height="54"
+                            Background="#28FFFFFF"
+                            BorderBrush="#90FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="27"
+                            ToolTip.Tip="Проверяем камеру">
+                        <PathIcon Width="25"
+                                  Height="25"
+                                  Foreground="White"
+                                  Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
+                    </Border>
+
+                    <Border x:Name="HomePrinterStatusBadge"
+                            Width="54"
+                            Height="54"
+                            Background="#28FFFFFF"
+                            BorderBrush="#90FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="27"
+                            ToolTip.Tip="Проверяем принтер">
+                        <PathIcon Width="27"
+                                  Height="27"
+                                  Foreground="White"
+                                  Data="M19,8 L5,8 C3.34,8 2,9.34 2,11 L2,17 L6,17 L6,21 L18,21 L18,17 L22,17 L22,11 C22,9.34 20.66,8 19,8 M16,19 L8,19 L8,14 L16,14 L16,19 M19,12 C18.45,12 18,11.55 18,11 C18,10.45 18.45,10 19,10 C19.55,10 20,10.45 20,11 C20,11.55 19.55,12 19,12 M18,3 L6,3 L6,7 L18,7 L18,3 Z" />
+                    </Border>
+                </StackPanel>
+
+                <Button Grid.Column="2"
                         Classes="glass"
                         MinWidth="250"
                         Click="SettingsButton_OnClick">
@@ -450,7 +498,7 @@
                                    Margin="0,5,0,0" />
                     </StackPanel>
 
-                    <Border x:Name="CaptureDeviceBadge"
+                    <Border
                             Grid.Column="2"
                             MinWidth="190"
                             MinHeight="58"
@@ -498,9 +546,8 @@
                                Margin="0,0,0,8" />
 
                     <Button x:Name="TemplateContinueButton"
-                            Classes="primary"
+                            Classes="primary actionButton"
                             Width="760"
-                            Height="72"
                             IsEnabled="False"
                             Click="TemplateContinueButton_OnClick">
                         <TextBlock Text="Продолжить  →"
@@ -553,7 +600,8 @@
                                    TextAlignment="Center" />
                     </Border>
 
-                    <Border Grid.Column="2"
+                    <Border x:Name="CaptureDeviceBadge"
+                            Grid.Column="2"
                             Padding="22,12"
                             HorizontalAlignment="Right"
                             Background="#B0202740"
@@ -672,9 +720,8 @@
                 <Grid Grid.Row="2"
                       VerticalAlignment="Bottom">
                     <Button x:Name="CaptureReadyActions"
-                            Classes="primary"
+                            Classes="primary actionButton"
                             Width="640"
-                            Height="82"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom"
                             Click="StartCaptureButton_OnClick">
@@ -688,19 +735,17 @@
                                 VerticalAlignment="Bottom"
                                 Spacing="20"
                                 IsVisible="False">
-                        <Button Classes="glass"
-                                Width="310"
-                                Height="82"
+                        <Button Classes="glass actionButton"
+                                Width="340"
                                 Click="RetakeCurrentShotButton_OnClick">
                             <TextBlock Text="↻  Переснять"
-                                       FontSize="23" />
+                                       FontSize="25" />
                         </Button>
-                        <Button Classes="primary"
-                                Width="310"
-                                Height="82"
+                        <Button Classes="primary actionButton"
+                                Width="340"
                                 Click="AcceptCurrentShotButton_OnClick">
                             <TextBlock Text="Нравится  ✓"
-                                       FontSize="23" />
+                                       FontSize="25" />
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -792,14 +837,13 @@
                                 Click="CopyCountButton_OnClick">3</Button>
                     </StackPanel>
 
-                    <Button Classes="primary"
+                    <Button Classes="primary actionButton"
                             Width="680"
-                            Height="72"
                             Margin="0,8,0,0"
                             Click="PrintButton_OnClick">
                         <TextBlock x:Name="PrintButtonText"
                                    Text="Печать"
-                                   FontSize="24" />
+                                   FontSize="25" />
                     </Button>
                 </StackPanel>
             </Grid>
@@ -962,8 +1006,7 @@
                                LineHeight="38"
                                Margin="0,28"
                                TextWrapping="Wrap" />
-                    <Button Classes="primary"
-                            Height="68"
+                    <Button Classes="primary actionButton"
                             Click="InstructionCloseButton_OnClick">
                         <TextBlock Text="Понятно"
                                    FontSize="23" />
@@ -1006,18 +1049,18 @@
                         <UniformGrid Columns="3"
                                      Rows="4"
                                      HorizontalAlignment="Center">
-                            <Button Classes="glass" Tag="1" Margin="5" Click="SettingsPinDigitButton_OnClick">1</Button>
-                            <Button Classes="glass" Tag="2" Margin="5" Click="SettingsPinDigitButton_OnClick">2</Button>
-                            <Button Classes="glass" Tag="3" Margin="5" Click="SettingsPinDigitButton_OnClick">3</Button>
-                            <Button Classes="glass" Tag="4" Margin="5" Click="SettingsPinDigitButton_OnClick">4</Button>
-                            <Button Classes="glass" Tag="5" Margin="5" Click="SettingsPinDigitButton_OnClick">5</Button>
-                            <Button Classes="glass" Tag="6" Margin="5" Click="SettingsPinDigitButton_OnClick">6</Button>
-                            <Button Classes="glass" Tag="7" Margin="5" Click="SettingsPinDigitButton_OnClick">7</Button>
-                            <Button Classes="glass" Tag="8" Margin="5" Click="SettingsPinDigitButton_OnClick">8</Button>
-                            <Button Classes="glass" Tag="9" Margin="5" Click="SettingsPinDigitButton_OnClick">9</Button>
-                            <Button Classes="glass" Margin="5" Click="SettingsPinClearButton_OnClick">C</Button>
-                            <Button Classes="glass" Tag="0" Margin="5" Click="SettingsPinDigitButton_OnClick">0</Button>
-                            <Button Classes="glass" Margin="5" Click="SettingsPinBackspaceButton_OnClick">⌫</Button>
+                            <Button Classes="glass pinKey" Tag="1" Margin="6" Click="SettingsPinDigitButton_OnClick">1</Button>
+                            <Button Classes="glass pinKey" Tag="2" Margin="6" Click="SettingsPinDigitButton_OnClick">2</Button>
+                            <Button Classes="glass pinKey" Tag="3" Margin="6" Click="SettingsPinDigitButton_OnClick">3</Button>
+                            <Button Classes="glass pinKey" Tag="4" Margin="6" Click="SettingsPinDigitButton_OnClick">4</Button>
+                            <Button Classes="glass pinKey" Tag="5" Margin="6" Click="SettingsPinDigitButton_OnClick">5</Button>
+                            <Button Classes="glass pinKey" Tag="6" Margin="6" Click="SettingsPinDigitButton_OnClick">6</Button>
+                            <Button Classes="glass pinKey" Tag="7" Margin="6" Click="SettingsPinDigitButton_OnClick">7</Button>
+                            <Button Classes="glass pinKey" Tag="8" Margin="6" Click="SettingsPinDigitButton_OnClick">8</Button>
+                            <Button Classes="glass pinKey" Tag="9" Margin="6" Click="SettingsPinDigitButton_OnClick">9</Button>
+                            <Button Classes="glass pinKey" Margin="6" Click="SettingsPinClearButton_OnClick">C</Button>
+                            <Button Classes="glass pinKey" Tag="0" Margin="6" Click="SettingsPinDigitButton_OnClick">0</Button>
+                            <Button Classes="glass pinKey" Margin="6" Click="SettingsPinBackspaceButton_OnClick">⌫</Button>
                         </UniformGrid>
 
                         <TextBlock x:Name="SettingsPinErrorText"

@@ -10,7 +10,7 @@ if command -v xset >/dev/null 2>&1; then
 fi
 
 if command -v unclutter >/dev/null 2>&1; then
-  unclutter -idle 0.2 -root &
+  unclutter --timeout 0 --hide-on-touch --start-hidden --fork
 fi
 
 sleep 3

@@ -64,6 +64,9 @@ set -eu
 chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
 chmod +x /usr/local/sbin/photobooth-first-boot
 chown -R 1000:1000 /opt/photobooth
+printf 'user ALL=(root) NOPASSWD: /usr/bin/systemctl reboot\n' \
+  > /etc/sudoers.d/photobooth-reboot
+chmod 440 /etc/sudoers.d/photobooth-reboot
 systemctl enable photobooth-persistence.service
 systemctl enable cups.service
 systemctl enable lightdm.service

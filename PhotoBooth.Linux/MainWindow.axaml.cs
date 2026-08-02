@@ -37,6 +37,8 @@ public sealed partial class MainWindow : Window
     private readonly StackPanel _currentSessionPanel;
     private readonly Grid _homePanel;
     private readonly TextBlock _homeSubtitleText;
+    private readonly Border _homeCameraStatusBadge;
+    private readonly Border _homePrinterStatusBadge;
     private readonly StackPanel _newSessionPanel;
     private readonly TextBlock _sessionErrorText;
     private readonly StackPanel _sessionKeyboardPanel;
@@ -99,6 +101,7 @@ public sealed partial class MainWindow : Window
     private readonly DispatcherTimer _flyTimer;
     private readonly DispatcherTimer _finalPreviewTimer;
     private readonly DispatcherTimer _printProgressTimer;
+    private readonly DispatcherTimer _printCompletionTimer;
     private readonly DispatcherTimer _livePreviewTimer;
 
     private PhotoSession? _activeSession;
@@ -128,6 +131,8 @@ public sealed partial class MainWindow : Window
         _currentSessionPanel = Find<StackPanel>("CurrentSessionPanel");
         _homePanel = Find<Grid>("HomePanel");
         _homeSubtitleText = Find<TextBlock>("HomeSubtitleText");
+        _homeCameraStatusBadge = Find<Border>("HomeCameraStatusBadge");
+        _homePrinterStatusBadge = Find<Border>("HomePrinterStatusBadge");
         _newSessionPanel = Find<StackPanel>("NewSessionPanel");
         _sessionErrorText = Find<TextBlock>("SessionErrorText");
         _sessionKeyboardPanel = Find<StackPanel>("SessionKeyboardPanel");
@@ -198,6 +203,7 @@ public sealed partial class MainWindow : Window
         _flyTimer = CreateTimer(TimeSpan.FromMilliseconds(16), FlyTimer_OnTick);
         _finalPreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(650), FinalPreviewTimer_OnTick);
         _printProgressTimer = CreateTimer(TimeSpan.FromMilliseconds(90), PrintProgressTimer_OnTick);
+        _printCompletionTimer = CreateTimer(TimeSpan.FromMilliseconds(1200), PrintCompletionTimer_OnTick);
         _livePreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(550), LivePreviewTimer_OnTick);
 
         _config = new ConfigService().Load();
@@ -243,6 +249,7 @@ public sealed partial class MainWindow : Window
         _flyTimer.Stop();
         _finalPreviewTimer.Stop();
         _printProgressTimer.Stop();
+        _printCompletionTimer.Stop();
         _livePreviewTimer.Stop();
     }
 
@@ -278,10 +285,33 @@ public sealed partial class MainWindow : Window
 
     private void UpdatePublicHardwareStatus()
     {
-        _captureDeviceBadge.IsVisible = !_cameraService.IsDemo;
+        UpdateHardwareBadge(
+            _homeCameraStatusBadge,
+            !_cameraService.IsDemo,
+            _cameraService.IsDemo
+                ? "Камера не найдена"
+                : $"Камера: {_cameraService.DisplayName}");
+        UpdateHardwareBadge(
+            _homePrinterStatusBadge,
+            !_printerService.IsDemo,
+            _printerService.IsDemo
+                ? "Принтер не найден"
+                : $"Принтер: {_printerService.DisplayName}");
+
+        _captureDeviceBadge.IsVisible = true;
         _captureDeviceBadgeText.Text = _cameraService.IsDemo
-            ? string.Empty
+            ? "КАМЕРА НЕ НАЙДЕНА"
             : _cameraService.DisplayName.ToUpperInvariant();
+    }
+
+    private static void UpdateHardwareBadge(
+        Border badge,
+        bool connected,
+        string tooltip)
+    {
+        badge.Background = Brush.Parse(connected ? "#3A55D9A5" : "#48FF6B7A");
+        badge.BorderBrush = Brush.Parse(connected ? "#90BFFFE9" : "#B8FFD6DC");
+        ToolTip.SetTip(badge, tooltip);
     }
 
     private void HidePrimaryPanels()
@@ -372,7 +402,7 @@ public sealed partial class MainWindow : Window
 
             foreach (char letter in letters)
             {
-                Button key = CreateKeyboardButton(letter.ToString(), 58);
+                Button key = CreateKeyboardButton(letter.ToString(), 66);
                 key.Click += (_, _) => AppendSessionName(letter.ToString());
                 row.Children.Add(key);
             }
@@ -387,15 +417,15 @@ public sealed partial class MainWindow : Window
             Spacing = 8
         };
 
-        Button hyphen = CreateKeyboardButton("-", 92);
+        Button hyphen = CreateKeyboardButton("-", 100);
         hyphen.Click += (_, _) => AppendSessionName("-");
         controls.Children.Add(hyphen);
 
-        Button space = CreateKeyboardButton("Пробел", 480);
+        Button space = CreateKeyboardButton("Пробел", 500);
         space.Click += (_, _) => AppendSessionName(" ");
         controls.Children.Add(space);
 
-        Button backspace = CreateKeyboardButton("⌫", 130);
+        Button backspace = CreateKeyboardButton("⌫", 145);
         backspace.Click += (_, _) => RemoveLastSessionNameCharacter();
         controls.Children.Add(backspace);
 
@@ -1067,9 +1097,16 @@ public sealed partial class MainWindow : Window
             _printProgressTimer.Stop();
             _printProgressStatusText.Text = "Печать завершена";
             _printProgressDetailsText.Text =
-                "Файл сохранён в текущей сессии";
-            _printNextPhotoButton.IsVisible = true;
+                "Файл сохранён. Готовимся к следующей фотосессии";
+            _printNextPhotoButton.IsVisible = false;
+            _printCompletionTimer.Start();
         }
+    }
+
+    private void PrintCompletionTimer_OnTick(object? sender, EventArgs e)
+    {
+        _printCompletionTimer.Stop();
+        ShowHomeScreen();
     }
 
     private void PrintNextPhotoButton_OnClick(object? sender, RoutedEventArgs e)
@@ -1181,7 +1218,7 @@ public sealed partial class MainWindow : Window
     }
 
     private void HistoryBackButton_OnClick(object? sender, RoutedEventArgs e) =>
-        ShowHomeScreen();
+        ShowSettingsMenu();
 
     private void InstructionButton_OnClick(object? sender, RoutedEventArgs e) =>
         _instructionOverlay.IsVisible = true;
@@ -1197,6 +1234,17 @@ public sealed partial class MainWindow : Window
         _settingsSectionStatusText.Text = string.Empty;
         _settingsPinPanel.IsVisible = true;
         _settingsMenuPanel.IsVisible = false;
+        _settingsOverlay.IsVisible = true;
+    }
+
+    private void ShowSettingsMenu()
+    {
+        StopWorkflowTimers();
+        HidePrimaryPanels();
+        _instructionOverlay.IsVisible = false;
+        _settingsPinPanel.IsVisible = false;
+        _settingsSectionStatusText.Text = string.Empty;
+        _settingsMenuPanel.IsVisible = true;
         _settingsOverlay.IsVisible = true;
     }
 
@@ -1285,8 +1333,7 @@ public sealed partial class MainWindow : Window
                     $"{_config.WorkEndHour:00}:{_config.WorkEndMinute:00}.";
                 break;
             case "restart":
-                _settingsSectionStatusText.Text =
-                    "Перезагрузка отключена в тестовой сборке.";
+                await RestartComputerAsync();
                 break;
             case "session":
                 _settingsOverlay.IsVisible = false;
@@ -1297,6 +1344,30 @@ public sealed partial class MainWindow : Window
 
     private void SettingsCloseButton_OnClick(object? sender, RoutedEventArgs e) =>
         _settingsOverlay.IsVisible = false;
+
+    private async Task RestartComputerAsync()
+    {
+        _settingsSectionStatusText.Text = "Перезагружаем компьютер...";
+
+        CommandResult result = await CommandRunner.RunAsync(
+            "systemctl",
+            ["reboot"],
+            TimeSpan.FromSeconds(5));
+
+        if (!result.Success && CommandRunner.Exists("sudo"))
+        {
+            result = await CommandRunner.RunAsync(
+                "sudo",
+                ["-n", "systemctl", "reboot"],
+                TimeSpan.FromSeconds(5));
+        }
+
+        if (!result.Success)
+        {
+            _settingsSectionStatusText.Text =
+                $"Не удалось перезагрузить: {result.CombinedOutput}";
+        }
+    }
 
     private void SetLivePreview(string path)
     {
