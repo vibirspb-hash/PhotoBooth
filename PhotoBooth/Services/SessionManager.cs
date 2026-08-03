@@ -7,6 +7,7 @@ namespace PhotoBooth.Services;
 public sealed class SessionManager
 {
     private const string StateFileName = "active-session.json";
+    private const string SessionFileName = "session.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -63,8 +64,76 @@ public sealed class SessionManager
             StartedAt = DateTime.Now
         };
 
+        SaveSessionMetadata(session);
         SaveActiveSession(outputRootPath, session);
         return session;
+    }
+
+    public IReadOnlyList<PhotoSession> ListSessions(string outputRootPath)
+    {
+        if (!Directory.Exists(outputRootPath))
+        {
+            return [];
+        }
+
+        return Directory
+            .EnumerateDirectories(outputRootPath)
+            .Select(LoadSession)
+            .Where(session => session is not null)
+            .Cast<PhotoSession>()
+            .OrderByDescending(session => session.StartedAt)
+            .ToList();
+    }
+
+    public void SetActiveSession(string outputRootPath, PhotoSession session)
+    {
+        SaveSessionMetadata(session);
+        SaveActiveSession(outputRootPath, session);
+    }
+
+    private static PhotoSession? LoadSession(string folderPath)
+    {
+        try
+        {
+            string metadataPath = Path.Combine(folderPath, SessionFileName);
+            if (File.Exists(metadataPath))
+            {
+                PhotoSession? stored = JsonSerializer.Deserialize<PhotoSession>(
+                    File.ReadAllText(metadataPath),
+                    JsonOptions);
+                if (stored is not null)
+                {
+                    return new PhotoSession
+                    {
+                        Name = stored.Name,
+                        FolderPath = folderPath,
+                        StartedAt = stored.StartedAt
+                    };
+                }
+            }
+
+            string folderName = Path.GetFileName(folderPath);
+            string inferredName = folderName.Length > 11 && folderName[10] == '_'
+                ? folderName[11..]
+                : folderName;
+            return new PhotoSession
+            {
+                Name = inferredName.Replace('_', ' '),
+                FolderPath = folderPath,
+                StartedAt = Directory.GetCreationTime(folderPath)
+            };
+        }
+        catch (Exception exception) when (
+            exception is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    private static void SaveSessionMetadata(PhotoSession session)
+    {
+        string metadataPath = Path.Combine(session.FolderPath, SessionFileName);
+        File.WriteAllText(metadataPath, JsonSerializer.Serialize(session, JsonOptions));
     }
 
     private static void SaveActiveSession(string outputRootPath, PhotoSession session)

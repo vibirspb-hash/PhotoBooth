@@ -76,7 +76,10 @@ printf 'LABEL=PHOTOBOOTH /media/user/PHOTOBOOTH vfat defaults,nofail,uid=1000,gi
   >> /etc/fstab
 printf 'user ALL=(root) NOPASSWD: /usr/bin/systemctl reboot\n' \
   > /etc/sudoers.d/photobooth-reboot
+printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-first-boot\n' \
+  > /etc/sudoers.d/photobooth-storage
 chmod 440 /etc/sudoers.d/photobooth-reboot
+chmod 440 /etc/sudoers.d/photobooth-storage
 systemctl enable photobooth-persistence.service
 systemctl enable cups.service
 systemctl enable lightdm.service

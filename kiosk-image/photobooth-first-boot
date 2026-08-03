@@ -6,18 +6,6 @@ exec >>"$log_file" 2>&1
 
 echo "$(date --iso-8601=seconds) Checking PhotoBooth storage"
 
-if blkid -L persistence >/dev/null 2>&1 &&
-   blkid -L PHOTOBOOTH >/dev/null 2>&1; then
-  echo "Persistence and template volumes already exist"
-  exit 0
-fi
-
-if blkid -L persistence >/dev/null 2>&1 ||
-   blkid -L PHOTOBOOTH >/dev/null 2>&1; then
-  echo "Storage layout is incomplete; reflash the PhotoBooth image"
-  exit 1
-fi
-
 medium_source="$(findmnt -nro SOURCE /run/live/medium 2>/dev/null || true)"
 if [[ -z "$medium_source" ]]; then
   echo "Live medium was not found; skipping automatic partitioning"
@@ -33,6 +21,18 @@ fi
 
 if [[ ! -b "$disk" ]]; then
   echo "Unable to determine boot disk from $medium_source"
+  exit 1
+fi
+
+photobooth_label="$(lsblk -nrpo LABEL "$disk" | grep -Fx PHOTOBOOTH || true)"
+persistence_label="$(lsblk -nrpo LABEL "$disk" | grep -Fx persistence || true)"
+if [[ -n "$photobooth_label" && -n "$persistence_label" ]]; then
+  echo "Persistence and template volumes already exist on $disk"
+  exit 0
+fi
+
+if [[ -n "$photobooth_label" || -n "$persistence_label" ]]; then
+  echo "Storage layout on $disk is incomplete; reflash the PhotoBooth image"
   exit 1
 fi
 
@@ -59,19 +59,30 @@ if (( disk_mib - data_end_mib < 2048 )); then
   exit 1
 fi
 
-echo "Creating a ${data_size_mib} MiB template partition on $disk"
-parted --script "$disk" unit MiB mkpart primary fat32 "$start_mib" "$data_end_mib"
-parted --script "$disk" unit MiB mkpart primary ext4 "$data_end_mib" 100%
-partprobe "$disk" || true
-udevadm settle
+minimum_start_sector=$((start_mib * 2048))
+collect_photo_partitions() {
+  lsblk -lnpo NAME,TYPE,START "$disk" |
+      awk -v minimum="$minimum_start_sector" \
+        '$2 == "part" && $3 >= minimum {print $1, $3}' |
+      sort -k2,2n |
+      awk '{print $1}'
+}
 
-mapfile -t new_parts < <(
-  lsblk -lnpo NAME,TYPE,FSTYPE "$disk" |
-    awk '$2 == "part" && $3 == "" {print $1}'
-)
+mapfile -t new_parts < <(collect_photo_partitions)
 if (( ${#new_parts[@]} < 2 )); then
-  echo "New PhotoBooth partitions were not detected"
-  exit 1
+  echo "Creating PhotoBooth data and persistence partitions on $disk"
+  parted --script "$disk" unit MiB \
+    mkpart primary fat32 "$start_mib" "$data_end_mib" \
+    mkpart primary ext4 "$data_end_mib" 100% || true
+  partprobe "$disk" || true
+  udevadm settle
+  mapfile -t new_parts < <(collect_photo_partitions)
+fi
+
+if (( ${#new_parts[@]} < 2 )); then
+  echo "Partition table was written but requires a reboot before formatting"
+  systemctl reboot
+  exit 0
 fi
 
 data_part="${new_parts[${#new_parts[@]} - 2]}"

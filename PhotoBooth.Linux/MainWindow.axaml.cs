@@ -40,6 +40,8 @@ public sealed partial class MainWindow : Window
     private readonly Border _homeCameraStatusBadge;
     private readonly Border _homePrinterStatusBadge;
     private readonly StackPanel _newSessionPanel;
+    private readonly StackPanel _savedSessionsPanel;
+    private readonly StackPanel _savedSessionsListPanel;
     private readonly TextBlock _sessionErrorText;
     private readonly StackPanel _sessionKeyboardPanel;
     private readonly TextBox _sessionNameTextBox;
@@ -121,6 +123,7 @@ public sealed partial class MainWindow : Window
     private DateTime _flyStartedAt;
     private readonly ScaleTransform _flyScale = new();
     private readonly TranslateTransform _flyTranslate = new();
+    private readonly bool _persistentStorageRequired;
 
     public MainWindow()
     {
@@ -134,6 +137,8 @@ public sealed partial class MainWindow : Window
         _homeCameraStatusBadge = Find<Border>("HomeCameraStatusBadge");
         _homePrinterStatusBadge = Find<Border>("HomePrinterStatusBadge");
         _newSessionPanel = Find<StackPanel>("NewSessionPanel");
+        _savedSessionsPanel = Find<StackPanel>("SavedSessionsPanel");
+        _savedSessionsListPanel = Find<StackPanel>("SavedSessionsListPanel");
         _sessionErrorText = Find<TextBlock>("SessionErrorText");
         _sessionKeyboardPanel = Find<StackPanel>("SessionKeyboardPanel");
         _sessionNameTextBox = Find<TextBox>("SessionNameTextBox");
@@ -207,6 +212,8 @@ public sealed partial class MainWindow : Window
         _livePreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(550), LivePreviewTimer_OnTick);
 
         _config = new ConfigService().Load();
+        _persistentStorageRequired =
+            Environment.GetEnvironmentVariable("PHOTOBOOTH_STORAGE_REQUIRED") == "1";
         _outputRootPath = ResolveOutputPath(_config.OutputPath);
         _templatesPath = ResolvePath(_config.TemplatesPath);
         _demoPhotosPath = ResolvePath(_config.DemoPhotosPath);
@@ -334,6 +341,7 @@ public sealed partial class MainWindow : Window
         _recoverableSession = _sessionManager.LoadActiveSession(_outputRootPath);
         _sessionErrorText.Text = string.Empty;
         _sessionPanel.IsVisible = true;
+        _savedSessionsPanel.IsVisible = false;
 
         if (_recoverableSession is null)
         {
@@ -365,6 +373,7 @@ public sealed partial class MainWindow : Window
     private void ShowNewSessionForm()
     {
         _currentSessionPanel.IsVisible = false;
+        _savedSessionsPanel.IsVisible = false;
         _newSessionPanel.IsVisible = true;
         _sessionNameTextBox.Text = string.Empty;
         _sessionErrorText.Text = string.Empty;
@@ -467,6 +476,16 @@ public sealed partial class MainWindow : Window
 
     private void CreateAndActivateSession()
     {
+        if (_persistentStorageRequired &&
+            string.IsNullOrWhiteSpace(
+                Environment.GetEnvironmentVariable("PHOTOBOOTH_DATA_ROOT")))
+        {
+            _sessionErrorText.Text =
+                "Постоянное хранилище PHOTOBOOTH не подключено. " +
+                "Перезагрузите будку или перезапишите флешку.";
+            return;
+        }
+
         try
         {
             PhotoSession session = _sessionManager.CreateSession(
@@ -482,6 +501,7 @@ public sealed partial class MainWindow : Window
 
     private void ActivateSession(PhotoSession session)
     {
+        _sessionManager.SetActiveSession(_outputRootPath, session);
         _activeSession = session;
         _recoverableSession = session;
         _activeSessionText.Text = $"Сессия: {session.Name}";
@@ -1129,34 +1149,39 @@ public sealed partial class MainWindow : Window
 
     private void ShowPrintHistory()
     {
-        if (_activeSession is null)
-        {
-            ShowSessionStartup();
-            return;
-        }
-
-        string printsPath = Path.Combine(_activeSession.FolderPath, "Prints");
-        IReadOnlyList<string> files = Directory.Exists(printsPath)
-            ? Directory
-                .EnumerateFiles(printsPath, "*.png")
-                .OrderByDescending(File.GetLastWriteTime)
-                .ToList()
-            : [];
+        IReadOnlyList<PhotoSession> sessions =
+            _sessionManager.ListSessions(_outputRootPath);
 
         _historyItemsPanel.Children.Clear();
-        foreach (string file in files)
+        foreach (PhotoSession session in sessions)
         {
-            _historyItemsPanel.Children.Add(CreateHistoryCard(file));
+            string printsPath = Path.Combine(session.FolderPath, "Prints");
+            IReadOnlyList<string> files = Directory.Exists(printsPath)
+                ? Directory.EnumerateFiles(printsPath, "*.png")
+                    .OrderByDescending(File.GetLastWriteTime)
+                    .ToList()
+                : [];
+
+            if (files.Count == 0)
+            {
+                _historyItemsPanel.Children.Add(CreateEmptyHistoryCard(session));
+                continue;
+            }
+
+            foreach (string file in files)
+            {
+                _historyItemsPanel.Children.Add(CreateHistoryCard(file, session.Name));
+            }
         }
 
-        _historySessionNameText.Text = $"Сессия: {_activeSession.Name}";
-        _noHistoryPanel.IsVisible = files.Count == 0;
+        _historySessionNameText.Text = $"Все сессии: {sessions.Count}";
+        _noHistoryPanel.IsVisible = sessions.Count == 0;
         HidePrimaryPanels();
         _settingsOverlay.IsVisible = false;
         _historyPanel.IsVisible = true;
     }
 
-    private Button CreateHistoryCard(string filePath)
+    private Button CreateHistoryCard(string filePath, string sessionName)
     {
         StackPanel content = new() { Spacing = 10 };
         content.Children.Add(new Border
@@ -1175,7 +1200,7 @@ public sealed partial class MainWindow : Window
         });
         content.Children.Add(new TextBlock
         {
-            Text = "Готовый макет",
+            Text = sessionName,
             Foreground = Brush.Parse("#172238"),
             FontSize = 17,
             FontWeight = FontWeight.SemiBold,
@@ -1193,6 +1218,52 @@ public sealed partial class MainWindow : Window
         card.Classes.Add("historyCard");
         card.Click += HistoryItemButton_OnClick;
         return card;
+    }
+
+    private static Border CreateEmptyHistoryCard(PhotoSession session)
+    {
+        StackPanel content = new()
+        {
+            Spacing = 9,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        content.Children.Add(new TextBlock
+        {
+            Text = session.Name,
+            Foreground = Brush.Parse("#172238"),
+            FontSize = 20,
+            FontWeight = FontWeight.SemiBold,
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = "Печати не было",
+            Foreground = Brush.Parse("#68758C"),
+            FontSize = 16,
+            TextAlignment = TextAlignment.Center
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = session.StartedAt.ToString("dd.MM.yyyy HH:mm"),
+            Foreground = Brush.Parse("#68758C"),
+            FontSize = 14,
+            TextAlignment = TextAlignment.Center
+        });
+
+        return new Border
+        {
+            Width = 280,
+            Height = 180,
+            Margin = new Thickness(10),
+            Padding = new Thickness(22),
+            Background = Brushes.White,
+            BorderBrush = Brush.Parse("#DDE2EC"),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(12),
+            Child = content
+        };
     }
 
     private void HistoryItemButton_OnClick(object? sender, RoutedEventArgs e)
@@ -1344,8 +1415,60 @@ public sealed partial class MainWindow : Window
                 break;
             case "session":
                 _settingsOverlay.IsVisible = false;
-                ShowSessionStartup();
+                ShowSessionSelection();
                 break;
+        }
+    }
+
+    private void ShowSessionSelection()
+    {
+        StopWorkflowTimers();
+        HidePrimaryPanels();
+        _settingsOverlay.IsVisible = false;
+        _currentSessionPanel.IsVisible = false;
+        _newSessionPanel.IsVisible = false;
+        _savedSessionsListPanel.Children.Clear();
+
+        IReadOnlyList<PhotoSession> sessions =
+            _sessionManager.ListSessions(_outputRootPath);
+        foreach (PhotoSession session in sessions)
+        {
+            StackPanel content = new() { Spacing = 3 };
+            content.Children.Add(new TextBlock
+            {
+                Text = session.Name,
+                FontSize = 21,
+                FontWeight = FontWeight.SemiBold,
+                TextAlignment = TextAlignment.Center
+            });
+            content.Children.Add(new TextBlock
+            {
+                Text = session.StartedAt.ToString("dd.MM.yyyy HH:mm"),
+                FontSize = 15,
+                Foreground = Brush.Parse("#D8FFFFFF"),
+                TextAlignment = TextAlignment.Center
+            });
+
+            Button button = new()
+            {
+                Content = content,
+                Tag = session,
+                MinHeight = 76
+            };
+            button.Classes.Add("glass");
+            button.Click += SavedSessionButton_OnClick;
+            _savedSessionsListPanel.Children.Add(button);
+        }
+
+        _savedSessionsPanel.IsVisible = true;
+        _sessionPanel.IsVisible = true;
+    }
+
+    private void SavedSessionButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: PhotoSession session })
+        {
+            ActivateSession(session);
         }
     }
 

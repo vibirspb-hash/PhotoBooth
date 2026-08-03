@@ -17,6 +17,11 @@ sleep 3
 media_root="/media/$USER"
 data_root="$media_root/PHOTOBOOTH"
 template_source=""
+export PHOTOBOOTH_STORAGE_REQUIRED=1
+
+if ! mountpoint -q "$data_root"; then
+  sudo -n /usr/local/sbin/photobooth-first-boot || true
+fi
 
 if mountpoint -q "$data_root"; then
   mkdir -p "$data_root/Output" "$data_root/Templates"

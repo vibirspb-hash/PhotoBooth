@@ -309,6 +309,31 @@
                                     Spacing="6"
                                     Margin="0,14,0,0" />
                     </StackPanel>
+
+                    <StackPanel x:Name="SavedSessionsPanel"
+                                IsVisible="False">
+                        <TextBlock Text="Выберите сессию"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Сохранённые сесии с этой флешки"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="18"
+                                   TextAlignment="Center"
+                                   Margin="0,6,0,18" />
+                        <ScrollViewer Height="360"
+                                      VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="SavedSessionsListPanel"
+                                        Spacing="10" />
+                        </ScrollViewer>
+                        <Button Classes="primary actionButton"
+                                Margin="0,16,0,0"
+                                Click="ShowNewSessionButton_OnClick">
+                            <TextBlock Text="＋  Начать новую сессию"
+                                       FontSize="22" />
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>
@@ -954,7 +979,7 @@
                                    FontSize="27"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
-                        <TextBlock Text="Здесь появятся готовые макеты текущей сессии"
+                        <TextBlock Text="Здесь появятся готовые макеты всех сесий"
                                    Foreground="#6B758A"
                                    FontSize="18"
                                    Margin="0,7,0,0" />
