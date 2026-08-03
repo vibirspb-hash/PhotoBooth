@@ -70,17 +70,27 @@ collect_photo_partitions() {
 
 mapfile -t new_parts < <(collect_photo_partitions)
 if (( ${#new_parts[@]} < 2 )); then
-  echo "Creating PhotoBooth data and persistence partitions on $disk"
-  parted --script "$disk" unit MiB \
-    mkpart primary fat32 "$start_mib" "$data_end_mib" \
-    mkpart primary ext4 "$data_end_mib" 100% || true
-  partprobe "$disk" || true
-  udevadm settle
-  mapfile -t new_parts < <(collect_photo_partitions)
-fi
+  data_start_sector=$((start_mib * 2048))
+  data_size_sectors=$((data_size_mib * 2048))
+  persistence_start_sector=$((data_end_mib * 2048))
+  data_partition="${disk}1"
+  persistence_partition="${disk}3"
 
-if (( ${#new_parts[@]} < 2 )); then
-  echo "Partition table was written but requires a reboot before formatting"
+  partition_table="$(sfdisk -d "$disk")"
+  if grep -Fq "$data_partition :" <<<"$partition_table" ||
+      grep -Fq "$persistence_partition :" <<<"$partition_table"; then
+    echo "Expected MBR partition slots 1 and 3 are already occupied on $disk"
+    exit 1
+  fi
+
+  echo "Creating PhotoBooth data and persistence partitions on $disk"
+  printf '%s : start=%s, size=%s, type=c\n%s : start=%s, type=83\n' \
+    "$data_partition" "$data_start_sector" "$data_size_sectors" \
+    "$persistence_partition" "$persistence_start_sector" |
+    sfdisk --append --force --no-reread "$disk"
+  sync
+
+  echo "Partition table was written; rebooting once before formatting"
   systemctl reboot
   exit 0
 fi
