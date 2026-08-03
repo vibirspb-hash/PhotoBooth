@@ -15,13 +15,20 @@ fi
 
 sleep 3
 media_root="/media/$USER"
+data_root="$media_root/PHOTOBOOTH"
 template_source=""
+
+if mountpoint -q "$data_root"; then
+  mkdir -p "$data_root/Output" "$data_root/Templates"
+  export PHOTOBOOTH_DATA_ROOT="$data_root"
+fi
+
 if [[ -d "$media_root" ]]; then
-  own_templates="$media_root/PHOTOBOOTH/Templates"
-  if [[ -d "$own_templates" ]]; then
+  own_templates="$data_root/Templates"
+  if [[ -n "$(find "$own_templates" -mindepth 1 -maxdepth 1 -type d -print -quit 2>/dev/null)" ]]; then
     template_source="$own_templates"
   else
-    template_source="$(find "$media_root" -mindepth 2 -maxdepth 2 -type d -iname Templates -print -quit 2>/dev/null)"
+    template_source="$(find "$media_root" -mindepth 2 -maxdepth 2 -type d -iname Templates ! -path "$own_templates" -print -quit 2>/dev/null)"
   fi
 fi
 

@@ -311,11 +311,6 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
-
-            <TextBlock Grid.Row="2"
-                       Text="ⓘ  Все фотографии сохраняются внутри выбранной сессии"
-                       Foreground="#D8FFFFFF"
-                       FontSize="16" />
         </Grid>
 
         <Grid x:Name="HomePanel"
@@ -750,18 +745,8 @@
                     </StackPanel>
                 </Grid>
 
-                <Border Grid.Row="3"
-                        HorizontalAlignment="Center"
-                        Padding="26,12"
-                        Background="#A0182038"
-                        BorderBrush="#70FFFFFF"
-                        BorderThickness="1"
-                        CornerRadius="24">
-                    <TextBlock x:Name="CaptureFooterText"
-                               Foreground="White"
-                               FontSize="18"
-                               Text="Таймер: 3 сек  ·  Фото сохраняются автоматически" />
-                </Border>
+                <TextBlock x:Name="CaptureFooterText"
+                           IsVisible="False" />
             </Grid>
         </Grid>
 

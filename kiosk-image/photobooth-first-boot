@@ -36,8 +36,10 @@ if [[ ! -b "$disk" ]]; then
   exit 1
 fi
 
-if [[ "$(lsblk -ndo RM "$disk" 2>/dev/null || echo 0)" != "1" ]]; then
-  echo "Refusing to partition non-removable device $disk"
+transport="$(lsblk -ndo TRAN "$disk" 2>/dev/null || true)"
+removable="$(lsblk -ndo RM "$disk" 2>/dev/null || echo 0)"
+if [[ "$transport" != "usb" && "$removable" != "1" ]]; then
+  echo "Refusing to partition $disk because it is not identified as USB storage"
   exit 1
 fi
 
@@ -82,7 +84,7 @@ fi
 mkfs.vfat -F 32 -n PHOTOBOOTH "$data_part"
 mkdir -p /mnt/photobooth-data
 mount "$data_part" /mnt/photobooth-data
-mkdir -p /mnt/photobooth-data/Templates
+mkdir -p /mnt/photobooth-data/Templates /mnt/photobooth-data/Output
 cat > /mnt/photobooth-data/PUT_TEMPLATES_HERE.txt <<'EOF'
 Put each PhotoBooth template folder inside the Templates directory.
 
@@ -91,7 +93,6 @@ Templates/Event/2.png
 Templates/Event/2.json
 EOF
 sync
-umount /mnt/photobooth-data
 
 mkfs.ext4 -F -L persistence "$persistence_part"
 mkdir -p /mnt/photobooth-persistence
@@ -99,6 +100,10 @@ mount "$persistence_part" /mnt/photobooth-persistence
 printf '/ union\n' > /mnt/photobooth-persistence/persistence.conf
 sync
 umount /mnt/photobooth-persistence
+
+cp "$log_file" /mnt/photobooth-data/first-boot.log
+sync
+umount /mnt/photobooth-data
 
 echo "PhotoBooth storage is ready; rebooting into kiosk mode"
 systemctl reboot

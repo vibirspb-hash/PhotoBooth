@@ -36,6 +36,12 @@ lb config noauto \
   --archive-areas "main contrib non-free-firmware" \
   --bootappend-live "boot=live components persistence quiet splash locales=ru_RU.UTF-8 keyboard-layouts=ru username=user hostname=photobooth user-default-groups=audio,video,plugdev,netdev,lp,lpadmin,scanner"
 
+mkdir -p config/bootloaders
+cp -a /usr/share/live/build/bootloaders/isolinux config/bootloaders/
+sed -i 's/^timeout .*/timeout 10/' config/bootloaders/isolinux/isolinux.cfg
+cp -a /usr/share/live/build/bootloaders/grub-pc config/bootloaders/
+sed -i '/^set default=0$/a set timeout=1' config/bootloaders/grub-pc/config.cfg
+
 mkdir -p config/package-lists
 cp "$image_root/packages.list.chroot" config/package-lists/photobooth.list.chroot
 
@@ -82,6 +88,9 @@ if [[ "$EUID" -eq 0 ]]; then
 else
   sudo lb build
 fi
+
+grep -q '^timeout 10$' binary/isolinux/isolinux.cfg
+grep -q '^set timeout=1$' binary/boot/grub/config.cfg
 
 iso_path="$(find . -maxdepth 1 -type f -name '*.hybrid.iso' -print -quit)"
 if [[ -z "$iso_path" ]]; then

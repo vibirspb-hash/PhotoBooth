@@ -207,7 +207,7 @@ public sealed partial class MainWindow : Window
         _livePreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(550), LivePreviewTimer_OnTick);
 
         _config = new ConfigService().Load();
-        _outputRootPath = ResolvePath(_config.OutputPath);
+        _outputRootPath = ResolveOutputPath(_config.OutputPath);
         _templatesPath = ResolvePath(_config.TemplatesPath);
         _demoPhotosPath = ResolvePath(_config.DemoPhotosPath);
 
@@ -1008,6 +1008,13 @@ public sealed partial class MainWindow : Window
     private void CaptureBackButton_OnClick(object? sender, RoutedEventArgs e)
     {
         StopWorkflowTimers();
+
+        if (_templateManager.GetTemplates(_templatesPath).Count <= 1)
+        {
+            ShowHomeScreen();
+            return;
+        }
+
         ShowTemplates();
     }
 
@@ -1343,7 +1350,7 @@ public sealed partial class MainWindow : Window
     }
 
     private void SettingsCloseButton_OnClick(object? sender, RoutedEventArgs e) =>
-        _settingsOverlay.IsVisible = false;
+        ShowHomeScreen();
 
     private async Task RestartComputerAsync()
     {
@@ -1391,5 +1398,13 @@ public sealed partial class MainWindow : Window
         return Path.IsPathRooted(configuredPath)
             ? configuredPath
             : Path.Combine(AppContext.BaseDirectory, configuredPath);
+    }
+
+    private static string ResolveOutputPath(string configuredPath)
+    {
+        string? dataRoot = Environment.GetEnvironmentVariable("PHOTOBOOTH_DATA_ROOT");
+        return string.IsNullOrWhiteSpace(dataRoot)
+            ? ResolvePath(configuredPath)
+            : Path.Combine(dataRoot, "Output");
     }
 }
