@@ -101,6 +101,9 @@ if [[ -z "$iso_path" ]]; then
   exit 1
 fi
 
+chmod +x "$image_root/VERIFY_PARTITION_LAYOUT.sh"
+"$image_root/VERIFY_PARTITION_LAYOUT.sh" "$iso_path"
+
 cp "$iso_path" "$output_root/PhotoBooth-Kiosk-amd64.iso"
 (
   cd "$output_root"
