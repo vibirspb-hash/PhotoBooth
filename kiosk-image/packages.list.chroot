@@ -5,6 +5,7 @@ openbox
 cups
 cups-client
 dosfstools
+fdisk
 printer-driver-gutenprint
 rsync
 sudo

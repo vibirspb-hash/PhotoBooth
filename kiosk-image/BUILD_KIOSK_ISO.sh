@@ -6,6 +6,16 @@ if [[ "$(uname -s)" != "Linux" ]]; then
   exit 1
 fi
 
+if ! command -v sfdisk >/dev/null 2>&1; then
+  if [[ "$EUID" -eq 0 ]]; then
+    apt-get update
+    apt-get install -y fdisk
+  else
+    sudo apt-get update
+    sudo apt-get install -y fdisk
+  fi
+fi
+
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image_root="$repo_root/kiosk-image"
 build_root="$image_root/build"
