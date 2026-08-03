@@ -30,7 +30,8 @@ fi
 
 if [[ -d "$media_root" ]]; then
   own_templates="$data_root/Templates"
-  if [[ -n "$(find "$own_templates" -mindepth 1 -maxdepth 1 -type d -print -quit 2>/dev/null)" ]]; then
+  if [[ -n "$(find "$own_templates" -maxdepth 1 -type f -iname '*.json' -print -quit 2>/dev/null)" ]] ||
+      [[ -n "$(find "$own_templates" -mindepth 1 -maxdepth 1 -type d -print -quit 2>/dev/null)" ]]; then
     template_source="$own_templates"
   else
     template_source="$(find "$media_root" -mindepth 2 -maxdepth 2 -type d -iname Templates ! -path "$own_templates" -print -quit 2>/dev/null)"
