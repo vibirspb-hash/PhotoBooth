@@ -73,13 +73,13 @@ if (( ${#new_parts[@]} < 2 )); then
   data_start_sector=$((start_mib * 2048))
   data_size_sectors=$((data_size_mib * 2048))
   persistence_start_sector=$((data_end_mib * 2048))
-  data_partition="${disk}1"
-  persistence_partition="${disk}3"
+  data_partition="${disk}3"
+  persistence_partition="${disk}4"
 
   partition_table="$(sfdisk -d "$disk")"
   if grep -Fq "$data_partition :" <<<"$partition_table" ||
       grep -Fq "$persistence_partition :" <<<"$partition_table"; then
-    echo "Expected MBR partition slots 1 and 3 are already occupied on $disk"
+    echo "Expected MBR partition slots 3 and 4 are already occupied on $disk"
     exit 1
   fi
 

@@ -17,13 +17,13 @@ data_size_sectors=$((data_size_mib * 2048))
 persistence_start_sector=$((data_end_mib * 2048))
 
 printf '%s : start=%s, size=%s, type=c\n%s : start=%s, type=83\n' \
-  "${test_image}1" "$data_start_sector" "$data_size_sectors" \
-  "${test_image}3" "$persistence_start_sector" |
+  "${test_image}3" "$data_start_sector" "$data_size_sectors" \
+  "${test_image}4" "$persistence_start_sector" |
   sfdisk --append --force --no-reread "$test_image"
 
 partition_table="$(sfdisk -d "$test_image")"
-grep -Fq "${test_image}1 : start=" <<<"$partition_table"
 grep -Fq "${test_image}3 : start=" <<<"$partition_table"
+grep -Fq "${test_image}4 : start=" <<<"$partition_table"
 
 echo "Verified PhotoBooth partition layout:"
 printf '%s\n' "$partition_table"
