@@ -23,4 +23,5 @@ locales
 network-manager
 parted
 util-linux
+usbutils
 unzip

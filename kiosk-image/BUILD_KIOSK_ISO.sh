@@ -72,10 +72,14 @@ cp "$image_root/99-keetouch-calibration.conf" \
 mkdir -p config/includes.chroot/usr/local/sbin
 cp "$image_root/photobooth-first-boot" \
   config/includes.chroot/usr/local/sbin/photobooth-first-boot
+cp "$image_root/photobooth-printer-setup" \
+  config/includes.chroot/usr/local/sbin/photobooth-printer-setup
 
 mkdir -p config/includes.chroot/etc/systemd/system
 cp "$image_root/photobooth-persistence.service" \
   config/includes.chroot/etc/systemd/system/photobooth-persistence.service
+cp "$image_root/photobooth-printer-setup.service" \
+  config/includes.chroot/etc/systemd/system/photobooth-printer-setup.service
 
 mkdir -p config/hooks/live
 cat > config/hooks/live/010-photobooth-kiosk.hook.chroot <<'HOOK'
@@ -83,6 +87,7 @@ cat > config/hooks/live/010-photobooth-kiosk.hook.chroot <<'HOOK'
 set -eu
 chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
 chmod +x /usr/local/sbin/photobooth-first-boot
+chmod +x /usr/local/sbin/photobooth-printer-setup
 chown -R 1000:1000 /opt/photobooth
 mkdir -p /media/user/PHOTOBOOTH
 chown 1000:1000 /media/user/PHOTOBOOTH
@@ -95,6 +100,7 @@ printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-first-boot\n' \
 chmod 440 /etc/sudoers.d/photobooth-reboot
 chmod 440 /etc/sudoers.d/photobooth-storage
 systemctl enable photobooth-persistence.service
+systemctl enable photobooth-printer-setup.service
 systemctl enable cups.service
 systemctl enable lightdm.service
 HOOK

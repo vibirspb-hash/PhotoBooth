@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+queue_name="DNP_RX1"
+printer_uri=""
+
+for _ in $(seq 1 12); do
+  printer_uri="$(
+    lpinfo -v 2>/dev/null |
+      awk '
+        tolower($0) ~ /gutenprint.*usb/ &&
+        tolower($0) ~ /(dnp|ds-?rx1|dsrx1)/ {print $2; exit}
+      '
+  )"
+  [[ -n "$printer_uri" ]] && break
+  sleep 1
+done
+
+if [[ -z "$printer_uri" ]]; then
+  echo "DNP DS-RX1 is not available through the Gutenprint USB backend."
+  exit 0
+fi
+
+driver_name="$(
+  lpinfo -m 2>/dev/null |
+    awk 'tolower($0) ~ /(ds-?rx1|dsrx1)/ {print $1; exit}'
+)"
+
+if [[ -z "$driver_name" ]]; then
+  echo "DNP DS-RX1 was detected, but its Gutenprint driver is unavailable." >&2
+  exit 0
+fi
+
+configured_uri="$(
+  lpstat -v "$queue_name" 2>/dev/null |
+    sed -n 's/^device for [^:]*: //p'
+)"
+
+if [[ "$configured_uri" != "$printer_uri" ]]; then
+  lpadmin -p "$queue_name" -E -v "$printer_uri" -m "$driver_name"
+fi
+
+lpadmin -d "$queue_name"
+cupsenable "$queue_name"
+cupsaccept "$queue_name"
+
+echo "Printer queue $queue_name is ready at $printer_uri."
+lpstat -p "$queue_name" -l
