@@ -1,0 +1,62 @@
+name: Build PhotoBooth Kiosk Delta
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/kiosk-image
+    paths:
+      - '.github/workflows/build-kiosk-delta.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  build-delta:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      OLD_RUN_ID: '30846748257'
+      NEW_RUN_ID: '30920612060'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install delta tools
+        run: sudo apt-get update && sudo apt-get install -y bsdiff
+
+      - name: Download source images
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p delta/old delta/new
+          gh run download "$OLD_RUN_ID" -n PhotoBooth-Kiosk-amd64 -D delta/old
+          gh run download "$NEW_RUN_ID" -n PhotoBooth-Kiosk-amd64 -D delta/new
+          cat delta/old/PhotoBooth-Kiosk-amd64.iso.part-* > delta/old.iso
+          cat delta/new/PhotoBooth-Kiosk-amd64.iso.part-* > delta/new.iso
+          sha256sum -c delta/new/PhotoBooth-Kiosk-amd64.iso.sha256
+
+      - name: Build chunked delta
+        run: |
+          mkdir -p delta/old-parts delta/new-parts delta/patches
+          split -b 10M -d -a 4 delta/old.iso delta/old-parts/part-
+          split -b 10M -d -a 4 delta/new.iso delta/new-parts/part-
+          for new_part in delta/new-parts/part-*; do
+            name="$(basename "$new_part")"
+            bsdiff "delta/old-parts/$name" "$new_part" "delta/patches/$name.bsdiff"
+          done
+          cp delta/new/PhotoBooth-Kiosk-amd64.iso.sha256 delta/patches/
+          tar -C delta/patches -czf delta/PhotoBooth-Kiosk-amd64-delta.tar.gz .
+          sha256sum delta/PhotoBooth-Kiosk-amd64-delta.tar.gz > delta/PhotoBooth-Kiosk-amd64-delta.tar.gz.sha256
+
+      - name: Upload delta
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoBooth-Kiosk-amd64-delta
+          path: |
+            delta/PhotoBooth-Kiosk-amd64-delta.tar.gz
+            delta/PhotoBooth-Kiosk-amd64-delta.tar.gz.sha256
+          compression-level: 0
+          retention-days: 7
