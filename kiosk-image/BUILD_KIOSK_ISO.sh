@@ -65,6 +65,10 @@ cp "$image_root/lightdm-photobooth.conf" \
 mkdir -p config/includes.chroot/etc/xdg/openbox
 cp "$image_root/openbox-autostart" config/includes.chroot/etc/xdg/openbox/autostart
 
+mkdir -p config/includes.chroot/etc/X11/xorg.conf.d
+cp "$image_root/99-keetouch-calibration.conf" \
+  config/includes.chroot/etc/X11/xorg.conf.d/99-keetouch-calibration.conf
+
 mkdir -p config/includes.chroot/usr/local/sbin
 cp "$image_root/photobooth-first-boot" \
   config/includes.chroot/usr/local/sbin/photobooth-first-boot
