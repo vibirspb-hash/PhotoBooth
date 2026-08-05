@@ -24,9 +24,13 @@ if ! mountpoint -q "$data_root"; then
 fi
 
 if mountpoint -q "$data_root"; then
-  mkdir -p "$data_root/Output" "$data_root/Templates"
+  mkdir -p "$data_root/Output" "$data_root/Templates" "$data_root/Diagnostics"
   export PHOTOBOOTH_DATA_ROOT="$data_root"
 fi
+
+/usr/local/bin/photobooth-touch-setup || true
+sudo -n /usr/local/sbin/photobooth-printer-setup || true
+/usr/local/bin/photobooth-hardware-diagnostics || true
 
 if [[ -d "$media_root" ]]; then
   own_templates="$data_root/Templates"

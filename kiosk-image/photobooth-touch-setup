@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -u
+
+device_name="HID 1aad:0001"
+log_file="${PHOTOBOOTH_DATA_ROOT:-/tmp}/Diagnostics/touchscreen.log"
+mkdir -p "$(dirname "$log_file")"
+exec >>"$log_file" 2>&1
+
+echo "$(date --iso-8601=seconds) Configuring KeeTouch"
+for _ in $(seq 1 20); do
+  if xinput list --id-only "$device_name" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+
+device_id="$(xinput list --id-only "$device_name" 2>/dev/null || true)"
+pointer_id="$(xinput list --id-only 'Virtual core pointer' 2>/dev/null || true)"
+if [[ -z "$device_id" || -z "$pointer_id" ]]; then
+  echo "KeeTouch or the X11 pointer was not found."
+  xinput list || true
+  exit 0
+fi
+
+xinput reattach "$device_id" "$pointer_id" || true
+xinput enable "$device_id" || true
+xinput set-mode "$device_id" ABSOLUTE || true
+xinput list-props "$device_id" || true
+echo "KeeTouch $device_id is attached to pointer $pointer_id."

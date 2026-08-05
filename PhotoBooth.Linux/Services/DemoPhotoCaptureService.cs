@@ -35,6 +35,9 @@ public sealed class DemoPhotoCaptureService : IPhotoCaptureService
         CancellationToken cancellationToken = default) =>
         Task.FromResult<string?>(GetShot(shotNumber));
 
+    public Task StopPreviewAsync(
+        CancellationToken cancellationToken = default) => Task.CompletedTask;
+
     public Task<string> CapturePhotoAsync(
         int shotNumber,
         CancellationToken cancellationToken = default) =>

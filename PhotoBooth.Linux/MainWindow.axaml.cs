@@ -1028,6 +1028,7 @@ public sealed partial class MainWindow : Window
     private void CaptureBackButton_OnClick(object? sender, RoutedEventArgs e)
     {
         StopWorkflowTimers();
+        _ = _cameraService.StopPreviewAsync();
 
         if (_templateManager.GetTemplates(_templatesPath).Count <= 1)
         {
@@ -1402,8 +1403,7 @@ public sealed partial class MainWindow : Window
                     $"Принтер: {_printerService.DisplayName}. {_printerStatus}";
                 break;
             case "calibration":
-                _settingsSectionStatusText.Text =
-                    "Калибровка будет подключена к системному мастеру сенсорного экрана Linux.";
+                await CalibrateTouchscreenAsync();
                 break;
             case "schedule":
                 _settingsSectionStatusText.Text =
@@ -1474,6 +1474,27 @@ public sealed partial class MainWindow : Window
 
     private void SettingsCloseButton_OnClick(object? sender, RoutedEventArgs e) =>
         ShowHomeScreen();
+
+    private async Task CalibrateTouchscreenAsync()
+    {
+        const string command = "/usr/local/bin/photobooth-touch-calibrate";
+        if (!CommandRunner.Exists(command))
+        {
+            _settingsSectionStatusText.Text =
+                "Мастер калибровки доступен только в образе фотобудки Linux.";
+            return;
+        }
+
+        _settingsSectionStatusText.Text =
+            "Коснитесь четырёх крестиков на системном экране калибровки...";
+        CommandResult result = await CommandRunner.RunAsync(
+            command,
+            [],
+            TimeSpan.FromMinutes(3));
+        _settingsSectionStatusText.Text = result.Success
+            ? result.CombinedOutput
+            : $"Калибровка не сохранена: {result.CombinedOutput}";
+    }
 
     private async Task RestartComputerAsync()
     {

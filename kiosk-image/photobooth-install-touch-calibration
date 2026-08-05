@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source_file="${1:-}"
+target_file="/etc/X11/xorg.conf.d/99-keetouch-calibration.conf"
+temporary_file="$(mktemp)"
+trap 'rm -f "$temporary_file"' EXIT
+
+resolved_source="$(realpath "$source_file" 2>/dev/null || true)"
+if [[ ! -f "$source_file" || "$resolved_source" != /tmp/* ]]; then
+  echo "Calibration source is invalid." >&2
+  exit 1
+fi
+
+sed -n '/Section "InputClass"/,/EndSection/p' "$source_file" >"$temporary_file"
+if ! grep -q 'Option[[:space:]]*"Calibration"' "$temporary_file" ||
+   ! grep -Fq 'HID 1aad:0001' "$temporary_file"; then
+  echo "Calibration data does not belong to the PhotoBooth touchscreen." >&2
+  exit 1
+fi
+
+install -D -m 0644 "$temporary_file" "$target_file"
+echo "Installed $target_file"

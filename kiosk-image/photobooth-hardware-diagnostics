@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -u
+
+data_root="${PHOTOBOOTH_DATA_ROOT:-/media/user/PHOTOBOOTH}"
+diagnostics_root="$data_root/Diagnostics"
+mkdir -p "$diagnostics_root"
+report="$diagnostics_root/hardware-latest.txt"
+
+{
+  echo "PhotoBooth hardware report"
+  date --iso-8601=seconds
+  uname -a
+  echo
+  echo "=== USB ==="
+  lsusb || true
+  echo
+  echo "=== XINPUT ==="
+  xinput list || true
+  xinput list-props "HID 1aad:0001" || true
+  echo
+  echo "=== CUPS SERVICE ==="
+  systemctl --no-pager --full status cups.service || true
+  echo
+  echo "=== CUPS DEVICES ==="
+  lpinfo -v || true
+  echo
+  echo "=== CUPS DRIVERS ==="
+  lpinfo -m | grep -Ei 'dnp|rx1' || true
+  echo
+  echo "=== CUPS QUEUES ==="
+  lpstat -r || true
+  lpstat -v || true
+  lpstat -p -d || true
+  lpoptions -p DNP_RX1 -l || true
+  echo
+  echo "=== PRINTER SETUP LOG ==="
+  cat /var/log/photobooth-printer-setup.log 2>/dev/null || true
+  echo
+  echo "=== CANON ==="
+  gphoto2 --auto-detect || true
+} >"$report" 2>&1
+
+echo "Hardware report saved to $report"

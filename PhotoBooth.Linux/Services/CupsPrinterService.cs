@@ -53,6 +53,19 @@ public sealed class CupsPrinterService : IPrinterService
             return (null, "CUPS не установлен");
         }
 
+        CommandResult serviceResult = await CommandRunner.RunAsync(
+            lpstatCommand,
+            ["-r"],
+            TimeSpan.FromSeconds(6),
+            cancellationToken);
+        if (!serviceResult.Success ||
+            !serviceResult.StandardOutput.Contains(
+                "scheduler is running",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return (null, "служба CUPS не запущена");
+        }
+
         CommandResult result = await CommandRunner.RunAsync(
             lpstatCommand,
             ["-p"],
@@ -60,7 +73,7 @@ public sealed class CupsPrinterService : IPrinterService
             cancellationToken);
         if (!result.Success)
         {
-            return (null, "служба CUPS не запущена");
+            return (null, "в CUPS пока нет настроенной очереди принтера");
         }
 
         List<string> queues = result.StandardOutput

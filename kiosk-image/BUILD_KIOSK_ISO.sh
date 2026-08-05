@@ -74,6 +74,16 @@ cp "$image_root/photobooth-first-boot" \
   config/includes.chroot/usr/local/sbin/photobooth-first-boot
 cp "$image_root/photobooth-printer-setup" \
   config/includes.chroot/usr/local/sbin/photobooth-printer-setup
+cp "$image_root/photobooth-install-touch-calibration" \
+  config/includes.chroot/usr/local/sbin/photobooth-install-touch-calibration
+
+mkdir -p config/includes.chroot/usr/local/bin
+cp "$image_root/photobooth-touch-setup" \
+  config/includes.chroot/usr/local/bin/photobooth-touch-setup
+cp "$image_root/photobooth-touch-calibrate" \
+  config/includes.chroot/usr/local/bin/photobooth-touch-calibrate
+cp "$image_root/photobooth-hardware-diagnostics" \
+  config/includes.chroot/usr/local/bin/photobooth-hardware-diagnostics
 
 mkdir -p config/includes.chroot/etc/systemd/system
 cp "$image_root/photobooth-persistence.service" \
@@ -88,6 +98,10 @@ set -eu
 chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
 chmod +x /usr/local/sbin/photobooth-first-boot
 chmod +x /usr/local/sbin/photobooth-printer-setup
+chmod +x /usr/local/sbin/photobooth-install-touch-calibration
+chmod +x /usr/local/bin/photobooth-touch-setup
+chmod +x /usr/local/bin/photobooth-touch-calibrate
+chmod +x /usr/local/bin/photobooth-hardware-diagnostics
 chown -R 1000:1000 /opt/photobooth
 mkdir -p /media/user/PHOTOBOOTH
 chown 1000:1000 /media/user/PHOTOBOOTH
@@ -97,8 +111,14 @@ printf 'user ALL=(root) NOPASSWD: /usr/bin/systemctl reboot\n' \
   > /etc/sudoers.d/photobooth-reboot
 printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-first-boot\n' \
   > /etc/sudoers.d/photobooth-storage
+printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-printer-setup\n' \
+  > /etc/sudoers.d/photobooth-printer
+printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-install-touch-calibration *\n' \
+  > /etc/sudoers.d/photobooth-touch
 chmod 440 /etc/sudoers.d/photobooth-reboot
 chmod 440 /etc/sudoers.d/photobooth-storage
+chmod 440 /etc/sudoers.d/photobooth-printer
+chmod 440 /etc/sudoers.d/photobooth-touch
 systemctl enable photobooth-persistence.service
 systemctl enable photobooth-printer-setup.service
 systemctl enable cups.service

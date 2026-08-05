@@ -3,13 +3,18 @@ set -euo pipefail
 
 queue_name="DNP_RX1"
 printer_uri=""
+log_file="/var/log/photobooth-printer-setup.log"
+exec >>"$log_file" 2>&1
 
-for _ in $(seq 1 12); do
+echo "$(date --iso-8601=seconds) Configuring DNP DS-RX1"
+systemctl start cups.service
+
+for _ in $(seq 1 30); do
   printer_uri="$(
     lpinfo -v 2>/dev/null |
       awk '
-        tolower($0) ~ /gutenprint.*usb/ &&
-        tolower($0) ~ /(dnp|ds-?rx1|dsrx1)/ {print $2; exit}
+        tolower($0) ~ /gutenprint[0-9]*\+usb:\/\// &&
+        tolower($0) ~ /(dnp|ds-?rx1|dsrx1|dnprx1)/ {print $2; exit}
       '
   )"
   [[ -n "$printer_uri" ]] && break
@@ -18,16 +23,21 @@ done
 
 if [[ -z "$printer_uri" ]]; then
   echo "DNP DS-RX1 is not available through the Gutenprint USB backend."
+  echo "USB devices:"
+  lsusb || true
+  echo "CUPS devices:"
+  lpinfo -v || true
   exit 0
 fi
 
 driver_name="$(
   lpinfo -m 2>/dev/null |
-    awk 'tolower($0) ~ /(ds-?rx1|dsrx1)/ {print $1; exit}'
+    awk 'tolower($0) ~ /(ds-?rx1|dsrx1|dnprx1)/ {print $1; exit}'
 )"
 
 if [[ -z "$driver_name" ]]; then
   echo "DNP DS-RX1 was detected, but its Gutenprint driver is unavailable." >&2
+  lpinfo -m | grep -Ei 'dnp|rx1' || true
   exit 0
 fi
 

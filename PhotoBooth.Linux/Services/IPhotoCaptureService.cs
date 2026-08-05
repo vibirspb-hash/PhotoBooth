@@ -17,6 +17,9 @@ public interface IPhotoCaptureService
         int shotNumber,
         CancellationToken cancellationToken = default);
 
+    Task StopPreviewAsync(
+        CancellationToken cancellationToken = default);
+
     Task<string> CapturePhotoAsync(
         int shotNumber,
         CancellationToken cancellationToken = default);
