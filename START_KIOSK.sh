@@ -48,10 +48,14 @@ if [[ -n "$template_source" ]]; then
 fi
 
 cd "$app_dir"
-mkdir -p "$app_dir/logs"
+log_dir="$app_dir/logs"
+if [[ -n "${PHOTOBOOTH_DATA_ROOT:-}" ]]; then
+  log_dir="$PHOTOBOOTH_DATA_ROOT/Diagnostics"
+fi
+mkdir -p "$log_dir"
 
 while true; do
-  "$app_dir/PhotoBooth.Linux" >> "$app_dir/logs/kiosk.log" 2>&1
+  "$app_dir/PhotoBooth.Linux" >> "$log_dir/kiosk.log" 2>&1
   exit_code=$?
 
   # A normal exit is intentional (for example, from the protected settings).
@@ -60,6 +64,6 @@ while true; do
   fi
 
   echo "$(date --iso-8601=seconds) PhotoBooth завершился с кодом $exit_code. Перезапуск через 3 секунды." \
-    >> "$app_dir/logs/kiosk.log"
+    >> "$log_dir/kiosk.log"
   sleep 3
 done

@@ -1,10 +1,13 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PhotoBooth.Services;
 
 public sealed class GPhotoCameraService : IPhotoCaptureService
 {
+    private const int SigInt = 2;
+
     private static readonly string[] SettingNames =
     [
         "iso",
@@ -19,7 +22,7 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
     private Process? _liveViewProcess;
     private CancellationTokenSource? _liveViewCancellation;
     private Task? _liveViewPumpTask;
-    private string _latestPreviewPath = string.Empty;
+    private byte[]? _latestPreviewFrame;
     private string _liveViewError = string.Empty;
 
     private GPhotoCameraService(string command, string displayName)
@@ -78,9 +81,10 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
     {
         Directory.CreateDirectory(originalsPath);
         _originalsPath = originalsPath;
+        Volatile.Write(ref _latestPreviewFrame, null);
     }
 
-    public async Task<string?> CapturePreviewAsync(
+    public async Task<byte[]?> CapturePreviewAsync(
         int shotNumber,
         CancellationToken cancellationToken = default)
     {
@@ -91,7 +95,7 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
             await StartLiveViewAsync(cancellationToken);
 
             DateTime deadline = DateTime.UtcNow.AddSeconds(6);
-            while (!File.Exists(_latestPreviewPath) &&
+            while (Volatile.Read(ref _latestPreviewFrame) is null &&
                    DateTime.UtcNow < deadline &&
                    !cancellationToken.IsCancellationRequested)
             {
@@ -106,7 +110,8 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
                 await Task.Delay(100, cancellationToken);
             }
 
-            if (!File.Exists(_latestPreviewPath))
+            byte[]? frame = Volatile.Read(ref _latestPreviewFrame);
+            if (frame is null)
             {
                 throw new InvalidOperationException(
                     string.IsNullOrWhiteSpace(_liveViewError)
@@ -114,7 +119,7 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
                         : _liveViewError);
             }
 
-            return _latestPreviewPath;
+            return frame;
         }
         finally
         {
@@ -131,16 +136,22 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         {
             EnsurePrepared();
             await StopLiveViewCoreAsync(cancellationToken);
+            await Task.Delay(700, cancellationToken);
             string path = Path.Combine(_originalsPath, $"shot-{shotNumber:00}.jpg");
-            CommandResult result = await CommandRunner.RunAsync(
-                _command,
-                [
-                    "--capture-image-and-download",
-                    "--filename", path,
-                    "--force-overwrite"
-                ],
-                TimeSpan.FromSeconds(30),
-                cancellationToken);
+            CommandResult result = await CaptureImageAsync(path, cancellationToken);
+            if (!result.Success || !File.Exists(path))
+            {
+                Console.Error.WriteLine(
+                    $"{DateTime.Now:O} Canon capture attempt 1 failed: {result.CombinedOutput}");
+                await CommandRunner.RunAsync(
+                    _command,
+                    ["--set-config", "viewfinder=0"],
+                    TimeSpan.FromSeconds(8),
+                    cancellationToken);
+                await Task.Delay(1500, cancellationToken);
+                result = await CaptureImageAsync(path, cancellationToken);
+            }
+
             if (!result.Success || !File.Exists(path))
             {
                 throw new InvalidOperationException(
@@ -201,6 +212,19 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         }
     }
 
+    private Task<CommandResult> CaptureImageAsync(
+        string path,
+        CancellationToken cancellationToken) =>
+        CommandRunner.RunAsync(
+            _command,
+            [
+                "--capture-image-and-download",
+                "--filename", path,
+                "--force-overwrite"
+            ],
+            TimeSpan.FromSeconds(25),
+            cancellationToken);
+
     private async Task StartLiveViewAsync(CancellationToken cancellationToken)
     {
         if (_liveViewProcess is { HasExited: false })
@@ -215,9 +239,8 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
             TimeSpan.FromSeconds(8),
             cancellationToken);
 
-        _latestPreviewPath = Path.Combine(_originalsPath, ".live-preview.jpg");
         _liveViewError = string.Empty;
-        TryDelete(_latestPreviewPath);
+        Volatile.Write(ref _latestPreviewFrame, null);
 
         ProcessStartInfo startInfo = new(_command)
         {
@@ -236,7 +259,6 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         _liveViewCancellation = new CancellationTokenSource();
         _liveViewPumpTask = PumpLiveViewAsync(
             process,
-            _latestPreviewPath,
             _liveViewCancellation.Token);
     }
 
@@ -256,7 +278,14 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
             {
                 if (!process.HasExited)
                 {
-                    process.Kill(entireProcessTree: true);
+                    // gPhoto2 restores the camera state only when movie capture
+                    // receives the same SIGINT as an interactive Ctrl+C.
+                    SendSignal(process.Id, SigInt);
+                    Task exited = process.WaitForExitAsync();
+                    if (await Task.WhenAny(exited, Task.Delay(5000)) != exited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
                 }
 
                 await process.WaitForExitAsync(cancellationToken);
@@ -291,7 +320,6 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
 
     private async Task PumpLiveViewAsync(
         Process process,
-        string outputPath,
         CancellationToken cancellationToken)
     {
         Task<string> errorTask = process.StandardError.ReadToEndAsync();
@@ -299,7 +327,6 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         using MemoryStream frame = new();
         bool inFrame = false;
         byte previous = 0;
-        DateTime lastSavedAt = DateTime.MinValue;
 
         try
         {
@@ -331,14 +358,9 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
                         frame.WriteByte(current);
                         if (previous == 0xFF && current == 0xD9)
                         {
-                            if (DateTime.UtcNow - lastSavedAt >= TimeSpan.FromMilliseconds(150))
-                            {
-                                await SaveFrameAsync(
-                                    outputPath,
-                                    frame.ToArray(),
-                                    cancellationToken);
-                                lastSavedAt = DateTime.UtcNow;
-                            }
+                            Volatile.Write(
+                                ref _latestPreviewFrame,
+                                frame.ToArray());
 
                             frame.SetLength(0);
                             inFrame = false;
@@ -371,26 +393,15 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         }
     }
 
-    private static async Task SaveFrameAsync(
-        string path,
-        byte[] bytes,
-        CancellationToken cancellationToken)
-    {
-        string temporaryPath = path + ".tmp";
-        await File.WriteAllBytesAsync(temporaryPath, bytes, cancellationToken);
-        File.Move(temporaryPath, path, overwrite: true);
-    }
+    [DllImport("libc", SetLastError = true)]
+    private static extern int kill(int processId, int signal);
 
-    private static void TryDelete(string path)
+    private static void SendSignal(int processId, int signal)
     {
-        try
+        if (kill(processId, signal) != 0)
         {
-            File.Delete(path);
-            File.Delete(path + ".tmp");
-        }
-        catch (IOException)
-        {
-            // A stale preview is harmless; the next complete frame replaces it.
+            throw new InvalidOperationException(
+                $"Не удалось корректно остановить Live View (errno {Marshal.GetLastPInvokeError()}).");
         }
     }
 

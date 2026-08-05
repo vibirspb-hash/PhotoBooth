@@ -120,6 +120,7 @@ public sealed partial class MainWindow : Window
     private string _pinEntry = string.Empty;
     private bool _isHistoryPreview;
     private bool _livePreviewBusy;
+    private byte[]? _lastLivePreviewFrame;
     private DateTime _flyStartedAt;
     private readonly ScaleTransform _flyScale = new();
     private readonly TranslateTransform _flyTranslate = new();
@@ -209,7 +210,7 @@ public sealed partial class MainWindow : Window
         _finalPreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(650), FinalPreviewTimer_OnTick);
         _printProgressTimer = CreateTimer(TimeSpan.FromMilliseconds(90), PrintProgressTimer_OnTick);
         _printCompletionTimer = CreateTimer(TimeSpan.FromMilliseconds(1200), PrintCompletionTimer_OnTick);
-        _livePreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(550), LivePreviewTimer_OnTick);
+        _livePreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(80), LivePreviewTimer_OnTick);
 
         _config = new ConfigService().Load();
         _persistentStorageRequired =
@@ -756,6 +757,7 @@ public sealed partial class MainWindow : Window
     private void StartLivePreview()
     {
         _livePreviewTimer.Stop();
+        _lastLivePreviewFrame = null;
         if (!_cameraService.IsDemo)
         {
             _livePreviewTimer.Start();
@@ -776,10 +778,12 @@ public sealed partial class MainWindow : Window
         _livePreviewBusy = true;
         try
         {
-            string? path = await _cameraService.CapturePreviewAsync(_currentShotNumber);
-            if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+            byte[]? frame = await _cameraService.CapturePreviewAsync(_currentShotNumber);
+            if (frame is not null &&
+                !ReferenceEquals(frame, _lastLivePreviewFrame))
             {
-                SetLivePreview(path);
+                SetLivePreview(frame);
+                _lastLivePreviewFrame = frame;
             }
         }
         catch (Exception exception)
@@ -1523,6 +1527,18 @@ public sealed partial class MainWindow : Window
     private void SetLivePreview(string path)
     {
         Bitmap bitmap = LoadBitmap(path);
+        if (_livePreviewImage.Source is IDisposable previous)
+        {
+            previous.Dispose();
+        }
+
+        _livePreviewImage.Source = bitmap;
+    }
+
+    private void SetLivePreview(byte[] bytes)
+    {
+        using MemoryStream stream = new(bytes, writable: false);
+        Bitmap bitmap = new(stream);
         if (_livePreviewImage.Source is IDisposable previous)
         {
             previous.Dispose();

@@ -4,17 +4,25 @@ set -euo pipefail
 queue_name="DNP_RX1"
 printer_uri=""
 log_file="/var/log/photobooth-printer-setup.log"
+lpinfo_command="/usr/sbin/lpinfo"
+lpadmin_command="/usr/sbin/lpadmin"
+cupsenable_command="/usr/sbin/cupsenable"
+cupsaccept_command="/usr/sbin/cupsaccept"
 exec >>"$log_file" 2>&1
 
 echo "$(date --iso-8601=seconds) Configuring DNP DS-RX1"
 systemctl start cups.service
 
+if [[ ! -x "$lpinfo_command" ]]; then
+  echo "CUPS lpinfo is missing at $lpinfo_command."
+  exit 0
+fi
+
 for _ in $(seq 1 30); do
   printer_uri="$(
-    lpinfo -v 2>/dev/null |
+    "$lpinfo_command" -v 2>/dev/null |
       awk '
-        tolower($0) ~ /gutenprint[0-9]*\+usb:\/\// &&
-        tolower($0) ~ /(dnp|ds-?rx1|dsrx1|dnprx1)/ {print $2; exit}
+        tolower($0) ~ /(dnp|citizen|ds-?rx1|dsrx1|dnprx1|1343.*0005)/ {print $2; exit}
       '
   )"
   [[ -n "$printer_uri" ]] && break
@@ -26,18 +34,18 @@ if [[ -z "$printer_uri" ]]; then
   echo "USB devices:"
   lsusb || true
   echo "CUPS devices:"
-  lpinfo -v || true
+  "$lpinfo_command" -v || true
   exit 0
 fi
 
 driver_name="$(
-  lpinfo -m 2>/dev/null |
+  "$lpinfo_command" -m 2>/dev/null |
     awk 'tolower($0) ~ /(ds-?rx1|dsrx1|dnprx1)/ {print $1; exit}'
 )"
 
 if [[ -z "$driver_name" ]]; then
   echo "DNP DS-RX1 was detected, but its Gutenprint driver is unavailable." >&2
-  lpinfo -m | grep -Ei 'dnp|rx1' || true
+  "$lpinfo_command" -m | grep -Ei 'dnp|rx1' || true
   exit 0
 fi
 
@@ -47,12 +55,12 @@ configured_uri="$(
 )"
 
 if [[ "$configured_uri" != "$printer_uri" ]]; then
-  lpadmin -p "$queue_name" -E -v "$printer_uri" -m "$driver_name"
+  "$lpadmin_command" -p "$queue_name" -E -v "$printer_uri" -m "$driver_name"
 fi
 
-lpadmin -d "$queue_name"
-cupsenable "$queue_name"
-cupsaccept "$queue_name"
+"$lpadmin_command" -d "$queue_name"
+"$cupsenable_command" "$queue_name"
+"$cupsaccept_command" "$queue_name"
 
 echo "Printer queue $queue_name is ready at $printer_uri."
 lpstat -p "$queue_name" -l

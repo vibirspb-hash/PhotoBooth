@@ -30,10 +30,10 @@ public sealed class DemoPhotoCaptureService : IPhotoCaptureService
             shotCount);
     }
 
-    public Task<string?> CapturePreviewAsync(
+    public async Task<byte[]?> CapturePreviewAsync(
         int shotNumber,
         CancellationToken cancellationToken = default) =>
-        Task.FromResult<string?>(GetShot(shotNumber));
+        await File.ReadAllBytesAsync(GetShot(shotNumber), cancellationToken);
 
     public Task StopPreviewAsync(
         CancellationToken cancellationToken = default) => Task.CompletedTask;

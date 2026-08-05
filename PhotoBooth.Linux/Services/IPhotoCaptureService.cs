@@ -13,7 +13,7 @@ public interface IPhotoCaptureService
         string originalsPath,
         int shotCount);
 
-    Task<string?> CapturePreviewAsync(
+    Task<byte[]?> CapturePreviewAsync(
         int shotNumber,
         CancellationToken cancellationToken = default);
 

@@ -17,15 +17,17 @@ report="$diagnostics_root/hardware-latest.txt"
   echo "=== XINPUT ==="
   xinput list || true
   xinput list-props "HID 1aad:0001" || true
+  cat /proc/bus/input/devices || true
+  udevadm info --query=property --name=/dev/input/event2 || true
   echo
   echo "=== CUPS SERVICE ==="
   systemctl --no-pager --full status cups.service || true
   echo
   echo "=== CUPS DEVICES ==="
-  lpinfo -v || true
+  /usr/sbin/lpinfo -v || true
   echo
   echo "=== CUPS DRIVERS ==="
-  lpinfo -m | grep -Ei 'dnp|rx1' || true
+  /usr/sbin/lpinfo -m | grep -Ei 'dnp|rx1' || true
   echo
   echo "=== CUPS QUEUES ==="
   lpstat -r || true

@@ -25,5 +25,11 @@ fi
 xinput reattach "$device_id" "$pointer_id" || true
 xinput enable "$device_id" || true
 xinput set-mode "$device_id" ABSOLUTE || true
+xinput set-prop "$device_id" "Coordinate Transformation Matrix" \
+  1 0 0 0 1 0 0 0 1 || true
 xinput list-props "$device_id" || true
+echo "Input device details:"
+udevadm info --query=property --name=/dev/input/event2 || true
+echo "Input capabilities and idle event sample:"
+timeout 2 evtest /dev/input/event2 || true
 echo "KeeTouch $device_id is attached to pointer $pointer_id."

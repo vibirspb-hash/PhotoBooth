@@ -13,6 +13,7 @@ unclutter-xfixes
 x11-xserver-utils
 xinput
 xinput-calibrator
+evtest
 xserver-xorg
 xserver-xorg-input-evdev
 xserver-xorg-input-libinput
