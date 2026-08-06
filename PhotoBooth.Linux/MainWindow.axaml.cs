@@ -18,12 +18,14 @@ public sealed partial class MainWindow : Window
     private const string SettingsPin = "2016";
     private const int CountdownStart = 3;
 
+    private readonly ConfigService _configService = new();
     private readonly AppConfig _config;
     private readonly SessionManager _sessionManager = new();
     private readonly TemplateManager _templateManager = new();
     private readonly TemplateDefinitionService _templateDefinitionService = new();
     private IPhotoCaptureService _cameraService = new DemoPhotoCaptureService();
     private readonly SkiaImageComposer _imageComposer = new();
+    private readonly PrinterCalibrationService _printerCalibrationService = new();
     private IPrinterService _printerService = new DemoPrinterService();
     private string _printerStatus = "Деморежим.";
     private readonly string _outputRootPath;
@@ -100,6 +102,25 @@ public sealed partial class MainWindow : Window
     private readonly Button _settingsPinCancelButton;
     private readonly StackPanel _settingsMenuPanel;
     private readonly TextBlock _settingsSectionStatusText;
+    private readonly StackPanel _printerSettingsPanel;
+    private readonly TextBlock _printerSettingsStatusText;
+    private readonly TextBlock _printerOffsetXText;
+    private readonly TextBlock _printerOffsetYText;
+    private readonly TextBlock _printerScaleText;
+    private readonly Button _printerQualityFastButton;
+    private readonly Button _printerQualityHighButton;
+    private readonly Button _printerCutStandardButton;
+    private readonly Button _printerCutTwoInchButton;
+    private readonly StackPanel _scheduleSettingsPanel;
+    private readonly CheckBox _scheduleEnabledCheckBox;
+    private readonly CheckBox _scheduleShutdownCheckBox;
+    private readonly TextBlock _scheduleStartHourText;
+    private readonly TextBlock _scheduleStartMinuteText;
+    private readonly TextBlock _scheduleEndHourText;
+    private readonly TextBlock _scheduleEndMinuteText;
+    private readonly TextBlock _scheduleStatusText;
+    private readonly Grid _offHoursPanel;
+    private readonly TextBlock _offHoursScheduleText;
 
     private readonly DispatcherTimer _countdownTimer;
     private readonly DispatcherTimer _reviewDelayTimer;
@@ -108,6 +129,7 @@ public sealed partial class MainWindow : Window
     private readonly DispatcherTimer _printProgressTimer;
     private readonly DispatcherTimer _printCompletionTimer;
     private readonly DispatcherTimer _livePreviewTimer;
+    private readonly DispatcherTimer _scheduleTimer;
 
     private PhotoSession? _activeSession;
     private PhotoSession? _recoverableSession;
@@ -124,6 +146,16 @@ public sealed partial class MainWindow : Window
     private bool _isHistoryPreview;
     private bool _isStartupLocked = true;
     private bool _livePreviewBusy;
+    private int _printerOffsetXDraft;
+    private int _printerOffsetYDraft;
+    private double _printerScaleDraft = 100;
+    private string _printerQualityDraft = "Fast";
+    private string _printerCutModeDraft = "Standard";
+    private int _scheduleStartHourDraft;
+    private int _scheduleStartMinuteDraft;
+    private int _scheduleEndHourDraft;
+    private int _scheduleEndMinuteDraft;
+    private bool _schedulePowerOffRequested;
     private byte[]? _lastLivePreviewFrame;
     private DateTime _flyStartedAt;
     private readonly ScaleTransform _flyScale = new();
@@ -204,6 +236,25 @@ public sealed partial class MainWindow : Window
         _settingsPinCancelButton = Find<Button>("SettingsPinCancelButton");
         _settingsMenuPanel = Find<StackPanel>("SettingsMenuPanel");
         _settingsSectionStatusText = Find<TextBlock>("SettingsSectionStatusText");
+        _printerSettingsPanel = Find<StackPanel>("PrinterSettingsPanel");
+        _printerSettingsStatusText = Find<TextBlock>("PrinterSettingsStatusText");
+        _printerOffsetXText = Find<TextBlock>("PrinterOffsetXText");
+        _printerOffsetYText = Find<TextBlock>("PrinterOffsetYText");
+        _printerScaleText = Find<TextBlock>("PrinterScaleText");
+        _printerQualityFastButton = Find<Button>("PrinterQualityFastButton");
+        _printerQualityHighButton = Find<Button>("PrinterQualityHighButton");
+        _printerCutStandardButton = Find<Button>("PrinterCutStandardButton");
+        _printerCutTwoInchButton = Find<Button>("PrinterCutTwoInchButton");
+        _scheduleSettingsPanel = Find<StackPanel>("ScheduleSettingsPanel");
+        _scheduleEnabledCheckBox = Find<CheckBox>("ScheduleEnabledCheckBox");
+        _scheduleShutdownCheckBox = Find<CheckBox>("ScheduleShutdownCheckBox");
+        _scheduleStartHourText = Find<TextBlock>("ScheduleStartHourText");
+        _scheduleStartMinuteText = Find<TextBlock>("ScheduleStartMinuteText");
+        _scheduleEndHourText = Find<TextBlock>("ScheduleEndHourText");
+        _scheduleEndMinuteText = Find<TextBlock>("ScheduleEndMinuteText");
+        _scheduleStatusText = Find<TextBlock>("ScheduleStatusText");
+        _offHoursPanel = Find<Grid>("OffHoursPanel");
+        _offHoursScheduleText = Find<TextBlock>("OffHoursScheduleText");
 
         TransformGroup flyTransforms = new();
         flyTransforms.Children.Add(_flyScale);
@@ -218,8 +269,9 @@ public sealed partial class MainWindow : Window
         _printProgressTimer = CreateTimer(TimeSpan.FromMilliseconds(90), PrintProgressTimer_OnTick);
         _printCompletionTimer = CreateTimer(TimeSpan.FromMilliseconds(1200), PrintCompletionTimer_OnTick);
         _livePreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(80), LivePreviewTimer_OnTick);
+        _scheduleTimer = CreateTimer(TimeSpan.FromSeconds(15), ScheduleTimer_OnTick);
 
-        _config = new ConfigService().Load();
+        _config = _configService.Load();
         _persistentStorageRequired =
             Environment.GetEnvironmentVariable("PHOTOBOOTH_STORAGE_REQUIRED") == "1";
         _outputRootPath = ResolveOutputPath(_config.OutputPath);
@@ -240,6 +292,7 @@ public sealed partial class MainWindow : Window
         }
 
         ShowStartupLock();
+        _scheduleTimer.Start();
         Opened += async (_, _) => await InitializeHardwareAsync();
     }
 
@@ -291,6 +344,7 @@ public sealed partial class MainWindow : Window
         _printerService = printer is not null
             ? printer
             : new DemoPrinterService();
+        printer?.Configure(_config.PrinterQuality, _config.PrinterCutMode);
         _printerStatus = printer?.Status ?? $"Демо-печать: {printerError}.";
         UpdatePublicHardwareStatus();
     }
@@ -335,6 +389,7 @@ public sealed partial class MainWindow : Window
         _previewPanel.IsVisible = false;
         _printProgressPanel.IsVisible = false;
         _historyPanel.IsVisible = false;
+        _offHoursPanel.IsVisible = false;
     }
 
     private void ShowSessionStartup()
@@ -531,6 +586,7 @@ public sealed partial class MainWindow : Window
         _isHistoryPreview = false;
         _homeSubtitleText.Text = "Создавайте яркие воспоминания";
         _homePanel.IsVisible = true;
+        EvaluateWorkSchedule();
     }
 
     private void StartButton_OnClick(object? sender, RoutedEventArgs e) =>
@@ -1099,7 +1155,26 @@ public sealed partial class MainWindow : Window
 
     private void PrintButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        PrintResult result = _printerService.Print(_resultPath, _copyCount);
+        PrintResult result;
+        string? adjustedPath = null;
+        try
+        {
+            adjustedPath = _printerCalibrationService.CreateAdjustedCopy(
+                _resultPath,
+                _config.PrinterOffsetX,
+                _config.PrinterOffsetY,
+                _config.PrinterScalePercent);
+            result = _printerService.Print(adjustedPath, _copyCount);
+        }
+        catch (Exception exception)
+        {
+            result = new PrintResult(false, $"Не удалось подготовить печать: {exception.Message}");
+        }
+        finally
+        {
+            DeleteTemporaryFile(adjustedPath);
+        }
+
         if (!result.Success)
         {
             _printButtonText.Text = result.Message;
@@ -1343,6 +1418,8 @@ public sealed partial class MainWindow : Window
         _settingsPinCancelButton.IsVisible = !_isStartupLocked;
         _settingsPinPanel.IsVisible = true;
         _settingsMenuPanel.IsVisible = false;
+        _printerSettingsPanel.IsVisible = false;
+        _scheduleSettingsPanel.IsVisible = false;
         _settingsOverlay.IsVisible = true;
     }
 
@@ -1352,6 +1429,8 @@ public sealed partial class MainWindow : Window
         HidePrimaryPanels();
         _instructionOverlay.IsVisible = false;
         _settingsPinPanel.IsVisible = false;
+        _printerSettingsPanel.IsVisible = false;
+        _scheduleSettingsPanel.IsVisible = false;
         _settingsSectionStatusText.Text = string.Empty;
         _settingsMenuPanel.IsVisible = true;
         _settingsOverlay.IsVisible = true;
@@ -1436,16 +1515,13 @@ public sealed partial class MainWindow : Window
                     await _cameraService.GetSettingsSummaryAsync();
                 break;
             case "printer":
-                _settingsSectionStatusText.Text =
-                    $"Принтер: {_printerService.DisplayName}. {_printerStatus}";
+                ShowPrinterSettings();
                 break;
             case "calibration":
                 await CalibrateTouchscreenAsync();
                 break;
             case "schedule":
-                _settingsSectionStatusText.Text =
-                    $"Расписание: {_config.WorkStartHour:00}:{_config.WorkStartMinute:00}–" +
-                    $"{_config.WorkEndHour:00}:{_config.WorkEndMinute:00}.";
+                ShowScheduleSettings();
                 break;
             case "restart":
                 await RestartComputerAsync();
@@ -1454,6 +1530,414 @@ public sealed partial class MainWindow : Window
                 _settingsOverlay.IsVisible = false;
                 ShowSessionSelection();
                 break;
+        }
+    }
+
+    private void ShowPrinterSettings()
+    {
+        _printerOffsetXDraft = Math.Clamp(_config.PrinterOffsetX, -20, 20);
+        _printerOffsetYDraft = Math.Clamp(_config.PrinterOffsetY, -20, 20);
+        _printerScaleDraft = Math.Clamp(_config.PrinterScalePercent, 98, 102);
+        _printerQualityDraft = _config.PrinterQuality == "High" ? "High" : "Fast";
+        _printerCutModeDraft = _config.PrinterCutMode == "TwoInch"
+            ? "TwoInch"
+            : "Standard";
+
+        _settingsPinPanel.IsVisible = false;
+        _settingsMenuPanel.IsVisible = false;
+        _printerSettingsPanel.IsVisible = true;
+        _settingsOverlay.IsVisible = true;
+        UpdatePrinterSettingsControls();
+
+        if (_printerService is CupsPrinterService cups)
+        {
+            _printerQualityFastButton.IsEnabled = cups.SupportsQualitySelection;
+            _printerQualityHighButton.IsEnabled = cups.SupportsQualitySelection;
+            _printerCutStandardButton.IsEnabled = cups.SupportsTwoInchCut;
+            _printerCutTwoInchButton.IsEnabled = cups.SupportsTwoInchCut;
+            _printerSettingsStatusText.Text =
+                $"{cups.DisplayName}. {cups.DriverOptionsSummary}";
+        }
+        else
+        {
+            _printerQualityFastButton.IsEnabled = false;
+            _printerQualityHighButton.IsEnabled = false;
+            _printerCutStandardButton.IsEnabled = false;
+            _printerCutTwoInchButton.IsEnabled = false;
+            _printerSettingsStatusText.Text =
+                $"Принтер не подключён. Геометрию можно настроить и сохранить заранее.";
+        }
+    }
+
+    private void PrinterAdjustmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string tag)
+        {
+            return;
+        }
+
+        string[] parts = tag.Split(':');
+        if (parts.Length != 2 ||
+            !double.TryParse(parts[1], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out double amount))
+        {
+            return;
+        }
+
+        switch (parts[0])
+        {
+            case "x":
+                _printerOffsetXDraft = Math.Clamp(
+                    _printerOffsetXDraft + (int)amount,
+                    -20,
+                    20);
+                break;
+            case "y":
+                _printerOffsetYDraft = Math.Clamp(
+                    _printerOffsetYDraft + (int)amount,
+                    -20,
+                    20);
+                break;
+            case "scale":
+                _printerScaleDraft = Math.Round(
+                    Math.Clamp(_printerScaleDraft + amount, 98, 102),
+                    1);
+                break;
+        }
+
+        UpdatePrinterSettingsControls();
+    }
+
+    private void PrinterOptionButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string tag)
+        {
+            return;
+        }
+
+        if (tag is "Fast" or "High")
+        {
+            _printerQualityDraft = tag;
+        }
+        else if (tag is "Standard" or "TwoInch")
+        {
+            _printerCutModeDraft = tag;
+        }
+
+        UpdatePrinterSettingsControls();
+    }
+
+    private void UpdatePrinterSettingsControls()
+    {
+        _printerOffsetXText.Text = $"{_printerOffsetXDraft:+0;-0;0} px";
+        _printerOffsetYText.Text = $"{_printerOffsetYDraft:+0;-0;0} px";
+        _printerScaleText.Text = $"{_printerScaleDraft:0.0}%";
+        UpdateSelectedClass(
+            _printerQualityFastButton,
+            _printerQualityDraft == "Fast");
+        UpdateSelectedClass(
+            _printerQualityHighButton,
+            _printerQualityDraft == "High");
+        UpdateSelectedClass(
+            _printerCutStandardButton,
+            _printerCutModeDraft == "Standard");
+        UpdateSelectedClass(
+            _printerCutTwoInchButton,
+            _printerCutModeDraft == "TwoInch");
+    }
+
+    private void PrinterSaveButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _config.PrinterOffsetX = _printerOffsetXDraft;
+        _config.PrinterOffsetY = _printerOffsetYDraft;
+        _config.PrinterScalePercent = _printerScaleDraft;
+        _config.PrinterQuality = _printerQualityDraft;
+        _config.PrinterCutMode = _printerCutModeDraft;
+        try
+        {
+            _configService.Save(_config);
+            if (_printerService is CupsPrinterService cups)
+            {
+                cups.Configure(_config.PrinterQuality, _config.PrinterCutMode);
+            }
+
+            _printerSettingsStatusText.Text = "Настройки печати сохранены.";
+        }
+        catch (Exception exception)
+        {
+            _printerSettingsStatusText.Text =
+                $"Не удалось сохранить настройки: {exception.Message}";
+        }
+    }
+
+    private void PrinterResetButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _printerOffsetXDraft = 0;
+        _printerOffsetYDraft = 0;
+        _printerScaleDraft = 100;
+        _printerQualityDraft = "Fast";
+        _printerCutModeDraft = "Standard";
+        UpdatePrinterSettingsControls();
+        _printerSettingsStatusText.Text =
+            "Значения сброшены. Нажмите «Сохранить», чтобы применить.";
+    }
+
+    private void PrinterTestButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        string? testPagePath = null;
+        string? adjustedPath = null;
+        try
+        {
+            testPagePath = _printerCalibrationService.CreateTestPage();
+            adjustedPath = _printerCalibrationService.CreateAdjustedCopy(
+                testPagePath,
+                _printerOffsetXDraft,
+                _printerOffsetYDraft,
+                _printerScaleDraft);
+            if (_printerService is CupsPrinterService cups)
+            {
+                cups.Configure(_printerQualityDraft, _printerCutModeDraft);
+            }
+
+            PrintResult result = _printerService.Print(adjustedPath, 1);
+            _printerSettingsStatusText.Text = result.Success
+                ? "Тестовая страница отправлена в принтер."
+                : result.Message;
+        }
+        catch (Exception exception)
+        {
+            _printerSettingsStatusText.Text =
+                $"Тестовая печать не выполнена: {exception.Message}";
+        }
+        finally
+        {
+            if (_printerService is CupsPrinterService cups)
+            {
+                cups.Configure(_config.PrinterQuality, _config.PrinterCutMode);
+            }
+
+            DeleteTemporaryFile(adjustedPath);
+            DeleteTemporaryFile(testPagePath);
+        }
+    }
+
+    private void PrinterSettingsBackButton_OnClick(object? sender, RoutedEventArgs e) =>
+        ShowSettingsMenu();
+
+    private void ShowScheduleSettings()
+    {
+        _scheduleStartHourDraft = NormalizeHour(_config.WorkStartHour);
+        _scheduleStartMinuteDraft = NormalizeMinute(_config.WorkStartMinute);
+        _scheduleEndHourDraft = NormalizeHour(_config.WorkEndHour);
+        _scheduleEndMinuteDraft = NormalizeMinute(_config.WorkEndMinute);
+        _scheduleEnabledCheckBox.IsChecked = _config.WorkScheduleEnabled;
+        _scheduleShutdownCheckBox.IsChecked = _config.ShutdownOutsideWorkHours;
+        _scheduleStatusText.Text = string.Empty;
+        UpdateScheduleControls();
+
+        _settingsPinPanel.IsVisible = false;
+        _settingsMenuPanel.IsVisible = false;
+        _printerSettingsPanel.IsVisible = false;
+        _scheduleSettingsPanel.IsVisible = true;
+        _settingsOverlay.IsVisible = true;
+    }
+
+    private void ScheduleStepButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string command)
+        {
+            return;
+        }
+
+        string[] parts = command.Split(':');
+        if (parts.Length != 2 || !int.TryParse(parts[1], out int delta))
+        {
+            return;
+        }
+
+        switch (parts[0])
+        {
+            case "start-hour":
+                _scheduleStartHourDraft = Wrap(_scheduleStartHourDraft + delta, 24);
+                break;
+            case "start-minute":
+                _scheduleStartMinuteDraft = Wrap(_scheduleStartMinuteDraft + delta, 60);
+                break;
+            case "end-hour":
+                _scheduleEndHourDraft = Wrap(_scheduleEndHourDraft + delta, 24);
+                break;
+            case "end-minute":
+                _scheduleEndMinuteDraft = Wrap(_scheduleEndMinuteDraft + delta, 60);
+                break;
+        }
+
+        _scheduleStatusText.Text = string.Empty;
+        UpdateScheduleControls();
+    }
+
+    private void UpdateScheduleControls()
+    {
+        _scheduleStartHourText.Text = _scheduleStartHourDraft.ToString("00");
+        _scheduleStartMinuteText.Text = _scheduleStartMinuteDraft.ToString("00");
+        _scheduleEndHourText.Text = _scheduleEndHourDraft.ToString("00");
+        _scheduleEndMinuteText.Text = _scheduleEndMinuteDraft.ToString("00");
+    }
+
+    private void ScheduleSaveButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _config.WorkScheduleEnabled = _scheduleEnabledCheckBox.IsChecked == true;
+        _config.WorkStartHour = _scheduleStartHourDraft;
+        _config.WorkStartMinute = _scheduleStartMinuteDraft;
+        _config.WorkEndHour = _scheduleEndHourDraft;
+        _config.WorkEndMinute = _scheduleEndMinuteDraft;
+        _config.ShutdownOutsideWorkHours =
+            _scheduleShutdownCheckBox.IsChecked == true;
+
+        try
+        {
+            _configService.Save(_config);
+            _schedulePowerOffRequested = false;
+            _scheduleStatusText.Text = _config.WorkScheduleEnabled
+                ? "Расписание сохранено. Пароль при включении останется активным."
+                : "Расписание отключено.";
+        }
+        catch (Exception exception)
+        {
+            _scheduleStatusText.Text =
+                $"Не удалось сохранить расписание: {exception.Message}";
+        }
+    }
+
+    private void ScheduleSettingsBackButton_OnClick(object? sender, RoutedEventArgs e) =>
+        ShowSettingsMenu();
+
+    private void ScheduleTimer_OnTick(object? sender, EventArgs e) =>
+        EvaluateWorkSchedule();
+
+    private void EvaluateWorkSchedule()
+    {
+        if (!_config.WorkScheduleEnabled)
+        {
+            _schedulePowerOffRequested = false;
+            _offHoursPanel.IsVisible = false;
+            return;
+        }
+
+        if (_settingsOverlay.IsVisible)
+        {
+            return;
+        }
+
+        if (IsWithinWorkHours(DateTime.Now.TimeOfDay))
+        {
+            _schedulePowerOffRequested = false;
+            if (_offHoursPanel.IsVisible)
+            {
+                _offHoursPanel.IsVisible = false;
+                _homePanel.IsVisible = true;
+            }
+
+            return;
+        }
+
+        if (!_homePanel.IsVisible && !_offHoursPanel.IsVisible)
+        {
+            return;
+        }
+
+        HidePrimaryPanels();
+        _offHoursScheduleText.Text =
+            $"Время работы: {_config.WorkStartHour:00}:{_config.WorkStartMinute:00}–" +
+            $"{_config.WorkEndHour:00}:{_config.WorkEndMinute:00}";
+        _offHoursPanel.IsVisible = true;
+
+        if (_config.ShutdownOutsideWorkHours && !_schedulePowerOffRequested)
+        {
+            _schedulePowerOffRequested = true;
+            _ = RequestScheduledPowerOffAsync();
+        }
+    }
+
+    private async Task RequestScheduledPowerOffAsync()
+    {
+        const string helper = "/usr/local/sbin/photobooth-schedule-poweroff";
+        if (!CommandRunner.Exists(helper))
+        {
+            _offHoursScheduleText.Text +=
+                "\nАвтовключение доступно только в образе фотобудки Linux.";
+            return;
+        }
+
+        _offHoursScheduleText.Text +=
+            $"\nВыключение. Следующий запуск в " +
+            $"{_config.WorkStartHour:00}:{_config.WorkStartMinute:00}.";
+        CommandResult result = await CommandRunner.RunAsync(
+            "sudo",
+            [
+                "-n",
+                helper,
+                NormalizeHour(_config.WorkStartHour).ToString(),
+                NormalizeMinute(_config.WorkStartMinute).ToString()
+            ],
+            TimeSpan.FromSeconds(30));
+        if (!result.Success)
+        {
+            _offHoursScheduleText.Text +=
+                $"\nКомпьютер оставлен включённым: {result.CombinedOutput}";
+        }
+    }
+
+    private bool IsWithinWorkHours(TimeSpan currentTime)
+    {
+        TimeSpan start = new(
+            NormalizeHour(_config.WorkStartHour),
+            NormalizeMinute(_config.WorkStartMinute),
+            0);
+        TimeSpan end = new(
+            NormalizeHour(_config.WorkEndHour),
+            NormalizeMinute(_config.WorkEndMinute),
+            0);
+        if (start == end)
+        {
+            return true;
+        }
+
+        return start < end
+            ? currentTime >= start && currentTime < end
+            : currentTime >= start || currentTime < end;
+    }
+
+    private static int NormalizeHour(int value) =>
+        value is >= 0 and <= 23 ? value : 0;
+
+    private static int NormalizeMinute(int value) =>
+        value is >= 0 and <= 59 ? value : 0;
+
+    private static int Wrap(int value, int maximum) =>
+        (value % maximum + maximum) % maximum;
+
+    private void OffHoursSettingsButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _offHoursPanel.IsVisible = false;
+        SettingsButton_OnClick(sender, e);
+    }
+
+    private static void DeleteTemporaryFile(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(path);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
         }
     }
 

@@ -76,6 +76,8 @@ cp "$image_root/photobooth-printer-setup" \
   config/includes.chroot/usr/local/sbin/photobooth-printer-setup
 cp "$image_root/photobooth-install-touch-calibration" \
   config/includes.chroot/usr/local/sbin/photobooth-install-touch-calibration
+cp "$image_root/photobooth-schedule-poweroff" \
+  config/includes.chroot/usr/local/sbin/photobooth-schedule-poweroff
 
 mkdir -p config/includes.chroot/usr/local/bin
 cp "$image_root/photobooth-touch-setup" \
@@ -99,6 +101,7 @@ chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
 chmod +x /usr/local/sbin/photobooth-first-boot
 chmod +x /usr/local/sbin/photobooth-printer-setup
 chmod +x /usr/local/sbin/photobooth-install-touch-calibration
+chmod +x /usr/local/sbin/photobooth-schedule-poweroff
 chmod +x /usr/local/bin/photobooth-touch-setup
 chmod +x /usr/local/bin/photobooth-touch-calibrate
 chmod +x /usr/local/bin/photobooth-hardware-diagnostics
@@ -115,10 +118,13 @@ printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-printer-setup\n' \
   > /etc/sudoers.d/photobooth-printer
 printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-install-touch-calibration *\n' \
   > /etc/sudoers.d/photobooth-touch
+printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-schedule-poweroff *\n' \
+  > /etc/sudoers.d/photobooth-schedule
 chmod 440 /etc/sudoers.d/photobooth-reboot
 chmod 440 /etc/sudoers.d/photobooth-storage
 chmod 440 /etc/sudoers.d/photobooth-printer
 chmod 440 /etc/sudoers.d/photobooth-touch
+chmod 440 /etc/sudoers.d/photobooth-schedule
 systemctl enable photobooth-persistence.service
 systemctl enable photobooth-printer-setup.service
 systemctl enable cups.service

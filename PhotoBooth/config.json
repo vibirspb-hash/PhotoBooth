@@ -1,5 +1,10 @@
 {
   "DemoMode": true,
+  "PrinterOffsetX": 0,
+  "PrinterOffsetY": 0,
+  "PrinterScalePercent": 100.0,
+  "PrinterQuality": "Fast",
+  "PrinterCutMode": "Standard",
   "Fullscreen": true,
   "HideCursor": true,
   "TemplatesPath": "Templates",

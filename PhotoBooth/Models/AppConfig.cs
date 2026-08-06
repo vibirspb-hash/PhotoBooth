@@ -16,6 +16,16 @@ public sealed class AppConfig
 
     public string PrinterMedia { get; set; } = "w288h432";
 
+    public int PrinterOffsetX { get; set; }
+
+    public int PrinterOffsetY { get; set; }
+
+    public double PrinterScalePercent { get; set; } = 100;
+
+    public string PrinterQuality { get; set; } = "Fast";
+
+    public string PrinterCutMode { get; set; } = "Standard";
+
     public bool Fullscreen { get; set; } = true;
 
     public bool HideCursor { get; set; } = true;

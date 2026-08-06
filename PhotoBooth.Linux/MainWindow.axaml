@@ -86,6 +86,25 @@
             <Setter Property="CornerRadius" Value="22" />
         </Style>
 
+        <Style Selector="Button.calibrationOption">
+            <Setter Property="MinHeight" Value="52" />
+            <Setter Property="Padding" Value="18,9" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="CornerRadius" Value="18" />
+        </Style>
+
+        <Style Selector="Button.calibrationOption.selected">
+            <Setter Property="Background" Value="#667B61FF" />
+            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <Style Selector="CheckBox.scheduleToggle">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="MinHeight" Value="44" />
+        </Style>
+
         <Style Selector="Button.templateCard">
             <Setter Property="Width" Value="220" />
             <Setter Property="Height" Value="382" />
@@ -993,6 +1012,44 @@
             </Grid>
         </Grid>
 
+        <Grid x:Name="OffHoursPanel"
+              Background="#F02B3150"
+              IsVisible="False">
+            <StackPanel Width="680"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <Border Width="120"
+                        Height="120"
+                        HorizontalAlignment="Center"
+                        Background="#24FFFFFF"
+                        BorderBrush="#B8FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="60"
+                        Margin="0,0,0,22">
+                    <TextBlock Text="◷"
+                               Foreground="White"
+                               FontSize="58"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="Фотобудка сейчас не работает"
+                           Foreground="White"
+                           FontSize="40"
+                           FontWeight="SemiBold"
+                           TextAlignment="Center" />
+                <TextBlock x:Name="OffHoursScheduleText"
+                           Foreground="#E5FFFFFF"
+                           FontSize="21"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           Margin="0,10,0,28" />
+                <Button Classes="glass"
+                        Width="390"
+                        HorizontalAlignment="Center"
+                        Click="OffHoursSettingsButton_OnClick">Настройки оператора</Button>
+            </StackPanel>
+        </Grid>
+
         <Grid x:Name="InstructionOverlay"
               Background="#B8101525"
               IsVisible="False">
@@ -1116,6 +1173,297 @@
                                 Height="68"
                                 Margin="7,18,7,0"
                                 Click="SettingsCloseButton_OnClick">Готово</Button>
+                    </StackPanel>
+
+                    <StackPanel x:Name="PrinterSettingsPanel"
+                                IsVisible="False">
+                        <TextBlock Text="Калибровка печати"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="PrinterSettingsStatusText"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="15"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MinHeight="42"
+                                   Margin="0,4,0,10" />
+
+                        <Grid ColumnDefinitions="180,72,130,72"
+                              RowDefinitions="56,56,56"
+                              HorizontalAlignment="Center">
+                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                       Text="Смещение по X"
+                                       Foreground="White"
+                                       FontSize="18"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Row="0" Grid.Column="1"
+                                    Classes="glass calibrationOption"
+                                    Tag="x:-1"
+                                    Margin="4"
+                                    Click="PrinterAdjustmentButton_OnClick">−</Button>
+                            <TextBlock x:Name="PrinterOffsetXText"
+                                       Grid.Row="0" Grid.Column="2"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Row="0" Grid.Column="3"
+                                    Classes="glass calibrationOption"
+                                    Tag="x:1"
+                                    Margin="4"
+                                    Click="PrinterAdjustmentButton_OnClick">+</Button>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                       Text="Смещение по Y"
+                                       Foreground="White"
+                                       FontSize="18"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Row="1" Grid.Column="1"
+                                    Classes="glass calibrationOption"
+                                    Tag="y:-1"
+                                    Margin="4"
+                                    Click="PrinterAdjustmentButton_OnClick">−</Button>
+                            <TextBlock x:Name="PrinterOffsetYText"
+                                       Grid.Row="1" Grid.Column="2"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Row="1" Grid.Column="3"
+                                    Classes="glass calibrationOption"
+                                    Tag="y:1"
+                                    Margin="4"
+                                    Click="PrinterAdjustmentButton_OnClick">+</Button>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                       Text="Масштаб"
+                                       Foreground="White"
+                                       FontSize="18"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Row="2" Grid.Column="1"
+                                    Classes="glass calibrationOption"
+                                    Tag="scale:-0.1"
+                                    Margin="4"
+                                    Click="PrinterAdjustmentButton_OnClick">−</Button>
+                            <TextBlock x:Name="PrinterScaleText"
+                                       Grid.Row="2" Grid.Column="2"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Row="2" Grid.Column="3"
+                                    Classes="glass calibrationOption"
+                                    Tag="scale:0.1"
+                                    Margin="4"
+                                    Click="PrinterAdjustmentButton_OnClick">+</Button>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="150,220,220"
+                              RowDefinitions="58,58"
+                              HorizontalAlignment="Center"
+                              Margin="0,8,0,0">
+                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                       Text="Качество"
+                                       Foreground="White"
+                                       FontSize="18"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="PrinterQualityFastButton"
+                                    Grid.Row="0" Grid.Column="1"
+                                    Classes="glass calibrationOption"
+                                    Tag="Fast"
+                                    Margin="5"
+                                    Click="PrinterOptionButton_OnClick">300×300</Button>
+                            <Button x:Name="PrinterQualityHighButton"
+                                    Grid.Row="0" Grid.Column="2"
+                                    Classes="glass calibrationOption"
+                                    Tag="High"
+                                    Margin="5"
+                                    Click="PrinterOptionButton_OnClick">300×600</Button>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                       Text="Рез"
+                                       Foreground="White"
+                                       FontSize="18"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="PrinterCutStandardButton"
+                                    Grid.Row="1" Grid.Column="1"
+                                    Classes="glass calibrationOption"
+                                    Tag="Standard"
+                                    Margin="5"
+                                    Click="PrinterOptionButton_OnClick">Обычный 10×15</Button>
+                            <Button x:Name="PrinterCutTwoInchButton"
+                                    Grid.Row="1" Grid.Column="2"
+                                    Classes="glass calibrationOption"
+                                    Tag="TwoInch"
+                                    Margin="5"
+                                    Click="PrinterOptionButton_OnClick">2 полосы 5×15</Button>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*,*,*"
+                              Margin="0,16,0,0">
+                            <Button Grid.Column="0"
+                                    Classes="glass calibrationOption"
+                                    Margin="5"
+                                    Click="PrinterSettingsBackButton_OnClick">Назад</Button>
+                            <Button Grid.Column="1"
+                                    Classes="glass calibrationOption"
+                                    Margin="5"
+                                    Click="PrinterResetButton_OnClick">Сбросить</Button>
+                            <Button Grid.Column="2"
+                                    Classes="glass calibrationOption"
+                                    Margin="5"
+                                    Click="PrinterTestButton_OnClick">Тест</Button>
+                            <Button Grid.Column="3"
+                                    Classes="primary calibrationOption"
+                                    Margin="5"
+                                    Click="PrinterSaveButton_OnClick">Сохранить</Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel x:Name="ScheduleSettingsPanel"
+                                IsVisible="False">
+                        <TextBlock Text="Таймер работы"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Автоматическое включение и выключение будки"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="16"
+                                   TextAlignment="Center"
+                                   Margin="0,4,0,10" />
+
+                        <CheckBox x:Name="ScheduleEnabledCheckBox"
+                                  Classes="scheduleToggle"
+                                  Content="Включить расписание работы"
+                                  HorizontalAlignment="Center" />
+
+                        <Grid ColumnDefinitions="*,1,*"
+                              Margin="0,8,0,4">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Начало работы"
+                                           Foreground="#D8FFFFFF"
+                                           FontSize="17"
+                                           TextAlignment="Center"
+                                           Margin="0,0,0,6" />
+                                <Grid ColumnDefinitions="78,28,78"
+                                      HorizontalAlignment="Center">
+                                    <StackPanel Grid.Column="0">
+                                        <Button Classes="glass calibrationOption"
+                                                Tag="start-hour:1"
+                                                Click="ScheduleStepButton_OnClick">+</Button>
+                                        <TextBlock x:Name="ScheduleStartHourText"
+                                                   Text="09"
+                                                   Foreground="White"
+                                                   FontSize="34"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,3" />
+                                        <Button Classes="glass calibrationOption"
+                                                Tag="start-hour:-1"
+                                                Click="ScheduleStepButton_OnClick">−</Button>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1"
+                                               Text=":"
+                                               Foreground="White"
+                                               FontSize="34"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="2">
+                                        <Button Classes="glass calibrationOption"
+                                                Tag="start-minute:5"
+                                                Click="ScheduleStepButton_OnClick">+</Button>
+                                        <TextBlock x:Name="ScheduleStartMinuteText"
+                                                   Text="30"
+                                                   Foreground="White"
+                                                   FontSize="34"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,3" />
+                                        <Button Classes="glass calibrationOption"
+                                                Tag="start-minute:-5"
+                                                Click="ScheduleStepButton_OnClick">−</Button>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+
+                            <Border Grid.Column="1"
+                                    Background="#55FFFFFF" />
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Завершение работы"
+                                           Foreground="#D8FFFFFF"
+                                           FontSize="17"
+                                           TextAlignment="Center"
+                                           Margin="0,0,0,6" />
+                                <Grid ColumnDefinitions="78,28,78"
+                                      HorizontalAlignment="Center">
+                                    <StackPanel Grid.Column="0">
+                                        <Button Classes="glass calibrationOption"
+                                                Tag="end-hour:1"
+                                                Click="ScheduleStepButton_OnClick">+</Button>
+                                        <TextBlock x:Name="ScheduleEndHourText"
+                                                   Text="22"
+                                                   Foreground="White"
+                                                   FontSize="34"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,3" />
+                                        <Button Classes="glass calibrationOption"
+                                                Tag="end-hour:-1"
+                                                Click="ScheduleStepButton_OnClick">−</Button>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1"
+                                               Text=":"
+                                               Foreground="White"
+                                               FontSize="34"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="2">
+                                        <Button Classes="glass calibrationOption"
+                                                Tag="end-minute:5"
+                                                Click="ScheduleStepButton_OnClick">+</Button>
+                                        <TextBlock x:Name="ScheduleEndMinuteText"
+                                                   Text="00"
+                                                   Foreground="White"
+                                                   FontSize="34"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Center"
+                                                   Margin="0,3" />
+                                        <Button Classes="glass calibrationOption"
+                                                Tag="end-minute:-5"
+                                                Click="ScheduleStepButton_OnClick">−</Button>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox x:Name="ScheduleShutdownCheckBox"
+                                  Classes="scheduleToggle"
+                                  Content="Выключать после окончания и включать к началу"
+                                  HorizontalAlignment="Center" />
+                        <TextBlock x:Name="ScheduleStatusText"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="15"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MinHeight="36"
+                                   Margin="0,2,0,6" />
+                        <Grid ColumnDefinitions="*,*">
+                            <Button Grid.Column="0"
+                                    Classes="glass calibrationOption"
+                                    Margin="5"
+                                    Click="ScheduleSettingsBackButton_OnClick">Назад</Button>
+                            <Button Grid.Column="1"
+                                    Classes="primary calibrationOption"
+                                    Margin="5"
+                                    Click="ScheduleSaveButton_OnClick">Сохранить расписание</Button>
+                        </Grid>
                     </StackPanel>
                 </Grid>
             </Border>

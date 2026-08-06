@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_file="/var/log/photobooth-schedule.log"
+exec > >(tee -a "$log_file") 2>&1
+
+if [[ "$#" -ne 2 ]] ||
+   [[ ! "$1" =~ ^[0-9]{1,2}$ ]] ||
+   [[ ! "$2" =~ ^[0-9]{1,2}$ ]]; then
+  echo "$(date --iso-8601=seconds) Invalid schedule arguments."
+  exit 2
+fi
+
+start_hour=$((10#$1))
+start_minute=$((10#$2))
+if (( start_hour < 0 || start_hour > 23 || start_minute < 0 || start_minute > 59 )); then
+  echo "$(date --iso-8601=seconds) Start time is outside the valid range."
+  exit 2
+fi
+
+if [[ ! -e /sys/class/rtc/rtc0/wakealarm ]]; then
+  echo "RTC wake alarm is unavailable; the computer was not powered off."
+  exit 3
+fi
+
+start_time="$(printf '%02d:%02d:00' "$start_hour" "$start_minute")"
+now_epoch="$(date +%s)"
+wake_epoch="$(date -d "today $start_time" +%s)"
+if (( wake_epoch <= now_epoch + 60 )); then
+  wake_epoch="$(date -d "tomorrow $start_time" +%s)"
+fi
+
+if ! /usr/sbin/rtcwake -m no -t "$wake_epoch"; then
+  echo "RTC wake alarm could not be set; the computer was not powered off."
+  exit 4
+fi
+
+configured_alarm="$(cat /sys/class/rtc/rtc0/wakealarm 2>/dev/null || true)"
+if [[ -z "$configured_alarm" || "$configured_alarm" == "0" ]]; then
+  echo "RTC wake alarm verification failed; the computer was not powered off."
+  exit 5
+fi
+
+echo "$(date --iso-8601=seconds) Powering off; next wake: $(date -d "@$wake_epoch" --iso-8601=seconds)."
+/usr/bin/systemctl poweroff
