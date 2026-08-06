@@ -93,8 +93,11 @@ public sealed partial class MainWindow : Window
     private readonly Grid _instructionOverlay;
     private readonly Grid _settingsOverlay;
     private readonly StackPanel _settingsPinPanel;
+    private readonly TextBlock _settingsPinTitleText;
+    private readonly TextBlock _settingsPinSubtitleText;
     private readonly TextBlock _settingsPinDisplay;
     private readonly TextBlock _settingsPinErrorText;
+    private readonly Button _settingsPinCancelButton;
     private readonly StackPanel _settingsMenuPanel;
     private readonly TextBlock _settingsSectionStatusText;
 
@@ -119,6 +122,7 @@ public sealed partial class MainWindow : Window
     private string _currentCapturedPath = string.Empty;
     private string _pinEntry = string.Empty;
     private bool _isHistoryPreview;
+    private bool _isStartupLocked = true;
     private bool _livePreviewBusy;
     private byte[]? _lastLivePreviewFrame;
     private DateTime _flyStartedAt;
@@ -191,10 +195,13 @@ public sealed partial class MainWindow : Window
         _instructionOverlay = Find<Grid>("InstructionOverlay");
         _settingsOverlay = Find<Grid>("SettingsOverlay");
         _settingsPinPanel = Find<StackPanel>("SettingsPinPanel");
+        _settingsPinTitleText = Find<TextBlock>("SettingsPinTitleText");
+        _settingsPinSubtitleText = Find<TextBlock>("SettingsPinSubtitleText");
         _settingsPinDisplay = Find<TextBlock>("SettingsPinDisplay");
 
         BuildSessionKeyboard();
         _settingsPinErrorText = Find<TextBlock>("SettingsPinErrorText");
+        _settingsPinCancelButton = Find<Button>("SettingsPinCancelButton");
         _settingsMenuPanel = Find<StackPanel>("SettingsMenuPanel");
         _settingsSectionStatusText = Find<TextBlock>("SettingsSectionStatusText");
 
@@ -232,11 +239,8 @@ public sealed partial class MainWindow : Window
             WindowState = WindowState.FullScreen;
         }
 
-        Opened += async (_, _) =>
-        {
-            await InitializeHardwareAsync();
-            ShowSessionStartup();
-        };
+        ShowStartupLock();
+        Opened += async (_, _) => await InitializeHardwareAsync();
     }
 
     private T Find<T>(string name) where T : Control =>
@@ -355,6 +359,15 @@ public sealed partial class MainWindow : Window
             $"с {_recoverableSession.StartedAt:dd.MM.yyyy HH:mm}";
         _newSessionPanel.IsVisible = false;
         _currentSessionPanel.IsVisible = true;
+    }
+
+    private void ShowStartupLock()
+    {
+        StopWorkflowTimers();
+        HidePrimaryPanels();
+        _instructionOverlay.IsVisible = false;
+        _isStartupLocked = true;
+        ShowPinScreen();
     }
 
     private void ContinueSessionButton_OnClick(object? sender, RoutedEventArgs e)
@@ -1311,10 +1324,23 @@ public sealed partial class MainWindow : Window
 
     private void SettingsButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        _isStartupLocked = false;
+        ShowPinScreen();
+    }
+
+    private void ShowPinScreen()
+    {
         _pinEntry = string.Empty;
         _settingsPinDisplay.Text = "○  ○  ○  ○";
         _settingsPinErrorText.Text = string.Empty;
         _settingsSectionStatusText.Text = string.Empty;
+        _settingsPinTitleText.Text = _isStartupLocked
+            ? "Фотобудка заблокирована"
+            : "Настройки";
+        _settingsPinSubtitleText.Text = _isStartupLocked
+            ? "Введите код для начала работы"
+            : "Введите код доступа";
+        _settingsPinCancelButton.IsVisible = !_isStartupLocked;
         _settingsPinPanel.IsVisible = true;
         _settingsMenuPanel.IsVisible = false;
         _settingsOverlay.IsVisible = true;
@@ -1349,6 +1375,13 @@ public sealed partial class MainWindow : Window
         if (_pinEntry == SettingsPin)
         {
             _settingsPinErrorText.Text = string.Empty;
+            if (_isStartupLocked)
+            {
+                _isStartupLocked = false;
+                ShowSessionStartup();
+                return;
+            }
+
             _settingsPinPanel.IsVisible = false;
             _settingsMenuPanel.IsVisible = true;
             return;
@@ -1476,8 +1509,13 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void SettingsCloseButton_OnClick(object? sender, RoutedEventArgs e) =>
-        ShowHomeScreen();
+    private void SettingsCloseButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (!_isStartupLocked)
+        {
+            ShowHomeScreen();
+        }
+    }
 
     private async Task CalibrateTouchscreenAsync()
     {

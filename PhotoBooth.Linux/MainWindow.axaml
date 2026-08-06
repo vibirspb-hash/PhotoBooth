@@ -1039,12 +1039,14 @@
                     CornerRadius="36">
                 <Grid>
                     <StackPanel x:Name="SettingsPinPanel">
-                        <TextBlock Text="Настройки"
+                        <TextBlock x:Name="SettingsPinTitleText"
+                                   Text="Настройки"
                                    Foreground="White"
                                    FontSize="36"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
-                        <TextBlock Text="Введите код доступа"
+                        <TextBlock x:Name="SettingsPinSubtitleText"
+                                   Text="Введите код доступа"
                                    Foreground="#D8FFFFFF"
                                    FontSize="19"
                                    TextAlignment="Center"
@@ -1079,7 +1081,8 @@
                                    FontSize="17"
                                    TextAlignment="Center"
                                    Margin="0,8" />
-                        <Button Classes="glass"
+                        <Button x:Name="SettingsPinCancelButton"
+                                Classes="glass"
                                 Click="SettingsCloseButton_OnClick">Отмена</Button>
                     </StackPanel>
 
