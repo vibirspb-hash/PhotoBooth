@@ -113,7 +113,7 @@ mkdir -p /media/user/PHOTOBOOTH
 chown 1000:1000 /media/user/PHOTOBOOTH
 printf 'LABEL=PHOTOBOOTH /media/user/PHOTOBOOTH vfat defaults,nofail,uid=1000,gid=1000,umask=0022 0 0\n' \
   >> /etc/fstab
-printf 'user ALL=(root) NOPASSWD: /usr/bin/systemctl reboot\n' \
+printf 'user ALL=(root) NOPASSWD: /usr/bin/systemctl reboot, /usr/bin/systemctl poweroff\n' \
   > /etc/sudoers.d/photobooth-reboot
 printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-first-boot\n' \
   > /etc/sudoers.d/photobooth-storage

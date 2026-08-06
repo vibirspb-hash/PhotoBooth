@@ -132,9 +132,10 @@
         </Style>
 
         <Style Selector="Button.templateCard.selected">
-            <Setter Property="Background" Value="#78FFFFFF" />
-            <Setter Property="BorderBrush" Value="White" />
-            <Setter Property="BorderThickness" Value="3" />
+            <Setter Property="Background" Value="#E8FFFFFF" />
+            <Setter Property="BorderBrush" Value="#6F55E8" />
+            <Setter Property="BorderThickness" Value="5" />
+            <Setter Property="BoxShadow" Value="0 10 34 0 #707B61FF" />
         </Style>
 
         <Style Selector="Button.copyOption">
@@ -1197,16 +1198,19 @@
                                    MinHeight="50"
                                    Margin="0,6,0,14" />
 
-                        <WrapPanel HorizontalAlignment="Center">
-                            <Button Classes="glass" Width="330" Margin="7" Tag="history" Click="SettingsSectionButton_OnClick">История печати</Button>
-                            <Button Classes="glass" Width="330" Margin="7" Tag="camera" Click="SettingsSectionButton_OnClick">Камера</Button>
-                            <Button Classes="glass" Width="330" Margin="7" Tag="printer" Click="SettingsSectionButton_OnClick">Принтер</Button>
-                            <Button Classes="glass" Width="330" Margin="7" Tag="calibration" Click="SettingsSectionButton_OnClick">Калибровка экрана</Button>
-                            <Button Classes="glass" Width="330" Margin="7" Tag="schedule" Click="SettingsSectionButton_OnClick">Таймер работы</Button>
-                            <Button Classes="glass" Width="330" Margin="7" Tag="time" Click="SettingsSectionButton_OnClick">Дата и время</Button>
-                            <Button Classes="glass" Width="330" Margin="7" Tag="restart" Click="SettingsSectionButton_OnClick">Перезагрузка</Button>
-                            <Button Classes="glass" Width="330" Margin="7" Tag="session" Click="SettingsSectionButton_OnClick">Сменить сессию</Button>
-                        </WrapPanel>
+                        <UniformGrid Columns="3"
+                                     Rows="3"
+                                     HorizontalAlignment="Stretch">
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="history" Click="SettingsSectionButton_OnClick">История печати</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="camera" Click="SettingsSectionButton_OnClick">Камера</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="printer" Click="SettingsSectionButton_OnClick">Принтер</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="calibration" Click="SettingsSectionButton_OnClick">Калибровка экрана</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="schedule" Click="SettingsSectionButton_OnClick">Таймер работы</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="time" Click="SettingsSectionButton_OnClick">Дата и время</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="restart" Click="SettingsSectionButton_OnClick">Перезагрузка</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="shutdown" Click="SettingsSectionButton_OnClick">Выключить будку</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="session" Click="SettingsSectionButton_OnClick">Сменить сессию</Button>
+                        </UniformGrid>
 
                         <Button Classes="primary"
                                 Height="68"

@@ -663,7 +663,14 @@ public sealed partial class MainWindow : Window
             _templatesItemsPanel.Children.Add(card);
         }
 
-        _selectedTemplateText.Text = singleTemplateError;
+        if (_templateButtons.Count > 0 && string.IsNullOrEmpty(singleTemplateError))
+        {
+            SelectTemplateCard(_templateButtons[0]);
+        }
+        else
+        {
+            _selectedTemplateText.Text = singleTemplateError;
+        }
 
         HidePrimaryPanels();
         _templatesPanel.IsVisible = true;
@@ -711,8 +718,17 @@ public sealed partial class MainWindow : Window
 
     private void TemplateCard_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Button selectedButton ||
-            selectedButton.Tag is not TemplateInfo template)
+        if (sender is not Button selectedButton)
+        {
+            return;
+        }
+
+        SelectTemplateCard(selectedButton);
+    }
+
+    private void SelectTemplateCard(Button selectedButton)
+    {
+        if (selectedButton.Tag is not TemplateInfo template)
         {
             return;
         }
@@ -1683,6 +1699,9 @@ public sealed partial class MainWindow : Window
             case "restart":
                 await RestartComputerAsync();
                 break;
+            case "shutdown":
+                await ShutdownComputerAsync();
+                break;
             case "session":
                 _settingsOverlay.IsVisible = false;
                 ShowSessionSelection();
@@ -2458,6 +2477,30 @@ public sealed partial class MainWindow : Window
         {
             _settingsSectionStatusText.Text =
                 $"Не удалось перезагрузить: {result.CombinedOutput}";
+        }
+    }
+
+    private async Task ShutdownComputerAsync()
+    {
+        _settingsSectionStatusText.Text = "Выключаем фотобудку...";
+
+        CommandResult result = await CommandRunner.RunAsync(
+            "systemctl",
+            ["poweroff"],
+            TimeSpan.FromSeconds(5));
+
+        if (!result.Success && CommandRunner.Exists("sudo"))
+        {
+            result = await CommandRunner.RunAsync(
+                "sudo",
+                ["-n", "systemctl", "poweroff"],
+                TimeSpan.FromSeconds(5));
+        }
+
+        if (!result.Success)
+        {
+            _settingsSectionStatusText.Text =
+                $"Не удалось выключить будку: {result.CombinedOutput}";
         }
     }
 
