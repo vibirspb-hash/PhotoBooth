@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ne 5 ]]; then
+  echo "Ожидаются: год месяц день час минута."
+  exit 2
+fi
+
+for value in "$@"; do
+  [[ "$value" =~ ^[0-9]{1,4}$ ]] || {
+    echo "Дата и время содержат недопустимые символы."
+    exit 2
+  }
+done
+
+year=$((10#$1))
+month=$((10#$2))
+day=$((10#$3))
+hour=$((10#$4))
+minute=$((10#$5))
+if (( year < 2024 || year > 2099 || month < 1 || month > 12 ||
+      day < 1 || day > 31 || hour < 0 || hour > 23 || minute < 0 || minute > 59 )); then
+  echo "Дата или время находятся вне допустимого диапазона."
+  exit 2
+fi
+
+timestamp="$(printf '%04d-%02d-%02d %02d:%02d:00' \
+  "$year" "$month" "$day" "$hour" "$minute")"
+validated="$(date -d "$timestamp" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || true)"
+if [[ "$validated" != "$timestamp" ]]; then
+  echo "Такой календарной даты не существует."
+  exit 2
+fi
+
+/usr/bin/timedatectl set-timezone Europe/Moscow
+/usr/bin/timedatectl set-ntp false || true
+/usr/bin/date --set "$timestamp"
+if [[ -x /usr/sbin/hwclock ]]; then
+  /usr/sbin/hwclock --systohc
+fi
+
+echo "Установлено: $(date '+%d.%m.%Y %H:%M:%S %Z')."

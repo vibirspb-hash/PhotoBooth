@@ -204,6 +204,144 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         return summary.ToString().TrimEnd(' ', '·', '\r', '\n');
     }
 
+    public async Task<IReadOnlyList<CameraSettingDefinition>> GetSettingsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await _cameraLock.WaitAsync(cancellationToken);
+        try
+        {
+            await StopLiveViewCoreAsync(cancellationToken);
+            List<CameraSettingDefinition> settings = [];
+            foreach (string setting in SettingNames)
+            {
+                CommandResult result = await CommandRunner.RunAsync(
+                    _command,
+                    ["--get-config", setting],
+                    TimeSpan.FromSeconds(8),
+                    cancellationToken);
+                if (!result.Success)
+                {
+                    settings.Add(new CameraSettingDefinition(
+                        setting,
+                        GetSettingTitle(setting),
+                        "недоступно",
+                        [],
+                        CleanError(result, $"Настройка {setting} недоступна")));
+                    continue;
+                }
+
+                string current = ReadConfigValue(result.StandardOutput, "Current:") ??
+                    "недоступно";
+                List<string> choices = result.StandardOutput
+                    .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Where(line => line.StartsWith("Choice:", StringComparison.OrdinalIgnoreCase))
+                    .Select(ParseChoiceValue)
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                if (current != "недоступно" &&
+                    !choices.Contains(current, StringComparer.OrdinalIgnoreCase))
+                {
+                    choices.Insert(0, current);
+                }
+
+                settings.Add(new CameraSettingDefinition(
+                    setting,
+                    GetSettingTitle(setting),
+                    current,
+                    choices,
+                    string.Empty));
+            }
+
+            return settings;
+        }
+        finally
+        {
+            _cameraLock.Release();
+        }
+    }
+
+    public async Task<string> SetSettingAsync(
+        string setting,
+        string value,
+        CancellationToken cancellationToken = default)
+    {
+        if (!SettingNames.Contains(setting, StringComparer.OrdinalIgnoreCase))
+        {
+            return $"Неизвестная настройка Canon: {setting}.";
+        }
+
+        await _cameraLock.WaitAsync(cancellationToken);
+        try
+        {
+            await StopLiveViewCoreAsync(cancellationToken);
+            CommandResult result = await CommandRunner.RunAsync(
+                _command,
+                ["--set-config", $"{setting}={value}"],
+                TimeSpan.FromSeconds(10),
+                cancellationToken);
+            return result.Success
+                ? string.Empty
+                : CleanError(result, $"Не удалось установить {GetSettingTitle(setting)}");
+        }
+        finally
+        {
+            _cameraLock.Release();
+        }
+    }
+
+    public async Task<IReadOnlyList<string>> ApplySettingsAsync(
+        IReadOnlyDictionary<string, string> values,
+        CancellationToken cancellationToken = default)
+    {
+        await _cameraLock.WaitAsync(cancellationToken);
+        try
+        {
+            await StopLiveViewCoreAsync(cancellationToken);
+            List<string> errors = [];
+            foreach ((string setting, string value) in values)
+            {
+                if (!SettingNames.Contains(setting, StringComparer.OrdinalIgnoreCase))
+                {
+                    errors.Add($"Неизвестная настройка Canon: {setting}.");
+                    continue;
+                }
+
+                CommandResult result = await CommandRunner.RunAsync(
+                    _command,
+                    ["--set-config", $"{setting}={value}"],
+                    TimeSpan.FromSeconds(10),
+                    cancellationToken);
+                if (!result.Success)
+                {
+                    errors.Add(CleanError(
+                        result,
+                        $"Не удалось установить {GetSettingTitle(setting)}"));
+                }
+            }
+
+            return errors;
+        }
+        finally
+        {
+            _cameraLock.Release();
+        }
+    }
+
+    private static string? ReadConfigValue(string output, string prefix) =>
+        output
+            .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault(line => line.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))?
+            .Split(':', 2)[1]
+            .Trim();
+
+    private static string ParseChoiceValue(string line)
+    {
+        string choice = line["Choice:".Length..].Trim();
+        int separator = choice.IndexOf(' ');
+        return separator >= 0 ? choice[(separator + 1)..].Trim() : choice;
+    }
+
     private void EnsurePrepared()
     {
         if (string.IsNullOrWhiteSpace(_originalsPath))
@@ -422,3 +560,10 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         return string.IsNullOrWhiteSpace(message) ? fallback : message;
     }
 }
+
+public sealed record CameraSettingDefinition(
+    string Key,
+    string Title,
+    string CurrentValue,
+    IReadOnlyList<string> Choices,
+    string Error);

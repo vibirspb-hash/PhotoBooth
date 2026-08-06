@@ -105,6 +105,18 @@
             <Setter Property="MinHeight" Value="44" />
         </Style>
 
+        <Style Selector="ComboBox.cameraSetting">
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="FontSize" Value="19" />
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#B8FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+
         <Style Selector="Button.templateCard">
             <Setter Property="Width" Value="220" />
             <Setter Property="Height" Value="382" />
@@ -148,7 +160,7 @@
 
         <Style Selector="Button.historyCard">
             <Setter Property="Width" Value="230" />
-            <Setter Property="Height" Value="320" />
+            <Setter Property="Height" Value="350" />
             <Setter Property="Margin" Value="10" />
             <Setter Property="Padding" Value="12" />
             <Setter Property="Foreground" Value="#172238" />
@@ -158,6 +170,21 @@
             <Setter Property="CornerRadius" Value="18" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+
+        <Style Selector="Button.historyFilter">
+            <Setter Property="Foreground" Value="#172238" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#D6DCE8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="FontSize" Value="17" />
+        </Style>
+
+        <Style Selector="Button.historyFilter.selected">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#7B61FF" />
+            <Setter Property="BorderBrush" Value="#7B61FF" />
         </Style>
     </Window.Styles>
 
@@ -949,6 +976,7 @@
             <Grid Margin="38,28">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
@@ -975,8 +1003,18 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="1"
-                      Margin="0,22,0,0">
+                <ScrollViewer Grid.Row="1"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled"
+                              Margin="0,14,0,0">
+                    <StackPanel x:Name="HistorySessionFilterPanel"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="8" />
+                </ScrollViewer>
+
+                <Grid Grid.Row="2"
+                      Margin="0,14,0,0">
                     <StackPanel x:Name="NoHistoryPanel"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
@@ -1165,6 +1203,7 @@
                             <Button Classes="glass" Width="330" Margin="7" Tag="printer" Click="SettingsSectionButton_OnClick">Принтер</Button>
                             <Button Classes="glass" Width="330" Margin="7" Tag="calibration" Click="SettingsSectionButton_OnClick">Калибровка экрана</Button>
                             <Button Classes="glass" Width="330" Margin="7" Tag="schedule" Click="SettingsSectionButton_OnClick">Таймер работы</Button>
+                            <Button Classes="glass" Width="330" Margin="7" Tag="time" Click="SettingsSectionButton_OnClick">Дата и время</Button>
                             <Button Classes="glass" Width="330" Margin="7" Tag="restart" Click="SettingsSectionButton_OnClick">Перезагрузка</Button>
                             <Button Classes="glass" Width="330" Margin="7" Tag="session" Click="SettingsSectionButton_OnClick">Сменить сессию</Button>
                         </WrapPanel>
@@ -1173,6 +1212,78 @@
                                 Height="68"
                                 Margin="7,18,7,0"
                                 Click="SettingsCloseButton_OnClick">Готово</Button>
+                    </StackPanel>
+
+                    <StackPanel x:Name="CameraSettingsPanel"
+                                IsVisible="False">
+                        <TextBlock Text="Настройки Canon"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="CameraSettingsStatusText"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="15"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MinHeight="48"
+                                   Margin="0,4,0,10" />
+
+                        <Grid ColumnDefinitions="190,*"
+                              RowDefinitions="68,68,68,68">
+                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                       Text="ISO"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       VerticalAlignment="Center" />
+                            <ComboBox x:Name="CameraIsoComboBox"
+                                      Grid.Row="0" Grid.Column="1"
+                                      Classes="cameraSetting"
+                                      Margin="5" />
+                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                       Text="Диафрагма"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       VerticalAlignment="Center" />
+                            <ComboBox x:Name="CameraApertureComboBox"
+                                      Grid.Row="1" Grid.Column="1"
+                                      Classes="cameraSetting"
+                                      Margin="5" />
+                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                       Text="Выдержка"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       VerticalAlignment="Center" />
+                            <ComboBox x:Name="CameraShutterComboBox"
+                                      Grid.Row="2" Grid.Column="1"
+                                      Classes="cameraSetting"
+                                      Margin="5" />
+                            <TextBlock Grid.Row="3" Grid.Column="0"
+                                       Text="Баланс белого"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       VerticalAlignment="Center" />
+                            <ComboBox x:Name="CameraWhiteBalanceComboBox"
+                                      Grid.Row="3" Grid.Column="1"
+                                      Classes="cameraSetting"
+                                      Margin="5" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*,*"
+                              Margin="0,16,0,0">
+                            <Button Grid.Column="0"
+                                    Classes="glass calibrationOption"
+                                    Margin="5"
+                                    Click="CameraSettingsBackButton_OnClick">Назад</Button>
+                            <Button Grid.Column="1"
+                                    Classes="glass calibrationOption"
+                                    Margin="5"
+                                    Click="CameraRefreshButton_OnClick">Обновить</Button>
+                            <Button Grid.Column="2"
+                                    Classes="primary calibrationOption"
+                                    Margin="5"
+                                    Click="CameraApplyButton_OnClick">Применить</Button>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel x:Name="PrinterSettingsPanel"
@@ -1463,6 +1574,80 @@
                                     Classes="primary calibrationOption"
                                     Margin="5"
                                     Click="ScheduleSaveButton_OnClick">Сохранить расписание</Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel x:Name="SystemTimeSettingsPanel"
+                                IsVisible="False">
+                        <TextBlock Text="Дата и время"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center" />
+                        <TextBlock x:Name="SystemTimeStatusText"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="16"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MinHeight="46"
+                                   Margin="0,4,0,12" />
+
+                        <Grid ColumnDefinitions="90,90,125,36,90,90"
+                              HorizontalAlignment="Center">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="День" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="day:1" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
+                                <TextBlock x:Name="SystemTimeDayText" Text="01" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="day:-1" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Месяц" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="month:1" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
+                                <TextBlock x:Name="SystemTimeMonthText" Text="01" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="month:-1" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Год" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="year:1" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
+                                <TextBlock x:Name="SystemTimeYearText" Text="2026" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="year:-1" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
+                            </StackPanel>
+
+                            <TextBlock Grid.Column="3"
+                                       Text="·"
+                                       Foreground="White"
+                                       FontSize="36"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Час" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="hour:1" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
+                                <TextBlock x:Name="SystemTimeHourText" Text="12" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="hour:-1" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
+                            </StackPanel>
+                            <StackPanel Grid.Column="5">
+                                <TextBlock Text="Минуты" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="minute:5" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
+                                <TextBlock x:Name="SystemTimeMinuteText" Text="00" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <Button Classes="glass calibrationOption" Tag="minute:-5" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Время будет записано и в аппаратные часы компьютера"
+                                   Foreground="#D8FFFFFF"
+                                   FontSize="15"
+                                   TextAlignment="Center"
+                                   Margin="0,18,0,8" />
+                        <Grid ColumnDefinitions="*,*">
+                            <Button Grid.Column="0"
+                                    Classes="glass calibrationOption"
+                                    Margin="5"
+                                    Click="SystemTimeBackButton_OnClick">Назад</Button>
+                            <Button Grid.Column="1"
+                                    Classes="primary calibrationOption"
+                                    Margin="5"
+                                    Click="SystemTimeSaveButton_OnClick">Установить</Button>
                         </Grid>
                     </StackPanel>
                 </Grid>

@@ -35,8 +35,14 @@ internal static class SmokeTestRunner
                 resultPath);
             PrintResult printResult =
                 new DemoPrinterService().Print(resultPath, 3);
+            PrintAuditService audit = new();
+            audit.Record(testRoot, resultPath, 2);
+            audit.Record(testRoot, resultPath, 1);
 
-            if (!File.Exists(resultPath) || !printResult.Success)
+            if (!File.Exists(resultPath) ||
+                !printResult.Success ||
+                audit.GetTotalCopies(testRoot) != 3 ||
+                audit.GetCopiesForImage(testRoot, resultPath) != 3)
             {
                 throw new InvalidOperationException(printResult.Message);
             }

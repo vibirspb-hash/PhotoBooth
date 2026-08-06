@@ -26,6 +26,7 @@ public sealed partial class MainWindow : Window
     private IPhotoCaptureService _cameraService = new DemoPhotoCaptureService();
     private readonly SkiaImageComposer _imageComposer = new();
     private readonly PrinterCalibrationService _printerCalibrationService = new();
+    private readonly PrintAuditService _printAuditService = new();
     private IPrinterService _printerService = new DemoPrinterService();
     private string _printerStatus = "Деморежим.";
     private readonly string _outputRootPath;
@@ -92,6 +93,7 @@ public sealed partial class MainWindow : Window
     private readonly TextBlock _historySessionNameText;
     private readonly StackPanel _noHistoryPanel;
     private readonly WrapPanel _historyItemsPanel;
+    private readonly StackPanel _historySessionFilterPanel;
     private readonly Grid _instructionOverlay;
     private readonly Grid _settingsOverlay;
     private readonly StackPanel _settingsPinPanel;
@@ -121,6 +123,19 @@ public sealed partial class MainWindow : Window
     private readonly TextBlock _scheduleStatusText;
     private readonly Grid _offHoursPanel;
     private readonly TextBlock _offHoursScheduleText;
+    private readonly StackPanel _cameraSettingsPanel;
+    private readonly ComboBox _cameraIsoComboBox;
+    private readonly ComboBox _cameraApertureComboBox;
+    private readonly ComboBox _cameraShutterComboBox;
+    private readonly ComboBox _cameraWhiteBalanceComboBox;
+    private readonly TextBlock _cameraSettingsStatusText;
+    private readonly StackPanel _systemTimeSettingsPanel;
+    private readonly TextBlock _systemTimeDayText;
+    private readonly TextBlock _systemTimeMonthText;
+    private readonly TextBlock _systemTimeYearText;
+    private readonly TextBlock _systemTimeHourText;
+    private readonly TextBlock _systemTimeMinuteText;
+    private readonly TextBlock _systemTimeStatusText;
 
     private readonly DispatcherTimer _countdownTimer;
     private readonly DispatcherTimer _reviewDelayTimer;
@@ -142,6 +157,7 @@ public sealed partial class MainWindow : Window
     private string _captureId = string.Empty;
     private string _resultPath = string.Empty;
     private string _currentCapturedPath = string.Empty;
+    private string? _historyFilterSessionPath;
     private string _pinEntry = string.Empty;
     private bool _isHistoryPreview;
     private bool _isStartupLocked = true;
@@ -156,6 +172,8 @@ public sealed partial class MainWindow : Window
     private int _scheduleEndHourDraft;
     private int _scheduleEndMinuteDraft;
     private bool _schedulePowerOffRequested;
+    private readonly Dictionary<string, CameraSettingDefinition> _cameraSettingDefinitions = [];
+    private DateTime _systemTimeDraft;
     private byte[]? _lastLivePreviewFrame;
     private DateTime _flyStartedAt;
     private readonly ScaleTransform _flyScale = new();
@@ -224,6 +242,7 @@ public sealed partial class MainWindow : Window
         _historySessionNameText = Find<TextBlock>("HistorySessionNameText");
         _noHistoryPanel = Find<StackPanel>("NoHistoryPanel");
         _historyItemsPanel = Find<WrapPanel>("HistoryItemsPanel");
+        _historySessionFilterPanel = Find<StackPanel>("HistorySessionFilterPanel");
         _instructionOverlay = Find<Grid>("InstructionOverlay");
         _settingsOverlay = Find<Grid>("SettingsOverlay");
         _settingsPinPanel = Find<StackPanel>("SettingsPinPanel");
@@ -255,6 +274,19 @@ public sealed partial class MainWindow : Window
         _scheduleStatusText = Find<TextBlock>("ScheduleStatusText");
         _offHoursPanel = Find<Grid>("OffHoursPanel");
         _offHoursScheduleText = Find<TextBlock>("OffHoursScheduleText");
+        _cameraSettingsPanel = Find<StackPanel>("CameraSettingsPanel");
+        _cameraIsoComboBox = Find<ComboBox>("CameraIsoComboBox");
+        _cameraApertureComboBox = Find<ComboBox>("CameraApertureComboBox");
+        _cameraShutterComboBox = Find<ComboBox>("CameraShutterComboBox");
+        _cameraWhiteBalanceComboBox = Find<ComboBox>("CameraWhiteBalanceComboBox");
+        _cameraSettingsStatusText = Find<TextBlock>("CameraSettingsStatusText");
+        _systemTimeSettingsPanel = Find<StackPanel>("SystemTimeSettingsPanel");
+        _systemTimeDayText = Find<TextBlock>("SystemTimeDayText");
+        _systemTimeMonthText = Find<TextBlock>("SystemTimeMonthText");
+        _systemTimeYearText = Find<TextBlock>("SystemTimeYearText");
+        _systemTimeHourText = Find<TextBlock>("SystemTimeHourText");
+        _systemTimeMinuteText = Find<TextBlock>("SystemTimeMinuteText");
+        _systemTimeStatusText = Find<TextBlock>("SystemTimeStatusText");
 
         TransformGroup flyTransforms = new();
         flyTransforms.Children.Add(_flyScale);
@@ -1181,6 +1213,8 @@ public sealed partial class MainWindow : Window
             return;
         }
 
+        RecordSuccessfulPrint();
+
         _printProgress = 0;
         _printProgressStatusText.Text = "Подготовка к печати";
         _printProgressPercentText.Text = "0%";
@@ -1245,8 +1279,92 @@ public sealed partial class MainWindow : Window
         IReadOnlyList<PhotoSession> sessions =
             _sessionManager.ListSessions(_outputRootPath);
 
-        _historyItemsPanel.Children.Clear();
+        if (_historyFilterSessionPath is null)
+        {
+            _historyFilterSessionPath = sessions.FirstOrDefault(session =>
+                _activeSession is not null &&
+                session.FolderPath.Equals(
+                    _activeSession.FolderPath,
+                    StringComparison.OrdinalIgnoreCase))?.FolderPath;
+        }
+
+        BuildHistorySessionFilters(sessions);
+        RenderPrintHistory(sessions);
+
+        HidePrimaryPanels();
+        _settingsOverlay.IsVisible = false;
+        _historyPanel.IsVisible = true;
+    }
+
+    private void BuildHistorySessionFilters(IReadOnlyList<PhotoSession> sessions)
+    {
+        _historySessionFilterPanel.Children.Clear();
+        _historySessionFilterPanel.Children.Add(CreateHistoryFilterButton(
+            "Все",
+            string.Empty,
+            string.IsNullOrEmpty(_historyFilterSessionPath)));
         foreach (PhotoSession session in sessions)
+        {
+            _historySessionFilterPanel.Children.Add(CreateHistoryFilterButton(
+                session.Name,
+                session.FolderPath,
+                session.FolderPath.Equals(
+                    _historyFilterSessionPath,
+                    StringComparison.OrdinalIgnoreCase)));
+        }
+    }
+
+    private Button CreateHistoryFilterButton(
+        string title,
+        string sessionPath,
+        bool selected)
+    {
+        Button button = new()
+        {
+            Content = title,
+            Tag = sessionPath,
+            MinWidth = 130,
+            MinHeight = 48,
+            Padding = new Thickness(22, 8)
+        };
+        button.Classes.Add("historyFilter");
+        if (selected)
+        {
+            button.Classes.Add("selected");
+        }
+
+        button.Click += HistorySessionFilterButton_OnClick;
+        return button;
+    }
+
+    private void HistorySessionFilterButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string sessionPath)
+        {
+            return;
+        }
+
+        _historyFilterSessionPath = string.IsNullOrEmpty(sessionPath)
+            ? string.Empty
+            : sessionPath;
+        IReadOnlyList<PhotoSession> sessions =
+            _sessionManager.ListSessions(_outputRootPath);
+        BuildHistorySessionFilters(sessions);
+        RenderPrintHistory(sessions);
+    }
+
+    private void RenderPrintHistory(IReadOnlyList<PhotoSession> sessions)
+    {
+        IReadOnlyList<PhotoSession> visibleSessions =
+            string.IsNullOrEmpty(_historyFilterSessionPath)
+                ? sessions
+                : sessions.Where(session => session.FolderPath.Equals(
+                        _historyFilterSessionPath,
+                        StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+        _historyItemsPanel.Children.Clear();
+        foreach (PhotoSession session in visibleSessions)
         {
             string printsPath = Path.Combine(session.FolderPath, "Prints");
             IReadOnlyList<string> files = Directory.Exists(printsPath)
@@ -1263,18 +1381,19 @@ public sealed partial class MainWindow : Window
 
             foreach (string file in files)
             {
-                _historyItemsPanel.Children.Add(CreateHistoryCard(file, session.Name));
+                _historyItemsPanel.Children.Add(CreateHistoryCard(file, session));
             }
         }
 
-        _historySessionNameText.Text = $"Все сессии: {sessions.Count}";
+        int totalCopies = visibleSessions.Sum(session =>
+            _printAuditService.GetTotalCopies(session.FolderPath));
+        _historySessionNameText.Text = visibleSessions.Count == 1
+            ? $"{visibleSessions[0].Name} · Отпечатано: {totalCopies} копий"
+            : $"Все сессии: {sessions.Count} · Отпечатано: {totalCopies} копий";
         _noHistoryPanel.IsVisible = sessions.Count == 0;
-        HidePrimaryPanels();
-        _settingsOverlay.IsVisible = false;
-        _historyPanel.IsVisible = true;
     }
 
-    private Button CreateHistoryCard(string filePath, string sessionName)
+    private Button CreateHistoryCard(string filePath, PhotoSession session)
     {
         StackPanel content = new() { Spacing = 10 };
         content.Children.Add(new Border
@@ -1293,9 +1412,18 @@ public sealed partial class MainWindow : Window
         });
         content.Children.Add(new TextBlock
         {
-            Text = sessionName,
+            Text = session.Name,
             Foreground = Brush.Parse("#172238"),
             FontSize = 17,
+            FontWeight = FontWeight.SemiBold,
+            TextAlignment = TextAlignment.Center
+        });
+        content.Children.Add(new TextBlock
+        {
+            Text = $"Отпечатано копий: " +
+                   _printAuditService.GetCopiesForImage(session.FolderPath, filePath),
+            Foreground = Brush.Parse("#7B61FF"),
+            FontSize = 14,
             FontWeight = FontWeight.SemiBold,
             TextAlignment = TextAlignment.Center
         });
@@ -1311,6 +1439,30 @@ public sealed partial class MainWindow : Window
         card.Classes.Add("historyCard");
         card.Click += HistoryItemButton_OnClick;
         return card;
+    }
+
+    private void RecordSuccessfulPrint()
+    {
+        try
+        {
+            PhotoSession? session = _sessionManager
+                .ListSessions(_outputRootPath)
+                .FirstOrDefault(candidate => _resultPath.StartsWith(
+                    candidate.FolderPath + Path.DirectorySeparatorChar,
+                    StringComparison.OrdinalIgnoreCase));
+            if (session is not null)
+            {
+                _printAuditService.Record(
+                    session.FolderPath,
+                    _resultPath,
+                    _copyCount);
+            }
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine(
+                $"{DateTime.Now:O} Print audit was not saved: {exception.Message}");
+        }
     }
 
     private static Border CreateEmptyHistoryCard(PhotoSession session)
@@ -1420,6 +1572,8 @@ public sealed partial class MainWindow : Window
         _settingsMenuPanel.IsVisible = false;
         _printerSettingsPanel.IsVisible = false;
         _scheduleSettingsPanel.IsVisible = false;
+        _cameraSettingsPanel.IsVisible = false;
+        _systemTimeSettingsPanel.IsVisible = false;
         _settingsOverlay.IsVisible = true;
     }
 
@@ -1431,6 +1585,8 @@ public sealed partial class MainWindow : Window
         _settingsPinPanel.IsVisible = false;
         _printerSettingsPanel.IsVisible = false;
         _scheduleSettingsPanel.IsVisible = false;
+        _cameraSettingsPanel.IsVisible = false;
+        _systemTimeSettingsPanel.IsVisible = false;
         _settingsSectionStatusText.Text = string.Empty;
         _settingsMenuPanel.IsVisible = true;
         _settingsOverlay.IsVisible = true;
@@ -1510,9 +1666,7 @@ public sealed partial class MainWindow : Window
                 ShowPrintHistory();
                 break;
             case "camera":
-                _settingsSectionStatusText.Text = "Проверяем Canon...";
-                _settingsSectionStatusText.Text =
-                    await _cameraService.GetSettingsSummaryAsync();
+                await ShowCameraSettingsAsync();
                 break;
             case "printer":
                 ShowPrinterSettings();
@@ -1522,6 +1676,9 @@ public sealed partial class MainWindow : Window
                 break;
             case "schedule":
                 ShowScheduleSettings();
+                break;
+            case "time":
+                ShowSystemTimeSettings();
                 break;
             case "restart":
                 await RestartComputerAsync();
@@ -1545,6 +1702,9 @@ public sealed partial class MainWindow : Window
 
         _settingsPinPanel.IsVisible = false;
         _settingsMenuPanel.IsVisible = false;
+        _cameraSettingsPanel.IsVisible = false;
+        _scheduleSettingsPanel.IsVisible = false;
+        _systemTimeSettingsPanel.IsVisible = false;
         _printerSettingsPanel.IsVisible = true;
         _settingsOverlay.IsVisible = true;
         UpdatePrinterSettingsControls();
@@ -1738,6 +1898,8 @@ public sealed partial class MainWindow : Window
         _settingsPinPanel.IsVisible = false;
         _settingsMenuPanel.IsVisible = false;
         _printerSettingsPanel.IsVisible = false;
+        _cameraSettingsPanel.IsVisible = false;
+        _systemTimeSettingsPanel.IsVisible = false;
         _scheduleSettingsPanel.IsVisible = true;
         _settingsOverlay.IsVisible = true;
     }
@@ -1921,6 +2083,259 @@ public sealed partial class MainWindow : Window
         _offHoursPanel.IsVisible = false;
         SettingsButton_OnClick(sender, e);
     }
+
+    private async Task ShowCameraSettingsAsync()
+    {
+        _settingsPinPanel.IsVisible = false;
+        _settingsMenuPanel.IsVisible = false;
+        _printerSettingsPanel.IsVisible = false;
+        _scheduleSettingsPanel.IsVisible = false;
+        _systemTimeSettingsPanel.IsVisible = false;
+        _cameraSettingsPanel.IsVisible = true;
+        _settingsOverlay.IsVisible = true;
+        _cameraSettingsStatusText.Text = "Читаем настройки Canon...";
+        SetCameraControlsEnabled(false);
+
+        if (_cameraService is not GPhotoCameraService camera)
+        {
+            _cameraSettingsStatusText.Text =
+                "Canon не подключён. Настройки камеры недоступны.";
+            return;
+        }
+
+        try
+        {
+            IReadOnlyList<CameraSettingDefinition> settings =
+                await camera.GetSettingsAsync();
+            _cameraSettingDefinitions.Clear();
+            foreach (CameraSettingDefinition setting in settings)
+            {
+                _cameraSettingDefinitions[setting.Key] = setting;
+            }
+
+            SetCameraControlsEnabled(true);
+            PopulateCameraCombo(_cameraIsoComboBox, "iso");
+            PopulateCameraCombo(_cameraApertureComboBox, "aperture");
+            PopulateCameraCombo(_cameraShutterComboBox, "shutterspeed");
+            PopulateCameraCombo(_cameraWhiteBalanceComboBox, "whitebalance");
+
+            string[] errors = settings
+                .Where(setting => !string.IsNullOrWhiteSpace(setting.Error))
+                .Select(setting => setting.Error)
+                .ToArray();
+            _cameraSettingsStatusText.Text = errors.Length == 0
+                ? $"{camera.DisplayName}. Выберите значения и нажмите «Применить»."
+                : string.Join(" ", errors);
+        }
+        catch (Exception exception)
+        {
+            _cameraSettingsStatusText.Text =
+                $"Не удалось прочитать Canon: {exception.Message}";
+        }
+    }
+
+    private void PopulateCameraCombo(ComboBox comboBox, string key)
+    {
+        if (!_cameraSettingDefinitions.TryGetValue(key, out CameraSettingDefinition? setting) ||
+            setting.Choices.Count == 0)
+        {
+            comboBox.ItemsSource = new[] { "Недоступно" };
+            comboBox.SelectedIndex = 0;
+            comboBox.IsEnabled = false;
+            return;
+        }
+
+        comboBox.ItemsSource = setting.Choices;
+        comboBox.SelectedItem = setting.Choices.FirstOrDefault(value =>
+            value.Equals(setting.CurrentValue, StringComparison.OrdinalIgnoreCase)) ??
+            setting.Choices[0];
+        comboBox.IsEnabled = true;
+    }
+
+    private void SetCameraControlsEnabled(bool enabled)
+    {
+        _cameraIsoComboBox.IsEnabled = enabled;
+        _cameraApertureComboBox.IsEnabled = enabled;
+        _cameraShutterComboBox.IsEnabled = enabled;
+        _cameraWhiteBalanceComboBox.IsEnabled = enabled;
+    }
+
+    private async void CameraApplyButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (_cameraService is not GPhotoCameraService camera)
+        {
+            return;
+        }
+
+        Dictionary<string, string> changes = [];
+        AddCameraChange(changes, "iso", _cameraIsoComboBox);
+        AddCameraChange(changes, "aperture", _cameraApertureComboBox);
+        AddCameraChange(changes, "shutterspeed", _cameraShutterComboBox);
+        AddCameraChange(changes, "whitebalance", _cameraWhiteBalanceComboBox);
+        if (changes.Count == 0)
+        {
+            _cameraSettingsStatusText.Text = "Изменений нет.";
+            return;
+        }
+
+        _cameraSettingsStatusText.Text = "Применяем настройки Canon...";
+        SetCameraControlsEnabled(false);
+        try
+        {
+            IReadOnlyList<string> errors = await camera.ApplySettingsAsync(changes);
+            _cameraSettingsStatusText.Text = errors.Count == 0
+                ? "Настройки Canon применены."
+                : string.Join(" ", errors);
+            if (errors.Count == 0)
+            {
+                foreach ((string key, string value) in changes)
+                {
+                    CameraSettingDefinition current = _cameraSettingDefinitions[key];
+                    _cameraSettingDefinitions[key] = current with { CurrentValue = value };
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            _cameraSettingsStatusText.Text =
+                $"Canon не принял настройки: {exception.Message}";
+        }
+        finally
+        {
+            RestoreCameraControlAvailability();
+        }
+    }
+
+    private void AddCameraChange(
+        Dictionary<string, string> changes,
+        string key,
+        ComboBox comboBox)
+    {
+        if (!_cameraSettingDefinitions.TryGetValue(key, out CameraSettingDefinition? setting) ||
+            comboBox.SelectedItem is not string selected ||
+            selected.Equals(setting.CurrentValue, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        changes[key] = selected;
+    }
+
+    private void RestoreCameraControlAvailability()
+    {
+        _cameraIsoComboBox.IsEnabled = HasCameraChoices("iso");
+        _cameraApertureComboBox.IsEnabled = HasCameraChoices("aperture");
+        _cameraShutterComboBox.IsEnabled = HasCameraChoices("shutterspeed");
+        _cameraWhiteBalanceComboBox.IsEnabled = HasCameraChoices("whitebalance");
+    }
+
+    private bool HasCameraChoices(string key) =>
+        _cameraSettingDefinitions.TryGetValue(key, out CameraSettingDefinition? setting) &&
+        setting.Choices.Count > 0;
+
+    private async void CameraRefreshButton_OnClick(object? sender, RoutedEventArgs e) =>
+        await ShowCameraSettingsAsync();
+
+    private void CameraSettingsBackButton_OnClick(object? sender, RoutedEventArgs e) =>
+        ShowSettingsMenu();
+
+    private void ShowSystemTimeSettings()
+    {
+        _systemTimeDraft = DateTime.Now;
+        UpdateSystemTimeControls();
+        _systemTimeStatusText.Text =
+            $"Текущее системное время · часовой пояс Москва (UTC+3)";
+        _settingsPinPanel.IsVisible = false;
+        _settingsMenuPanel.IsVisible = false;
+        _printerSettingsPanel.IsVisible = false;
+        _scheduleSettingsPanel.IsVisible = false;
+        _cameraSettingsPanel.IsVisible = false;
+        _systemTimeSettingsPanel.IsVisible = true;
+        _settingsOverlay.IsVisible = true;
+    }
+
+    private void SystemTimeStepButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string command)
+        {
+            return;
+        }
+
+        string[] parts = command.Split(':');
+        if (parts.Length != 2 || !int.TryParse(parts[1], out int delta))
+        {
+            return;
+        }
+
+        try
+        {
+            _systemTimeDraft = parts[0] switch
+            {
+                "day" => _systemTimeDraft.AddDays(delta),
+                "month" => _systemTimeDraft.AddMonths(delta),
+                "year" => _systemTimeDraft.AddYears(delta),
+                "hour" => _systemTimeDraft.AddHours(delta),
+                "minute" => _systemTimeDraft.AddMinutes(delta),
+                _ => _systemTimeDraft
+            };
+            if (_systemTimeDraft.Year is < 2024 or > 2099)
+            {
+                _systemTimeDraft = DateTime.Now;
+            }
+
+            _systemTimeStatusText.Text = string.Empty;
+            UpdateSystemTimeControls();
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            _systemTimeStatusText.Text = "Дата находится вне допустимого диапазона.";
+        }
+    }
+
+    private void UpdateSystemTimeControls()
+    {
+        _systemTimeDayText.Text = _systemTimeDraft.Day.ToString("00");
+        _systemTimeMonthText.Text = _systemTimeDraft.Month.ToString("00");
+        _systemTimeYearText.Text = _systemTimeDraft.Year.ToString("0000");
+        _systemTimeHourText.Text = _systemTimeDraft.Hour.ToString("00");
+        _systemTimeMinuteText.Text = _systemTimeDraft.Minute.ToString("00");
+    }
+
+    private async void SystemTimeSaveButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        const string helper = "/usr/local/sbin/photobooth-set-time";
+        if (!CommandRunner.Exists(helper))
+        {
+            _systemTimeStatusText.Text =
+                "Установка времени доступна только в образе фотобудки Linux.";
+            return;
+        }
+
+        _systemTimeStatusText.Text = "Устанавливаем системное время...";
+        CommandResult result = await CommandRunner.RunAsync(
+            "sudo",
+            [
+                "-n",
+                helper,
+                _systemTimeDraft.Year.ToString(),
+                _systemTimeDraft.Month.ToString(),
+                _systemTimeDraft.Day.ToString(),
+                _systemTimeDraft.Hour.ToString(),
+                _systemTimeDraft.Minute.ToString()
+            ],
+            TimeSpan.FromSeconds(15));
+        _systemTimeStatusText.Text = result.Success
+            ? result.CombinedOutput
+            : $"Время не изменено: {result.CombinedOutput}";
+        if (result.Success)
+        {
+            _systemTimeDraft = DateTime.Now;
+            UpdateSystemTimeControls();
+        }
+    }
+
+    private void SystemTimeBackButton_OnClick(object? sender, RoutedEventArgs e) =>
+        ShowSettingsMenu();
 
     private static void DeleteTemporaryFile(string? path)
     {
