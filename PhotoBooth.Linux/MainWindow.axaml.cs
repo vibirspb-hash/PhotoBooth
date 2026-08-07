@@ -32,6 +32,7 @@ public sealed partial class MainWindow : Window
     private readonly string _outputRootPath;
     private readonly string _templatesPath;
     private readonly string _demoPhotosPath;
+    private readonly bool _hardwareFallbackAllowed;
     private readonly List<Button> _templateButtons = [];
     private readonly List<string> _acceptedShots = [];
 
@@ -313,6 +314,9 @@ public sealed partial class MainWindow : Window
 
         bool windowedTestMode =
             Environment.GetEnvironmentVariable("PHOTOBOOTH_WINDOWED") == "1";
+        _hardwareFallbackAllowed =
+            _config.DemoMode ||
+            (windowedTestMode && _config.HardwareFallbackToDemo);
 
         if (windowedTestMode)
         {
@@ -659,8 +663,24 @@ public sealed partial class MainWindow : Window
         EvaluateWorkSchedule();
     }
 
-    private void StartButton_OnClick(object? sender, RoutedEventArgs e) =>
+    private void StartButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (!_hardwareFallbackAllowed && _cameraService.IsDemo)
+        {
+            _homeSubtitleText.Text =
+                "Камера не подключена. Съёмка временно недоступна";
+            return;
+        }
+
+        if (!_hardwareFallbackAllowed && _printerService.IsDemo)
+        {
+            _homeSubtitleText.Text =
+                "Принтер не подключён. Печать временно недоступна";
+            return;
+        }
+
         ShowTemplates();
+    }
 
     private void ShowTemplates()
     {
@@ -1241,6 +1261,13 @@ public sealed partial class MainWindow : Window
 
     private void PrintButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        if (!_hardwareFallbackAllowed && _printerService.IsDemo)
+        {
+            _printButtonText.Text =
+                "Принтер не подключён. Макет сохранён в сессии";
+            return;
+        }
+
         PrintResult result;
         string? adjustedPath = null;
         try
