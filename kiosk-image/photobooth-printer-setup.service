@@ -2,10 +2,9 @@
 Description=Configure the PhotoBooth DNP DS-RX1 printer
 After=cups.service
 Requires=cups.service
-Before=display-manager.service lightdm.service
 
 [Service]
-Type=oneshot
+Type=simple
 ExecStart=/usr/local/sbin/photobooth-printer-setup
 
 [Install]

@@ -325,7 +325,11 @@ public sealed partial class MainWindow : Window
 
         ShowStartupLock();
         _scheduleTimer.Start();
-        Opened += async (_, _) => await InitializeHardwareAsync();
+        Opened += async (_, _) =>
+        {
+            await InitializeHardwareAsync();
+            _ = RetryPrinterDiscoveryAsync();
+        };
     }
 
     private T Find<T>(string name) where T : Control =>
@@ -379,6 +383,39 @@ public sealed partial class MainWindow : Window
         printer?.Configure(_config.PrinterQuality, _config.PrinterCutMode);
         _printerStatus = printer?.Status ?? $"Демо-печать: {printerError}.";
         UpdatePublicHardwareStatus();
+    }
+
+    private async Task RetryPrinterDiscoveryAsync()
+    {
+        foreach (TimeSpan delay in new[]
+                 {
+                     TimeSpan.FromSeconds(4),
+                     TimeSpan.FromSeconds(12)
+                 })
+        {
+            if (!_printerService.IsDemo)
+            {
+                return;
+            }
+
+            await Task.Delay(delay);
+            var (printer, _) =
+                await CupsPrinterService.TryCreateAsync(
+                    _config.CupsLpCommand,
+                    _config.CupsLpStatCommand,
+                    _config.PrinterName,
+                    _config.PrinterMedia);
+            if (printer is null)
+            {
+                continue;
+            }
+
+            printer.Configure(_config.PrinterQuality, _config.PrinterCutMode);
+            _printerService = printer;
+            _printerStatus = printer.Status;
+            UpdatePublicHardwareStatus();
+            return;
+        }
     }
 
     private void UpdatePublicHardwareStatus()

@@ -13,7 +13,6 @@ if command -v unclutter >/dev/null 2>&1; then
   unclutter --timeout 0 --hide-on-touch --start-hidden --fork
 fi
 
-sleep 3
 media_root="/media/$USER"
 data_root="$media_root/PHOTOBOOTH"
 template_source=""
@@ -28,9 +27,9 @@ if mountpoint -q "$data_root"; then
   export PHOTOBOOTH_DATA_ROOT="$data_root"
 fi
 
-/usr/local/bin/photobooth-touch-setup || true
-sudo -n /usr/local/sbin/photobooth-printer-setup || true
-/usr/local/bin/photobooth-hardware-diagnostics || true
+# Touch preparation must not hold the kiosk UI on a black screen. Printer
+# setup runs once through systemd, and diagnostics stay available on demand.
+/usr/local/bin/photobooth-touch-setup &
 
 if [[ -d "$media_root" ]]; then
   own_templates="$data_root/Templates"
