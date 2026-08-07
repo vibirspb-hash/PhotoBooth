@@ -172,6 +172,7 @@ public sealed partial class MainWindow : Window
     private int _scheduleEndHourDraft;
     private int _scheduleEndMinuteDraft;
     private bool _schedulePowerOffRequested;
+    private CancellationTokenSource? _schedulePowerOffCancellation;
     private readonly Dictionary<string, CameraSettingDefinition> _cameraSettingDefinitions = [];
     private DateTime _systemTimeDraft;
     private byte[]? _lastLivePreviewFrame;
@@ -2014,7 +2015,7 @@ public sealed partial class MainWindow : Window
         try
         {
             _configService.Save(_config);
-            _schedulePowerOffRequested = false;
+            CancelScheduledPowerOff();
             _scheduleStatusText.Text = _config.WorkScheduleEnabled
                 ? "Расписание сохранено. Пароль при включении останется активным."
                 : "Расписание отключено.";
@@ -2036,7 +2037,7 @@ public sealed partial class MainWindow : Window
     {
         if (!_config.WorkScheduleEnabled)
         {
-            _schedulePowerOffRequested = false;
+            CancelScheduledPowerOff();
             _offHoursPanel.IsVisible = false;
             return;
         }
@@ -2048,7 +2049,7 @@ public sealed partial class MainWindow : Window
 
         if (IsWithinWorkHours(DateTime.Now.TimeOfDay))
         {
-            _schedulePowerOffRequested = false;
+            CancelScheduledPowerOff();
             if (_offHoursPanel.IsVisible)
             {
                 _offHoursPanel.IsVisible = false;
@@ -2072,11 +2073,12 @@ public sealed partial class MainWindow : Window
         if (_config.ShutdownOutsideWorkHours && !_schedulePowerOffRequested)
         {
             _schedulePowerOffRequested = true;
-            _ = RequestScheduledPowerOffAsync();
+            _schedulePowerOffCancellation = new CancellationTokenSource();
+            _ = RequestScheduledPowerOffAsync(_schedulePowerOffCancellation.Token);
         }
     }
 
-    private async Task RequestScheduledPowerOffAsync()
+    private async Task RequestScheduledPowerOffAsync(CancellationToken cancellationToken)
     {
         const string helper = "/usr/local/sbin/photobooth-schedule-poweroff";
         if (!CommandRunner.Exists(helper))
@@ -2087,8 +2089,18 @@ public sealed partial class MainWindow : Window
         }
 
         _offHoursScheduleText.Text +=
-            $"\nВыключение. Следующий запуск в " +
-            $"{_config.WorkStartHour:00}:{_config.WorkStartMinute:00}.";
+            $"\nАвтовыключение через 60 секунд. Следующий запуск в " +
+            $"{_config.WorkStartHour:00}:{_config.WorkStartMinute:00}.\n" +
+            "Для изменения расписания откройте настройки оператора.";
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(60), cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
         CommandResult result = await CommandRunner.RunAsync(
             "sudo",
             [
@@ -2103,6 +2115,14 @@ public sealed partial class MainWindow : Window
             _offHoursScheduleText.Text +=
                 $"\nКомпьютер оставлен включённым: {result.CombinedOutput}";
         }
+    }
+
+    private void CancelScheduledPowerOff()
+    {
+        _schedulePowerOffCancellation?.Cancel();
+        _schedulePowerOffCancellation?.Dispose();
+        _schedulePowerOffCancellation = null;
+        _schedulePowerOffRequested = false;
     }
 
     private bool IsWithinWorkHours(TimeSpan currentTime)
@@ -2136,6 +2156,7 @@ public sealed partial class MainWindow : Window
 
     private void OffHoursSettingsButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        CancelScheduledPowerOff();
         _offHoursPanel.IsVisible = false;
         SettingsButton_OnClick(sender, e);
     }
