@@ -40,6 +40,22 @@ if [[ -f "$saved_calibration" ]]; then
     xinput set-prop "$device_id" "Evdev Axis Calibration" \
       "$min_x" "$max_x" "$min_y" "$max_y" || true
     echo "Restored saved KeeTouch calibration: $calibration_values"
+  else
+    read_option() {
+      local option_name="$1"
+      sed -n "s/.*Option[[:space:]]*\"${option_name}\"[[:space:]]*\"\([^\"]*\)\".*/\1/p" \
+        "$saved_calibration" | head -n 1
+    }
+
+    min_x="$(read_option MinX)"
+    max_x="$(read_option MaxX)"
+    min_y="$(read_option MinY)"
+    max_y="$(read_option MaxY)"
+    if [[ "$min_x $max_x $min_y $max_y" =~ ^-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+$ ]]; then
+      xinput set-prop "$device_id" "Evdev Axis Calibration" \
+        "$min_x" "$max_x" "$min_y" "$max_y" || true
+      echo "Restored saved KeeTouch Min/Max calibration: $min_x $max_x $min_y $max_y"
+    fi
   fi
 fi
 

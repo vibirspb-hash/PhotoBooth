@@ -12,19 +12,36 @@ xinput_calibrator \
   --output-type xorg.conf.d \
   --no-timeout >"$output_file"
 
-if ! grep -q 'Option[[:space:]]*"Calibration"' "$output_file"; then
+has_axis_calibration=false
+if grep -q 'Option[[:space:]]*"Calibration"' "$output_file"; then
+  has_axis_calibration=true
+elif grep -q 'Option[[:space:]]*"MinX"' "$output_file" &&
+     grep -q 'Option[[:space:]]*"MaxX"' "$output_file" &&
+     grep -q 'Option[[:space:]]*"MinY"' "$output_file" &&
+     grep -q 'Option[[:space:]]*"MaxY"' "$output_file"; then
+  has_axis_calibration=true
+fi
+
+if [[ "$has_axis_calibration" != true ]]; then
   cat "$output_file" >&2
   echo "The calibration tool did not return calibration values." >&2
   exit 1
 fi
 
-sudo -n /usr/local/sbin/photobooth-install-touch-calibration "$output_file"
-xinput list-props "$device_name" >"$properties_file"
-
 data_root="${PHOTOBOOTH_DATA_ROOT:-/media/$USER/PHOTOBOOTH}"
 if mountpoint -q "$data_root"; then
   mkdir -p "$data_root/Diagnostics"
+  cp "$output_file" "$data_root/Diagnostics/99-keetouch-calibration.conf"
+  cp "$output_file" "$data_root/Diagnostics/xinput-calibrator-output.txt"
+  sync "$data_root/Diagnostics/99-keetouch-calibration.conf" || sync
+fi
+
+sudo -n /usr/local/sbin/photobooth-install-touch-calibration "$output_file"
+xinput list-props "$device_name" >"$properties_file"
+
+if mountpoint -q "$data_root"; then
   cp "$properties_file" "$data_root/Diagnostics/touch-runtime-properties.txt"
+  sync "$data_root/Diagnostics/touch-runtime-properties.txt" || sync
   echo "Runtime calibration exported to $data_root/Diagnostics"
 fi
 

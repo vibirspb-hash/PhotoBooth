@@ -13,9 +13,17 @@ if [[ ! -f "$source_file" || "$resolved_source" != /tmp/* ]]; then
 fi
 
 sed -n '/Section "InputClass"/,/EndSection/p' "$source_file" >"$temporary_file"
-if ! grep -q 'Option[[:space:]]*"Calibration"' "$temporary_file" ||
-   ! grep -Fq 'HID 1aad:0001' "$temporary_file"; then
+if ! grep -Fq 'HID 1aad:0001' "$temporary_file"; then
   echo "Calibration data does not belong to the PhotoBooth touchscreen." >&2
+  exit 1
+fi
+
+if ! grep -q 'Option[[:space:]]*"Calibration"' "$temporary_file" &&
+   ! { grep -q 'Option[[:space:]]*"MinX"' "$temporary_file" &&
+       grep -q 'Option[[:space:]]*"MaxX"' "$temporary_file" &&
+       grep -q 'Option[[:space:]]*"MinY"' "$temporary_file" &&
+       grep -q 'Option[[:space:]]*"MaxY"' "$temporary_file"; }; then
+  echo "Calibration data does not contain supported axis values." >&2
   exit 1
 fi
 
