@@ -7,7 +7,7 @@ mkdir -p "$(dirname "$log_file")"
 exec >>"$log_file" 2>&1
 
 echo "$(date --iso-8601=seconds) Configuring KeeTouch"
-for _ in $(seq 1 20); do
+for _ in $(seq 1 6); do
   if xinput list --id-only "$device_name" >/dev/null 2>&1; then
     break
   fi
@@ -25,11 +25,21 @@ fi
 xinput reattach "$device_id" "$pointer_id" || true
 xinput enable "$device_id" || true
 xinput set-mode "$device_id" ABSOLUTE || true
-xinput set-prop "$device_id" "Coordinate Transformation Matrix" \
-  1 0 0 0 1 0 0 0 1 || true
+
+data_root="${PHOTOBOOTH_DATA_ROOT:-/media/$USER/PHOTOBOOTH}"
+saved_calibration="$data_root/Diagnostics/99-keetouch-calibration.conf"
+if [[ -f "$saved_calibration" ]]; then
+  calibration_values="$(
+    sed -n 's/.*Option[[:space:]]*"Calibration"[[:space:]]*"\([^"]*\)".*/\1/p' \
+      "$saved_calibration" | head -n 1
+  )"
+  if [[ "$calibration_values" =~ ^-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+$ ]]; then
+    read -r min_x max_x min_y max_y <<< "$calibration_values"
+    xinput set-prop "$device_id" "Evdev Axis Calibration" \
+      "$min_x" "$max_x" "$min_y" "$max_y" || true
+    echo "Restored saved KeeTouch calibration: $calibration_values"
+  fi
+fi
+
 xinput list-props "$device_id" || true
-echo "Input device details:"
-udevadm info --query=property --name=/dev/input/event2 || true
-echo "Input capabilities and idle event sample:"
-timeout 2 evtest /dev/input/event2 || true
 echo "KeeTouch $device_id is attached to pointer $pointer_id."

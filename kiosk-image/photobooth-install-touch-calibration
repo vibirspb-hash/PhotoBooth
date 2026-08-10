@@ -21,3 +21,14 @@ fi
 
 install -D -m 0644 "$temporary_file" "$target_file"
 echo "Installed $target_file"
+
+data_root="/media/${SUDO_USER:-user}/PHOTOBOOTH"
+if mountpoint -q "$data_root"; then
+  diagnostics_dir="$data_root/Diagnostics"
+  mkdir -p "$diagnostics_dir"
+  install -m 0644 "$temporary_file" \
+    "$diagnostics_dir/99-keetouch-calibration.conf"
+  chown "${SUDO_USER:-user}:${SUDO_USER:-user}" \
+    "$diagnostics_dir/99-keetouch-calibration.conf" || true
+  echo "Exported calibration to $diagnostics_dir"
+fi

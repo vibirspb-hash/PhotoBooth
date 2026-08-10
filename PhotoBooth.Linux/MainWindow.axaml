@@ -8,6 +8,7 @@
         MinHeight="540"
         WindowStartupLocation="CenterScreen"
         WindowDecorations="None"
+        Cursor="None"
         Background="#5F72E9">
     <Window.Styles>
         <Style Selector="Button">

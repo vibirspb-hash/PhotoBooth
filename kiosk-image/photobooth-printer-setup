@@ -4,11 +4,28 @@ set -euo pipefail
 queue_name="DNP_RX1"
 printer_uri=""
 log_file="/var/log/photobooth-printer-setup.log"
+lock_file="/run/photobooth-printer-setup.lock"
 lpinfo_command="/usr/sbin/lpinfo"
 lpadmin_command="/usr/sbin/lpadmin"
 cupsenable_command="/usr/sbin/cupsenable"
 cupsaccept_command="/usr/sbin/cupsaccept"
+dye_backend="/usr/lib/cups/backend/gutenprint53+usb"
 exec >>"$log_file" 2>&1
+exec 9>"$lock_file"
+if ! flock -w 40 9; then
+  echo "$(date --iso-8601=seconds) Printer setup is already running."
+  exit 0
+fi
+
+mirror_log() {
+  data_root="/media/user/PHOTOBOOTH"
+  if mountpoint -q "$data_root"; then
+    mkdir -p "$data_root/Diagnostics"
+    cp "$log_file" "$data_root/Diagnostics/printer-setup.log" || true
+    chown user:user "$data_root/Diagnostics/printer-setup.log" || true
+  fi
+}
+trap mirror_log EXIT
 
 echo "$(date --iso-8601=seconds) Configuring DNP DS-RX1"
 systemctl start cups.service
@@ -18,13 +35,28 @@ if [[ ! -x "$lpinfo_command" ]]; then
   exit 0
 fi
 
-for _ in $(seq 1 30); do
+for _ in $(seq 1 90); do
   printer_uri="$(
     "$lpinfo_command" -v 2>/dev/null |
       awk '
-        tolower($0) ~ /(dnp|citizen|ds-?rx1|dsrx1|dnprx1|1343.*0005)/ {print $2; exit}
+        tolower($0) ~ /gutenprint[0-9]+\+usb:\/\/(dnp-?dsrx1|dnprx1|dnp|citizen)/ {
+          preferred=$2
+        }
+        tolower($0) ~ /(dnp|citizen|ds-?rx1|dsrx1|dnprx1|1343.*0005)/ && fallback == "" {
+          fallback=$2
+        }
+        END {
+          if (preferred != "") print preferred
+          else if (fallback != "") print fallback
+        }
       '
   )"
+  if [[ -z "$printer_uri" && -x "$dye_backend" ]]; then
+    printer_uri="$(
+      "$dye_backend" 2>/dev/null |
+        awk 'tolower($0) ~ /gutenprint[0-9]+\+usb:\/\/(dnp-?dsrx1|dnprx1|dnp|citizen)/ {print $2; exit}'
+    )"
+  fi
   [[ -n "$printer_uri" ]] && break
   sleep 1
 done
@@ -36,6 +68,11 @@ if [[ -z "$printer_uri" ]]; then
   echo "CUPS devices:"
   "$lpinfo_command" -v || true
   exit 0
+fi
+
+echo "Detected printer URI: $printer_uri"
+if [[ "$printer_uri" != gutenprint*+usb://* ]]; then
+  echo "Warning: special Gutenprint dye-sub backend was not advertised; using $printer_uri"
 fi
 
 driver_name="$(

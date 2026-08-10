@@ -395,7 +395,9 @@ public sealed partial class MainWindow : Window
         foreach (TimeSpan delay in new[]
                  {
                      TimeSpan.FromSeconds(4),
-                     TimeSpan.FromSeconds(12)
+                     TimeSpan.FromSeconds(12),
+                     TimeSpan.FromSeconds(25),
+                     TimeSpan.FromSeconds(45)
                  })
         {
             if (!_printerService.IsDemo)
@@ -669,13 +671,6 @@ public sealed partial class MainWindow : Window
         {
             _homeSubtitleText.Text =
                 "Камера не подключена. Съёмка временно недоступна";
-            return;
-        }
-
-        if (!_hardwareFallbackAllowed && _printerService.IsDemo)
-        {
-            _homeSubtitleText.Text =
-                "Принтер не подключён. Печать временно недоступна";
             return;
         }
 
