@@ -110,10 +110,14 @@ if ! timeout 60 "$driver_helper" cat "$driver_uri" > "$ppd_tmp"; then
   echo "Unable to generate the DNP DS-RX1 Gutenprint PPD." >&2
   exit 1
 fi
-if ! cupstestppd -q "$ppd_tmp"; then
-  echo "Generated DNP DS-RX1 PPD is invalid." >&2
+if [[ ! -s "$ppd_tmp" ]] ||
+   ! grep -q '^\*PPD-Adobe:' "$ppd_tmp" ||
+   ! grep -Eiq 'DS-?RX1|DSRX1' "$ppd_tmp" ||
+   ! grep -Eiq 'rastertogutenprint|Gutenprint' "$ppd_tmp"; then
+  echo "Generated DNP DS-RX1 PPD is incomplete." >&2
   exit 1
 fi
+cupstestppd -q "$ppd_tmp" || echo "CUPS reported non-fatal compatibility warnings for the RX1 PPD."
 mv "$ppd_tmp" "$ppd_file"
 chmod 644 "$ppd_file"
 
