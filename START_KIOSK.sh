@@ -32,6 +32,8 @@ fi
 /usr/local/bin/photobooth-touch-setup || true
 if mountpoint -q "$data_root" &&
    [[ ! -f "$data_root/Diagnostics/99-keetouch-calibration.conf" ]] &&
+   ! grep -q 'Option[[:space:]]*"Calibration"' \
+     /etc/X11/xorg.conf.d/99-keetouch-calibration.conf 2>/dev/null &&
    xinput list --id-only "HID 1aad:0001" >/dev/null 2>&1; then
   echo "$(date --iso-8601=seconds) Touchscreen calibration is required." \
     >> "$data_root/Diagnostics/touchscreen.log"
