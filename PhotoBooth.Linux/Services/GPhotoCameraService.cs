@@ -24,6 +24,7 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
     private Task? _liveViewPumpTask;
     private byte[]? _latestPreviewFrame;
     private string _liveViewError = string.Empty;
+    private bool _viewfinderEnabled;
 
     private GPhotoCameraService(string command, string displayName)
     {
@@ -131,24 +132,30 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         int shotNumber,
         CancellationToken cancellationToken = default)
     {
+        Stopwatch captureTimer = Stopwatch.StartNew();
         await _cameraLock.WaitAsync(cancellationToken);
         try
         {
             EnsurePrepared();
-            await StopLiveViewCoreAsync(cancellationToken);
-            await Task.Delay(700, cancellationToken);
+            await StopLiveViewCoreAsync(cancellationToken, disableViewfinder: false);
+            await Task.Delay(200, cancellationToken);
             string path = Path.Combine(_originalsPath, $"shot-{shotNumber:00}.jpg");
             CommandResult result = await CaptureImageAsync(path, cancellationToken);
             if (!result.Success || !File.Exists(path))
             {
                 Console.Error.WriteLine(
                     $"{DateTime.Now:O} Canon capture attempt 1 failed: {result.CombinedOutput}");
-                await CommandRunner.RunAsync(
+                CommandResult resetResult = await CommandRunner.RunAsync(
                     _command,
                     ["--set-config", "viewfinder=0"],
                     TimeSpan.FromSeconds(8),
                     cancellationToken);
-                await Task.Delay(1500, cancellationToken);
+                if (resetResult.Success)
+                {
+                    _viewfinderEnabled = false;
+                }
+
+                await Task.Delay(900, cancellationToken);
                 result = await CaptureImageAsync(path, cancellationToken);
             }
 
@@ -158,6 +165,8 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
                     CleanError(result, "Canon не передал фотографию"));
             }
 
+            Console.Error.WriteLine(
+                $"{DateTime.Now:O} Canon captured shot {shotNumber} in {captureTimer.ElapsedMilliseconds} ms.");
             return path;
         }
         finally
@@ -370,12 +379,22 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
             return;
         }
 
-        await StopLiveViewCoreAsync(cancellationToken);
-        await CommandRunner.RunAsync(
-            _command,
-            ["--set-config", "viewfinder=1"],
-            TimeSpan.FromSeconds(8),
-            cancellationToken);
+        await StopLiveViewCoreAsync(cancellationToken, disableViewfinder: false);
+        if (!_viewfinderEnabled)
+        {
+            CommandResult viewfinderResult = await CommandRunner.RunAsync(
+                _command,
+                ["--set-config", "viewfinder=1"],
+                TimeSpan.FromSeconds(8),
+                cancellationToken);
+            if (!viewfinderResult.Success)
+            {
+                throw new InvalidOperationException(
+                    CleanError(viewfinderResult, "Canon не включил Live View"));
+            }
+
+            _viewfinderEnabled = true;
+        }
 
         _liveViewError = string.Empty;
         Volatile.Write(ref _latestPreviewFrame, null);
@@ -398,10 +417,15 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         _liveViewPumpTask = PumpLiveViewAsync(
             process,
             _liveViewCancellation.Token);
+        Console.Error.WriteLine(
+            $"{DateTime.Now:O} Canon Live View stream started (PID {process.Id}).");
     }
 
-    private async Task StopLiveViewCoreAsync(CancellationToken cancellationToken)
+    private async Task StopLiveViewCoreAsync(
+        CancellationToken cancellationToken,
+        bool disableViewfinder = true)
     {
+        Stopwatch stopTimer = Stopwatch.StartNew();
         Process? process = _liveViewProcess;
         Task? pumpTask = _liveViewPumpTask;
         _liveViewProcess = null;
@@ -420,7 +444,7 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
                     // receives the same SIGINT as an interactive Ctrl+C.
                     SendSignal(process.Id, SigInt);
                     Task exited = process.WaitForExitAsync();
-                    if (await Task.WhenAny(exited, Task.Delay(5000)) != exited)
+                    if (await Task.WhenAny(exited, Task.Delay(2000)) != exited)
                     {
                         process.Kill(entireProcessTree: true);
                     }
@@ -449,11 +473,25 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
 
         process?.Dispose();
 
-        await CommandRunner.RunAsync(
-            _command,
-            ["--set-config", "viewfinder=0"],
-            TimeSpan.FromSeconds(8),
-            cancellationToken);
+        if (disableViewfinder && _viewfinderEnabled)
+        {
+            CommandResult result = await CommandRunner.RunAsync(
+                _command,
+                ["--set-config", "viewfinder=0"],
+                TimeSpan.FromSeconds(8),
+                cancellationToken);
+            if (result.Success)
+            {
+                _viewfinderEnabled = false;
+            }
+        }
+
+        if (process is not null)
+        {
+            Console.Error.WriteLine(
+                $"{DateTime.Now:O} Canon Live View stream stopped in {stopTimer.ElapsedMilliseconds} ms; " +
+                $"viewfinder disabled: {disableViewfinder}.");
+        }
     }
 
     private async Task PumpLiveViewAsync(
@@ -465,6 +503,8 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         using MemoryStream frame = new();
         bool inFrame = false;
         byte previous = 0;
+        int frameCount = 0;
+        Stopwatch frameRateTimer = Stopwatch.StartNew();
 
         try
         {
@@ -478,6 +518,7 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
                     break;
                 }
 
+                int segmentStart = 0;
                 for (int index = 0; index < count; index++)
                 {
                     byte current = buffer[index];
@@ -489,28 +530,44 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
                             frame.WriteByte(0xFF);
                             frame.WriteByte(0xD8);
                             inFrame = true;
+                            segmentStart = index + 1;
                         }
                     }
-                    else
+                    else if (previous == 0xFF && current == 0xD9)
                     {
-                        frame.WriteByte(current);
-                        if (previous == 0xFF && current == 0xD9)
+                        if (index >= segmentStart)
                         {
-                            Volatile.Write(
-                                ref _latestPreviewFrame,
-                                frame.ToArray());
+                            frame.Write(buffer, segmentStart, index - segmentStart + 1);
+                        }
 
-                            frame.SetLength(0);
-                            inFrame = false;
-                        }
-                        else if (frame.Length > 20 * 1024 * 1024)
+                        Volatile.Write(ref _latestPreviewFrame, frame.ToArray());
+                        frameCount++;
+                        if (frameRateTimer.Elapsed >= TimeSpan.FromSeconds(5))
                         {
-                            frame.SetLength(0);
-                            inFrame = false;
+                            double framesPerSecond = frameCount / frameRateTimer.Elapsed.TotalSeconds;
+                            Console.Error.WriteLine(
+                                $"{DateTime.Now:O} Canon Live View: {framesPerSecond:F1} FPS.");
+                            frameCount = 0;
+                            frameRateTimer.Restart();
                         }
+
+                        frame.SetLength(0);
+                        inFrame = false;
+                        segmentStart = index + 1;
                     }
 
                     previous = current;
+                }
+
+                if (inFrame && segmentStart < count)
+                {
+                    frame.Write(buffer, segmentStart, count - segmentStart);
+                }
+
+                if (frame.Length > 20 * 1024 * 1024)
+                {
+                    frame.SetLength(0);
+                    inFrame = false;
                 }
             }
         }

@@ -10,6 +10,8 @@ lpadmin_command="/usr/sbin/lpadmin"
 cupsenable_command="/usr/sbin/cupsenable"
 cupsaccept_command="/usr/sbin/cupsaccept"
 dye_backend="/usr/lib/cups/backend/gutenprint53+usb"
+driver_helper="/usr/lib/cups/driver/gutenprint.5.3"
+driver_name="gutenprint.5.3://dnp-dsrx1/expert"
 exec >>"$log_file" 2>&1
 exec 9>"$lock_file"
 if ! flock -w 40 9; then
@@ -75,16 +77,12 @@ if [[ "$printer_uri" != gutenprint*+usb://* ]]; then
   echo "Warning: special Gutenprint dye-sub backend was not advertised; using $printer_uri"
 fi
 
-driver_name="$(
-  "$lpinfo_command" -m 2>/dev/null |
-    awk 'tolower($0) ~ /(ds-?rx1|dsrx1|dnprx1)/ {print $1; exit}'
-)"
-
-if [[ -z "$driver_name" ]]; then
-  echo "DNP DS-RX1 was detected, but its Gutenprint driver is unavailable." >&2
-  "$lpinfo_command" -m | grep -Ei 'dnp|rx1' || true
+if [[ ! -x "$driver_helper" ]]; then
+  echo "DNP DS-RX1 was detected, but $driver_helper is unavailable." >&2
   exit 0
 fi
+
+echo "Using Gutenprint driver: $driver_name"
 
 configured_uri="$(
   lpstat -v "$queue_name" 2>/dev/null |
@@ -92,12 +90,17 @@ configured_uri="$(
 )"
 
 if [[ "$configured_uri" != "$printer_uri" ]]; then
-  "$lpadmin_command" -p "$queue_name" -E -v "$printer_uri" -m "$driver_name"
+  if ! timeout 35 "$lpadmin_command" \
+      -p "$queue_name" -E -v "$printer_uri" -m "$driver_name"; then
+    echo "CUPS failed to create queue $queue_name with the RX1 Gutenprint driver." >&2
+    timeout 15 "$lpinfo_command" -m 2>&1 | grep -Ei 'dnp|rx1' || true
+    exit 0
+  fi
 fi
 
-"$lpadmin_command" -d "$queue_name"
-"$cupsenable_command" "$queue_name"
-"$cupsaccept_command" "$queue_name"
+timeout 10 "$lpadmin_command" -d "$queue_name"
+timeout 10 "$cupsenable_command" "$queue_name"
+timeout 10 "$cupsaccept_command" "$queue_name"
 
 echo "Printer queue $queue_name is ready at $printer_uri."
 lpstat -p "$queue_name" -l

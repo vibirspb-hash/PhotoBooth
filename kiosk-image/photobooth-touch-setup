@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -u
+export LC_ALL=C
 
 device_name="HID 1aad:0001"
 log_file="${PHOTOBOOTH_DATA_ROOT:-/tmp}/Diagnostics/touchscreen.log"
@@ -28,6 +29,7 @@ xinput set-mode "$device_id" ABSOLUTE || true
 
 data_root="${PHOTOBOOTH_DATA_ROOT:-/media/$USER/PHOTOBOOTH}"
 saved_calibration="$data_root/Diagnostics/99-keetouch-calibration.conf"
+saved_properties="$data_root/Diagnostics/touch-runtime-properties.txt"
 if [[ -f "$saved_calibration" ]]; then
   calibration_values="$(
     sed -n 's/.*Option[[:space:]]*"Calibration"[[:space:]]*"\([^"]*\)".*/\1/p' \
@@ -39,6 +41,30 @@ if [[ -f "$saved_calibration" ]]; then
       "$min_x" "$max_x" "$min_y" "$max_y" || true
     echo "Restored saved KeeTouch calibration: $calibration_values"
   fi
+fi
+
+restore_property() {
+  local property_name="$1"
+  local expected_count="$2"
+  local raw_values normalized_values
+  local -a values
+
+  raw_values="$(
+    sed -n "s/^[[:space:]]*${property_name} ([0-9][0-9]*):[[:space:]]*//p" \
+      "$saved_properties" | head -n 1
+  )"
+  normalized_values="${raw_values//,/ }"
+  read -r -a values <<< "$normalized_values"
+  if (( ${#values[@]} == expected_count )); then
+    xinput set-prop "$device_id" "$property_name" "${values[@]}" || true
+    echo "Restored $property_name: ${values[*]}"
+  fi
+}
+
+if [[ -f "$saved_properties" ]]; then
+  restore_property "Evdev Axis Calibration" 4
+  restore_property "libinput Calibration Matrix" 9
+  restore_property "Coordinate Transformation Matrix" 9
 fi
 
 xinput list-props "$device_id" || true

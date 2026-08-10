@@ -302,7 +302,7 @@ public sealed partial class MainWindow : Window
         _finalPreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(650), FinalPreviewTimer_OnTick);
         _printProgressTimer = CreateTimer(TimeSpan.FromMilliseconds(90), PrintProgressTimer_OnTick);
         _printCompletionTimer = CreateTimer(TimeSpan.FromMilliseconds(1200), PrintCompletionTimer_OnTick);
-        _livePreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(80), LivePreviewTimer_OnTick);
+        _livePreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(50), LivePreviewTimer_OnTick);
         _scheduleTimer = CreateTimer(TimeSpan.FromSeconds(15), ScheduleTimer_OnTick);
 
         _config = _configService.Load();
@@ -952,7 +952,8 @@ public sealed partial class MainWindow : Window
             if (frame is not null &&
                 !ReferenceEquals(frame, _lastLivePreviewFrame))
             {
-                SetLivePreview(frame);
+                Bitmap bitmap = await Task.Run(() => LoadBitmap(frame));
+                SetLivePreview(bitmap);
                 _lastLivePreviewFrame = frame;
             }
         }
@@ -2586,7 +2587,11 @@ public sealed partial class MainWindow : Window
 
     private void SetLivePreview(string path)
     {
-        Bitmap bitmap = LoadBitmap(path);
+        SetLivePreview(LoadBitmap(path));
+    }
+
+    private void SetLivePreview(Bitmap bitmap)
+    {
         if (_livePreviewImage.Source is IDisposable previous)
         {
             previous.Dispose();
@@ -2595,16 +2600,10 @@ public sealed partial class MainWindow : Window
         _livePreviewImage.Source = bitmap;
     }
 
-    private void SetLivePreview(byte[] bytes)
+    private static Bitmap LoadBitmap(byte[] bytes)
     {
         using MemoryStream stream = new(bytes, writable: false);
-        Bitmap bitmap = new(stream);
-        if (_livePreviewImage.Source is IDisposable previous)
-        {
-            previous.Dispose();
-        }
-
-        _livePreviewImage.Source = bitmap;
+        return new Bitmap(stream);
     }
 
     private static Bitmap LoadBitmap(string path)
