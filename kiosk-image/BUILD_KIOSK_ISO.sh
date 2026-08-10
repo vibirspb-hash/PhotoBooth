@@ -99,6 +99,24 @@ mkdir -p config/hooks/live
 cat > config/hooks/live/010-photobooth-kiosk.hook.chroot <<'HOOK'
 #!/bin/sh
 set -eu
+driver_helper=/usr/lib/cups/driver/gutenprint.5.3
+driver_uri=gutenprint.5.3://dnp-dsrx1/expert
+ppd_dir=/usr/share/ppd/photobooth
+ppd_file=$ppd_dir/DNP-DSRX1.ppd
+ppd_tmp=$ppd_file.tmp
+
+mkdir -p "$ppd_dir"
+if ! timeout 60 "$driver_helper" cat "$driver_uri" > "$ppd_tmp"; then
+  echo "Unable to generate the DNP DS-RX1 Gutenprint PPD." >&2
+  exit 1
+fi
+if ! cupstestppd -q "$ppd_tmp"; then
+  echo "Generated DNP DS-RX1 PPD is invalid." >&2
+  exit 1
+fi
+mv "$ppd_tmp" "$ppd_file"
+chmod 644 "$ppd_file"
+
 chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
 chmod +x /usr/local/sbin/photobooth-first-boot
 chmod +x /usr/local/sbin/photobooth-printer-setup
