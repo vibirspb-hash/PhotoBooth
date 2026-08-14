@@ -27,6 +27,14 @@ if mountpoint -q "$data_root"; then
   export PHOTOBOOTH_DATA_ROOT="$data_root"
 fi
 
+# Never start the kiosk over a partially installed offline update. The boot
+# update service normally recovers it before Openbox reaches this script.
+if [[ -f "$data_root/Updates/current/transaction.json" ]]; then
+  printf '%s PhotoBooth start blocked: interrupted update requires recovery.\n' \
+    "$(date --iso-8601=seconds)" >>"$data_root/Diagnostics/update-blocked.log"
+  exit 75
+fi
+
 # Attach and restore the touchscreen before the UI starts. Printer setup is
 # repeated in the background because USB may become ready after systemd boot.
 /usr/local/bin/photobooth-touch-setup || true

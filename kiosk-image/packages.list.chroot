@@ -21,6 +21,7 @@ xserver-xorg-input-libinput
 fonts-dejavu-core
 fonts-liberation
 libicu76
+jq
 locales
 network-manager
 parted

@@ -1,0 +1,1012 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+export LC_ALL=C
+export LANG=C
+
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+if [[ -n "${PHOTOBOOTH_UPDATE_TEST_PATH:-}" ]]; then
+  export PATH="$PHOTOBOOTH_UPDATE_TEST_PATH:$PATH"
+fi
+
+readonly marker_signature="PHOTOBOOTH_OFFLINE_UPDATE_VOLUME_V1"
+readonly format_version="1"
+data_root="${PHOTOBOOTH_DATA_ROOT:-/media/user/PHOTOBOOTH}"
+updates_root="$data_root/Updates"
+incoming_dir="$updates_root/incoming"
+installed_dir="$updates_root/installed"
+backups_dir="$updates_root/backups"
+logs_dir="$updates_root/logs"
+state_dir="$updates_root/current"
+current_version_file="$updates_root/current-version.txt"
+known_good_file="$updates_root/known-good-version.txt"
+last_status_file="$state_dir/last-status.txt"
+transaction_file="$state_dir/transaction.json"
+runtime_inventory_file="$state_dir/runtime-files.json"
+base_version_file="${PHOTOBOOTH_BASE_VERSION_FILE:-/usr/share/photobooth/base-version.txt}"
+install_root="${PHOTOBOOTH_UPDATE_INSTALL_ROOT:-}"
+lock_file="${PHOTOBOOTH_UPDATE_LOCK_FILE:-/run/lock/photobooth-update.lock}"
+temporary_root=""
+active_log=""
+transaction_active=false
+transaction_backup=""
+transaction_previous=""
+transaction_target=""
+transaction_patch=""
+transaction_installed_patch=""
+transaction_patch_sidecar=""
+transaction_installed_sidecar=""
+
+cleanup() {
+  if [[ -n "$temporary_root" && -d "$temporary_root" ]]; then
+    rm -rf -- "$temporary_root"
+  fi
+}
+trap cleanup EXIT
+
+transaction_error() {
+  local exit_code="$1"
+  if [[ "$transaction_active" == "true" ]]; then
+    local recovered=true
+    transaction_active=false
+    set +e
+    echo "[ERROR] Update transaction failed with exit code $exit_code. Restoring backup." >&2
+    if [[ -n "$transaction_installed_patch" && -f "$transaction_installed_patch" &&
+          -n "$transaction_patch" && ! -f "$transaction_patch" ]]; then
+      mv -f "$transaction_installed_patch" "$transaction_patch" || recovered=false
+    fi
+    if [[ -n "$transaction_installed_sidecar" && -f "$transaction_installed_sidecar" &&
+          -n "$transaction_patch_sidecar" && ! -f "$transaction_patch_sidecar" ]]; then
+      mv -f "$transaction_installed_sidecar" "$transaction_patch_sidecar" || recovered=false
+    fi
+    restore_backup "$transaction_backup" no || recovered=false
+    if [[ "$recovered" == "true" ]]; then
+      if jq -e 'any(.files[]; .destination | startswith("/etc/systemd/system/"))' \
+          "$transaction_backup/backup-manifest.json" >/dev/null 2>&1 &&
+          [[ -z "$install_root" ]]; then
+        systemctl daemon-reload || recovered=false
+      fi
+      refresh_runtime_inventory || recovered=false
+      atomic_write "$current_version_file" "$transaction_previous" || recovered=false
+    fi
+    if [[ "$recovered" == "true" ]]; then
+      rm -f -- "$transaction_file"
+      sync
+      set_last_status \
+        "FAILED_ROLLED_BACK target=$transaction_target backup=$transaction_backup exit=$exit_code"
+      echo "[OK] Previous files and version were restored." >&2
+    else
+      set_last_status \
+        "RECOVERY_REQUIRED target=$transaction_target backup=$transaction_backup exit=$exit_code"
+      echo "[ERROR] Automatic rollback failed. Transaction journal was kept." >&2
+      exit_code=70
+    fi
+  fi
+  exit "$exit_code"
+}
+trap 'transaction_error $?' ERR
+
+usage() {
+  cat <<'EOF'
+Usage:
+  photobooth-update --status
+  photobooth-update --boot-check
+  photobooth-update --dry-run PATCH.tar.gz
+  photobooth-update --install PATCH.tar.gz
+  photobooth-update --install-pending
+  photobooth-update --rollback
+  photobooth-update --rollback-known-good
+  photobooth-update --mark-known-good
+EOF
+}
+
+fail() {
+  echo "[ERROR] $*" >&2
+  return 1
+}
+
+info() {
+  echo "[INFO] $*"
+}
+
+ok() {
+  echo "[OK] $*"
+}
+
+atomic_write() {
+  local target="$1"
+  local value="$2"
+  local target_dir temporary
+  target_dir="$(dirname "$target")"
+  mkdir -p "$target_dir"
+  temporary="$(mktemp "$target_dir/.photobooth-update.XXXXXX")"
+  printf '%s\n' "$value" >"$temporary"
+  chmod 0644 "$temporary" || true
+  mv -f "$temporary" "$target"
+}
+
+write_transaction_journal() {
+  local backup_id patch_name temporary
+  backup_id="$(basename "$transaction_backup")"
+  patch_name="$(basename "$transaction_patch")"
+  temporary="$(mktemp "$state_dir/.transaction.XXXXXX")"
+  jq -n \
+    --arg backup_id "$backup_id" \
+    --arg from_version "$transaction_previous" \
+    --arg target_version "$transaction_target" \
+    --arg patch_name "$patch_name" \
+    --arg started_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '{format_version: 1, state: "installing", backup_id: $backup_id,
+      from_version: $from_version, target_version: $target_version,
+      patch_name: $patch_name, started_at: $started_at}' >"$temporary"
+  mv -f "$temporary" "$transaction_file"
+  sync
+}
+
+read_first_line() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    head -n 1 "$file" | tr -d '\r\n'
+  fi
+}
+
+file_mode() {
+  stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1"
+}
+
+file_uid() {
+  stat -c '%u' "$1" 2>/dev/null || stat -f '%u' "$1"
+}
+
+file_gid() {
+  stat -c '%g' "$1" 2>/dev/null || stat -f '%g' "$1"
+}
+
+is_mutable_application_path() {
+  case "$1" in
+    /opt/photobooth/config.json|\
+    /opt/photobooth/Templates|/opt/photobooth/Templates/*|\
+    /opt/photobooth/Output|/opt/photobooth/Output/*|\
+    /opt/photobooth/logs|/opt/photobooth/logs/*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+refresh_runtime_inventory() {
+  local app_root resolved destination checksum mode entries temporary
+  app_root="$(resolve_destination /opt/photobooth)"
+  entries="$(mktemp /tmp/photobooth-runtime-files.XXXXXX)" || return 1
+  : >"$entries"
+  if [[ -d "$app_root" ]]; then
+    while IFS= read -r -d '' resolved; do
+      destination="/opt/photobooth/${resolved#"$app_root/"}"
+      is_mutable_application_path "$destination" && continue
+      checksum="$(sha256sum "$resolved" | awk '{print $1}')" || return 1
+      mode="0$(file_mode "$resolved")" || return 1
+      printf '%s\t%s\t%s\n' "$destination" "$checksum" "$mode" >>"$entries"
+    done < <(find "$app_root" -type f -print0)
+  fi
+  temporary="$(mktemp "$state_dir/.runtime-files.XXXXXX")" || return 1
+  jq -Rn \
+    '[inputs | split("\t") |
+      {destination: .[0], sha256: .[1], mode: .[2]}]' \
+    <"$entries" >"$temporary" || return 1
+  rm -f -- "$entries"
+  mv -f "$temporary" "$runtime_inventory_file" || return 1
+}
+
+base_version() {
+  read_first_line "$base_version_file"
+}
+
+current_version() {
+  read_first_line "$current_version_file"
+}
+
+known_good_version() {
+  read_first_line "$known_good_file"
+}
+
+is_full_sha() {
+  [[ "${1:-}" =~ ^[0-9a-f]{40}$ ]]
+}
+
+require_commands() {
+  local command_name
+  for command_name in jq tar sha256sum install stat flock; do
+    command -v "$command_name" >/dev/null 2>&1 ||
+      fail "Required command is missing: $command_name" || return 1
+  done
+}
+
+require_root() {
+  if [[ "$EUID" -ne 0 && -z "$install_root" ]]; then
+    fail "Run this command with sudo." || return 1
+  fi
+}
+
+require_data_volume() {
+  if [[ ! -d "$data_root" ]]; then
+    fail "PHOTOBOOTH data volume was not found at $data_root" || return 1
+  fi
+  if [[ -z "${PHOTOBOOTH_UPDATE_ALLOW_UNMOUNTED:-}" ]] &&
+      ! mountpoint -q "$data_root"; then
+    fail "$data_root is not a mounted PHOTOBOOTH volume." || return 1
+  fi
+}
+
+initialize_layout() {
+  require_data_volume
+  mkdir -p "$incoming_dir" "$installed_dir" "$backups_dir" \
+    "$logs_dir" "$state_dir"
+
+  if [[ ! -f "$data_root/.photobooth-volume" ]]; then
+    local volume_id
+    volume_id="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || date +%s)"
+    atomic_write "$data_root/.photobooth-volume" \
+      "$marker_signature
+volume_id=$volume_id"
+  fi
+
+  local marker
+  marker="$(read_first_line "$data_root/.photobooth-volume")"
+  [[ "$marker" == "$marker_signature" ]] ||
+    fail "Invalid PHOTOBOOTH volume marker." || return 1
+
+  if [[ ! -s "$current_version_file" ]]; then
+    local base
+    base="$(base_version)"
+    is_full_sha "$base" ||
+      fail "Base image version is missing or invalid." || return 1
+    atomic_write "$current_version_file" "$base"
+  fi
+}
+
+start_log() {
+  local action="$1"
+  local timestamp
+  timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  active_log="$logs_dir/${timestamp}-${action}.log"
+  touch "$active_log"
+  chmod 0644 "$active_log" || true
+  if [[ -z "${PHOTOBOOTH_UPDATE_TEST_NO_TEE:-}" ]]; then
+    exec > >(tee -a "$active_log") 2>&1
+  fi
+  info "Diagnostic log: $active_log"
+}
+
+set_last_status() {
+  local status="$1"
+  atomic_write "$last_status_file" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ) $status"
+}
+
+acquire_lock() {
+  mkdir -p "$(dirname "$lock_file")"
+  exec 9>"$lock_file"
+  flock -n 9 || fail "Another PhotoBooth update operation is running." || return 1
+}
+
+resolve_destination() {
+  local destination="$1"
+  printf '%s%s\n' "$install_root" "$destination"
+}
+
+ensure_safe_parent() {
+  local resolved="$1"
+  local boundary probe next
+  boundary="${install_root:-/}"
+  probe="$(dirname "$resolved")"
+  while true; do
+    [[ ! -L "$probe" ]] ||
+      fail "Destination parent must not be a symbolic link: $probe" || return 1
+    [[ "$probe" == "$boundary" || "$probe" == "/" ]] && break
+    next="$(dirname "$probe")"
+    [[ "$next" != "$probe" ]] ||
+      fail "Unable to validate destination parent: $resolved" || return 1
+    probe="$next"
+  done
+}
+
+destination_metadata() {
+  local destination="$1"
+  local declared_mode="$2"
+  EXPECTED_OWNER=""
+  EXPECTED_GROUP=""
+  EXPECTED_MODE=""
+  EXPECTED_KIND=""
+
+  if [[ "$destination" == /opt/photobooth/* ]]; then
+    [[ "$destination" != *'/../'* && "$destination" != *'/..' ]]
+    [[ "$declared_mode" == "0644" || "$declared_mode" == "0755" ]]
+    EXPECTED_OWNER="user"
+    EXPECTED_GROUP="user"
+    EXPECTED_MODE="$declared_mode"
+    EXPECTED_KIND="application"
+    return 0
+  fi
+
+  case "$destination" in
+    /usr/local/bin/photobooth-touch-setup|\
+    /usr/local/bin/photobooth-touch-calibrate|\
+    /usr/local/bin/photobooth-hardware-diagnostics|\
+    /usr/local/sbin/photobooth-printer-setup|\
+    /usr/local/sbin/photobooth-install-touch-calibration|\
+    /usr/local/sbin/test-dnp-print|\
+    /usr/local/sbin/photobooth-schedule-poweroff|\
+    /usr/local/sbin/photobooth-set-time|\
+    /usr/local/sbin/photobooth-update)
+      EXPECTED_OWNER="root"
+      EXPECTED_GROUP="root"
+      EXPECTED_MODE="0755"
+      EXPECTED_KIND="shell"
+      ;;
+    /etc/X11/xorg.conf.d/99-keetouch-calibration.conf)
+      EXPECTED_OWNER="root"
+      EXPECTED_GROUP="root"
+      EXPECTED_MODE="0644"
+      EXPECTED_KIND="config"
+      ;;
+    /etc/systemd/system/photobooth-printer-setup.service|\
+    /etc/systemd/system/photobooth-update-check.service)
+      EXPECTED_OWNER="root"
+      EXPECTED_GROUP="root"
+      EXPECTED_MODE="0644"
+      EXPECTED_KIND="systemd"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  [[ "$declared_mode" == "$EXPECTED_MODE" ]]
+}
+
+destination_is_whitelisted() {
+  local destination="$1"
+  destination_metadata "$destination" "0644" >/dev/null 2>&1 ||
+    destination_metadata "$destination" "0755" >/dev/null 2>&1
+}
+
+validate_archive_paths() {
+  local patch="$1"
+  local entry archive_list
+  archive_list="$(mktemp /tmp/photobooth-archive-list.XXXXXX)"
+  if ! tar -tzf "$patch" >"$archive_list"; then
+    rm -f -- "$archive_list"
+    fail "Patch is not a readable tar.gz archive." || return 1
+  fi
+  while IFS= read -r entry; do
+    [[ -n "$entry" ]] || continue
+    if [[ "$entry" == /* || "$entry" == ".." ||
+          "$entry" == ../* || "$entry" == */../* || "$entry" == */.. ]]; then
+      rm -f -- "$archive_list"
+      fail "Unsafe archive path: $entry" || return 1
+    fi
+    case "$entry" in
+      manifest.json|files|files/*) ;;
+      *)
+        rm -f -- "$archive_list"
+        fail "Unexpected archive entry: $entry" || return 1
+        ;;
+    esac
+  done <"$archive_list"
+  rm -f -- "$archive_list"
+}
+
+extract_and_validate_patch() {
+  local patch="$1"
+  local enforce_version="${2:-yes}"
+
+  require_commands || return 1
+  [[ -f "$patch" ]] || fail "Patch does not exist: $patch" || return 1
+  if [[ -f "$patch.sha256" ]]; then
+    local expected_patch_checksum actual_patch_checksum
+    expected_patch_checksum="$(awk 'NR == 1 {print $1}' "$patch.sha256")"
+    actual_patch_checksum="$(sha256sum "$patch" | awk '{print $1}')"
+    [[ "$expected_patch_checksum" =~ ^[0-9a-f]{64}$ &&
+       "$expected_patch_checksum" == "$actual_patch_checksum" ]] ||
+      fail "Patch package checksum does not match its sidecar file." || return 1
+  fi
+  validate_archive_paths "$patch" || return 1
+
+  temporary_root="$(mktemp -d /tmp/photobooth-update.XXXXXX)" || return 1
+  tar --no-same-owner --no-same-permissions -xzf "$patch" -C "$temporary_root" ||
+    fail "Patch extraction failed." || return 1
+  [[ -f "$temporary_root/manifest.json" ]] ||
+    fail "manifest.json is missing." || return 1
+  if find "$temporary_root" -type l -print -quit | grep -q .; then
+    fail "Patch must not contain symbolic links." || return 1
+  fi
+  if find "$temporary_root" ! -type f ! -type d -print -quit | grep -q .; then
+    fail "Patch contains unsupported filesystem objects." || return 1
+  fi
+
+  local manifest="$temporary_root/manifest.json"
+  jq -e \
+    '.format_version == 1 and
+     (.patch_version | type == "string" and length > 0) and
+     (.git_commit | test("^[0-9a-f]{40}$")) and
+     (.patch_version == .git_commit[0:8]) and
+     (.created_at | type == "string" and length > 0) and
+     (.expected_previous_version | test("^[0-9a-f]{40}$")) and
+     (.restart_required | type == "boolean") and
+     (.reboot_required | type == "boolean") and
+     (.components | type == "array" and length > 0) and
+     (.files | type == "array" and length > 0) and
+     all(.files[];
+       (.source | type == "string" and test("^files/[A-Za-z0-9._/-]+$")) and
+       (.destination | type == "string" and
+         test("^/[A-Za-z0-9._+/-]+$") and
+         (contains("//") | not) and
+         (contains("..") | not)) and
+       (.type | IN("file", "shell", "systemd")) and
+       (.sha256 | test("^[0-9a-f]{64}$")) and
+       (.mode | IN("0644", "0755")) and
+       (.owner | IN("root", "user")) and
+       (.group | IN("root", "user")))' \
+    "$manifest" >/dev/null || fail "Manifest schema validation failed." || return 1
+
+  local duplicate
+  duplicate="$(jq -r '.files[].destination' "$manifest" | sort | uniq -d | head -n 1)"
+  [[ -z "$duplicate" ]] ||
+    fail "Duplicate destination in manifest: $duplicate" || return 1
+
+  local manifest_format target expected current
+  manifest_format="$(jq -r '.format_version' "$manifest")"
+  [[ "$manifest_format" == "$format_version" ]] ||
+    fail "Unsupported patch format: $manifest_format" || return 1
+  target="$(jq -r '.git_commit' "$manifest")"
+  expected="$(jq -r '.expected_previous_version' "$manifest")"
+  current="$(current_version)"
+  if [[ "$enforce_version" == "yes" && "$expected" != "$current" ]]; then
+    fail "Patch expects $expected, but current version is $current" || return 1
+  fi
+  [[ "$target" != "$expected" ]] ||
+    fail "Patch target is identical to its expected version." || return 1
+
+  local source destination type checksum mode owner group payload actual_checksum
+  while IFS=$'\t' read -r source destination type checksum mode owner group; do
+    [[ "$source" != *'..'* && "$source" =~ ^files/[A-Za-z0-9._/-]+$ ]] ||
+      fail "Unsafe payload source: $source" || return 1
+    payload="$temporary_root/$source"
+    [[ -f "$payload" && ! -L "$payload" ]] ||
+      fail "Payload file is missing: $source" || return 1
+    destination_metadata "$destination" "$mode" ||
+      fail "Destination is not whitelisted: $destination" || return 1
+    [[ "$owner" == "$EXPECTED_OWNER" && "$group" == "$EXPECTED_GROUP" &&
+       "$mode" == "$EXPECTED_MODE" ]] ||
+      fail "Unsafe metadata for $destination" || return 1
+    if [[ "$type" == "shell" && "$EXPECTED_KIND" != "shell" ]] ||
+       [[ "$type" == "systemd" && "$EXPECTED_KIND" != "systemd" ]]; then
+      fail "Invalid file type for $destination" || return 1
+    fi
+    actual_checksum="$(sha256sum "$payload" | awk '{print $1}')"
+    [[ "$actual_checksum" == "$checksum" ]] ||
+      fail "Checksum mismatch for $destination" || return 1
+    if [[ "$type" == "shell" ]] ||
+       [[ "$destination" == /opt/photobooth/*.sh ]]; then
+      bash -n "$payload" ||
+        fail "Shell syntax validation failed for $destination" || return 1
+    fi
+  done < <(jq -r '.files[] | [.source,.destination,.type,.sha256,.mode,.owner,.group] | @tsv' "$manifest")
+
+  VALIDATED_MANIFEST="$manifest"
+  VALIDATED_TARGET="$target"
+  VALIDATED_EXPECTED="$expected"
+  VALIDATED_RESTART="$(jq -r '.restart_required' "$manifest")"
+  VALIDATED_REBOOT="$(jq -r '.reboot_required' "$manifest")"
+}
+
+print_dry_run() {
+  local patch="$1"
+  extract_and_validate_patch "$patch" yes
+  echo "Patch valid: YES"
+  echo
+  echo "Current: $(current_version)"
+  echo "Target:  $VALIDATED_TARGET"
+  echo
+  echo "Will change:"
+  jq -r '.files[].destination | "- " + .' "$VALIDATED_MANIFEST"
+  echo
+  echo "Will NOT change:"
+  local component exclusions=0
+  local includes_application=false
+  jq -e 'any(.components[]; . == "Application")' "$VALIDATED_MANIFEST" >/dev/null &&
+    includes_application=true
+  for component in Touchscreen Printer Camera Application; do
+    if [[ "$includes_application" == "true" && "$component" != "Application" ]]; then
+      continue
+    fi
+    if ! jq -e --arg component "$component" \
+        'any(.components[]; . == $component)' "$VALIDATED_MANIFEST" >/dev/null; then
+      echo "- $component"
+      exclusions=$((exclusions + 1))
+    fi
+  done
+  if (( exclusions == 0 )); then
+    echo "- none asserted (Application may contain hardware integrations)"
+  fi
+  echo
+  echo "Components:"
+  jq -r '.components[] | "- " + .' "$VALIDATED_MANIFEST"
+  echo
+  echo "Backup required: YES"
+  echo "Application restart required: $VALIDATED_RESTART"
+  echo "Reboot required: $VALIDATED_REBOOT"
+  echo "No files were changed."
+}
+
+create_backup() {
+  local manifest="$1"
+  local from_version="$2"
+  local target_version="$3"
+  local timestamp backup_prefix backup_id backup_dir backup_manifest
+  timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  backup_prefix="${timestamp}-${from_version:0:8}-before-${target_version:0:8}"
+  backup_dir="$(mktemp -d "$backups_dir/$backup_prefix-XXXXXX")"
+  backup_id="$(basename "$backup_dir")"
+  mkdir -p "$backup_dir/files"
+  backup_manifest="$backup_dir/backup-manifest.json"
+
+  jq -n \
+    --arg format_version "$format_version" \
+    --arg created_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --arg from_version "$from_version" \
+    --arg target_version "$target_version" \
+    '{format_version: ($format_version | tonumber), state: "building", created_at: $created_at,
+      from_version: $from_version, target_version: $target_version, files: []}' \
+    >"$backup_manifest"
+
+  local index destination resolved existed backup_source mode uid gid checksum temporary_manifest
+  index=0
+  while IFS= read -r destination; do
+    index=$((index + 1))
+    resolved="$(resolve_destination "$destination")"
+    backup_source="files/$(printf '%04d' "$index")"
+    existed=false
+    mode=""
+    uid=""
+    gid=""
+    checksum=""
+    if [[ -f "$resolved" && ! -L "$resolved" ]]; then
+      existed=true
+      cp -- "$resolved" "$backup_dir/$backup_source"
+      mode="$(file_mode "$resolved")"
+      uid="$(file_uid "$resolved")"
+      gid="$(file_gid "$resolved")"
+      checksum="$(sha256sum "$backup_dir/$backup_source" | awk '{print $1}')"
+    elif [[ -e "$resolved" || -L "$resolved" ]]; then
+      fail "Cannot back up unsupported destination: $destination" || return 1
+    fi
+
+    temporary_manifest="$(mktemp "$backup_dir/.backup-manifest.XXXXXX")"
+    jq \
+      --arg destination "$destination" \
+      --arg source "$backup_source" \
+      --argjson existed "$existed" \
+      --arg mode "$mode" --arg uid "$uid" --arg gid "$gid" \
+      --arg sha256 "$checksum" \
+      '.files += [{destination: $destination, source: $source,
+        existed: $existed, mode: $mode, uid: $uid, gid: $gid, sha256: $sha256}]' \
+      "$backup_manifest" >"$temporary_manifest"
+    mv -f "$temporary_manifest" "$backup_manifest"
+  done < <(jq -r '.files[].destination' "$manifest")
+
+  temporary_manifest="$(mktemp "$backup_dir/.backup-manifest.XXXXXX")"
+  jq '.state = "complete"' "$backup_manifest" >"$temporary_manifest"
+  mv -f "$temporary_manifest" "$backup_manifest"
+  sync
+
+  BACKUP_DIR="$backup_dir"
+  ok "Backup created: $backup_dir"
+}
+
+restore_backup() {
+  local backup_dir="$1"
+  local update_version="${2:-yes}"
+  local manifest="$backup_dir/backup-manifest.json"
+  [[ -f "$manifest" ]] || fail "Backup manifest is missing: $backup_dir" || return 1
+  jq -e \
+    '.state == "complete" and
+     (.from_version | test("^[0-9a-f]{40}$")) and
+     (.target_version | test("^[0-9a-f]{40}$")) and
+     (.files | type == "array" and length > 0)' \
+    "$manifest" >/dev/null || fail "Backup manifest is invalid." || return 1
+  local duplicate
+  duplicate="$(jq -r '.files[].destination' "$manifest" | sort | uniq -d | head -n 1)"
+  [[ -z "$duplicate" ]] ||
+    fail "Duplicate destination in backup manifest: $duplicate" || return 1
+
+  local destination source existed mode uid gid checksum backup_file resolved parent temporary actual
+  while IFS=$'\t' read -r destination source existed mode uid gid checksum; do
+    destination_is_whitelisted "$destination" ||
+      fail "Backup destination is not whitelisted: $destination" || return 1
+    [[ "$source" =~ ^files/[0-9]{4}$ ]] ||
+      fail "Unsafe backup source for $destination" || return 1
+    [[ "$existed" == "true" || "$existed" == "false" ]] ||
+      fail "Invalid backup state for $destination" || return 1
+    if [[ "$existed" == "true" ]]; then
+      [[ "$mode" =~ ^0?[0-7]{3}$ && "$uid" =~ ^[0-9]+$ &&
+         "$gid" =~ ^[0-9]+$ && "$checksum" =~ ^[0-9a-f]{64}$ ]] ||
+        fail "Invalid backup metadata for $destination" || return 1
+      backup_file="$backup_dir/$source"
+      [[ -f "$backup_file" && ! -L "$backup_file" ]] ||
+        fail "Backup payload is missing for $destination" || return 1
+      actual="$(sha256sum "$backup_file" | awk '{print $1}')"
+      [[ "$actual" == "$checksum" ]] ||
+        fail "Backup checksum mismatch for $destination" || return 1
+    fi
+  done < <(jq -r '.files[] | [.destination,.source,(.existed|tostring),.mode,.uid,.gid,.sha256] | @tsv' "$manifest")
+
+  while IFS=$'\t' read -r destination source existed mode uid gid checksum; do
+    resolved="$(resolve_destination "$destination")"
+    ensure_safe_parent "$resolved" || return 1
+    if [[ "$existed" == "true" ]]; then
+      backup_file="$backup_dir/$source"
+      parent="$(dirname "$resolved")"
+      install -d -m 0755 "$parent" || return 1
+      temporary="$(mktemp "$parent/.photobooth-rollback.XXXXXX")" || return 1
+      install -m "$mode" "$backup_file" "$temporary" || return 1
+      if [[ -z "$install_root" ]]; then
+        chown "$uid:$gid" "$temporary" || return 1
+      fi
+      mv -f "$temporary" "$resolved" || return 1
+    else
+      rm -f -- "$resolved" || return 1
+    fi
+  done < <(jq -r '.files[] | [.destination,.source,(.existed|tostring),.mode,.uid,.gid,.sha256] | @tsv' "$manifest")
+
+  if [[ "$update_version" == "yes" ]]; then
+    atomic_write "$current_version_file" "$(jq -r '.from_version' "$manifest")" ||
+      return 1
+  fi
+}
+
+recover_interrupted_transaction() {
+  [[ -f "$transaction_file" ]] || return 0
+  info "Interrupted update transaction found. Restoring its backup before continuing."
+  jq -e \
+    '.format_version == 1 and .state == "installing" and
+     (.backup_id | test("^[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}-before-[0-9a-f]{8}-[A-Za-z0-9]+$")) and
+     (.from_version | test("^[0-9a-f]{40}$")) and
+     (.target_version | test("^[0-9a-f]{40}$")) and
+     (.patch_name | test("^PhotoBooth-Patch-[A-Za-z0-9._-]+\\.tar\\.gz$"))' \
+    "$transaction_file" >/dev/null ||
+    fail "Interrupted transaction journal is invalid; refusing to start PhotoBooth." || return 1
+
+  local backup_id backup_dir from_version target_version patch_name
+  local incoming_patch installed_patch
+  backup_id="$(jq -r '.backup_id' "$transaction_file")"
+  from_version="$(jq -r '.from_version' "$transaction_file")"
+  target_version="$(jq -r '.target_version' "$transaction_file")"
+  patch_name="$(jq -r '.patch_name' "$transaction_file")"
+  backup_dir="$backups_dir/$backup_id"
+  incoming_patch="$incoming_dir/$patch_name"
+  installed_patch="$installed_dir/$patch_name"
+
+  [[ -d "$backup_dir" ]] ||
+    fail "Interrupted transaction backup is missing: $backup_dir" || return 1
+  [[ "$(jq -r '.from_version' "$backup_dir/backup-manifest.json")" == "$from_version" &&
+     "$(jq -r '.target_version' "$backup_dir/backup-manifest.json")" == "$target_version" ]] ||
+    fail "Interrupted transaction does not match its backup manifest." || return 1
+  restore_backup "$backup_dir" no || return 1
+  atomic_write "$current_version_file" "$from_version" || return 1
+  if [[ -f "$installed_patch" && ! -f "$incoming_patch" ]]; then
+    mv -f "$installed_patch" "$incoming_patch" || return 1
+  fi
+  if [[ -f "$installed_patch.sha256" && ! -f "$incoming_patch.sha256" ]]; then
+    mv -f "$installed_patch.sha256" "$incoming_patch.sha256" || return 1
+  fi
+  if jq -e 'any(.files[]; .destination | startswith("/etc/systemd/system/"))' \
+      "$backup_dir/backup-manifest.json" >/dev/null && [[ -z "$install_root" ]]; then
+    systemctl daemon-reload || return 1
+  fi
+  refresh_runtime_inventory || return 1
+  rm -f -- "$transaction_file" || return 1
+  sync || return 1
+  set_last_status \
+    "INTERRUPTED_UPDATE_RECOVERED from=$target_version current=$from_version backup=$backup_dir"
+  ok "Interrupted update was rolled back to $from_version"
+}
+
+install_patch() {
+  local patch="$1"
+  require_root
+  initialize_layout
+  acquire_lock
+  start_log "install"
+  recover_interrupted_transaction
+  info "Validating patch: $patch"
+  extract_and_validate_patch "$patch" yes
+  ok "Manifest, whitelist, checksums and shell syntax are valid."
+
+  local current
+  current="$(current_version)"
+  create_backup "$VALIDATED_MANIFEST" "$current" "$VALIDATED_TARGET"
+  transaction_active=true
+  transaction_backup="$BACKUP_DIR"
+  transaction_previous="$current"
+  transaction_target="$VALIDATED_TARGET"
+  transaction_patch="$patch"
+  transaction_patch_sidecar="$patch.sha256"
+  write_transaction_journal
+
+  local stage_dir="$temporary_root/staged"
+  mkdir -p "$stage_dir"
+  local index source destination type mode owner group payload staged resolved parent temporary
+  index=0
+  while IFS=$'\t' read -r source destination type mode owner group; do
+    index=$((index + 1))
+    payload="$temporary_root/$source"
+    staged="$stage_dir/$(printf '%04d' "$index")"
+    install -m "$mode" "$payload" "$staged"
+    if [[ -z "$install_root" ]]; then
+      chown "$owner:$group" "$staged"
+    fi
+  done < <(jq -r '.files[] | [.source,.destination,.type,.mode,.owner,.group] | @tsv' "$VALIDATED_MANIFEST")
+
+  index=0
+  while IFS=$'\t' read -r source destination type mode owner group; do
+    index=$((index + 1))
+    staged="$stage_dir/$(printf '%04d' "$index")"
+    resolved="$(resolve_destination "$destination")"
+    ensure_safe_parent "$resolved"
+    parent="$(dirname "$resolved")"
+    install -d -m 0755 "$parent"
+    temporary="$(mktemp "$parent/.photobooth-update.XXXXXX")"
+    install -m "$mode" "$staged" "$temporary"
+    if [[ -z "$install_root" ]]; then
+      chown "$owner:$group" "$temporary"
+    fi
+    mv -f "$temporary" "$resolved"
+    ok "Installed $destination"
+  done < <(jq -r '.files[] | [.source,.destination,.type,.mode,.owner,.group] | @tsv' "$VALIDATED_MANIFEST")
+
+  if jq -e 'any(.files[]; .type == "systemd")' "$VALIDATED_MANIFEST" >/dev/null &&
+      [[ -z "$install_root" ]]; then
+    systemctl daemon-reload
+  fi
+
+  refresh_runtime_inventory
+  atomic_write "$current_version_file" "$VALIDATED_TARGET"
+  local installed_patch="$installed_dir/$(basename "$patch")"
+  transaction_installed_patch="$installed_patch"
+  transaction_installed_sidecar="$installed_patch.sha256"
+  mv -f "$patch" "$installed_patch"
+  if [[ -f "$patch.sha256" ]]; then
+    mv -f "$patch.sha256" "$installed_patch.sha256"
+  fi
+  set_last_status "SUCCESS current=$VALIDATED_TARGET backup=$BACKUP_DIR"
+  rm -f -- "$transaction_file"
+  sync
+  transaction_active=false
+  ok "Update installed: $VALIDATED_TARGET"
+  info "Backup: $BACKUP_DIR"
+  info "Application restart required: $VALIDATED_RESTART"
+  info "Reboot required: $VALIDATED_REBOOT"
+}
+
+list_pending_patches() {
+  find "$incoming_dir" -maxdepth 1 -type f -name 'PhotoBooth-Patch-*.tar.gz' \
+    -print 2>/dev/null | sort
+}
+
+find_single_pending_patch() {
+  local pending=""
+  local count=0
+  while IFS= read -r candidate; do
+    [[ -n "$candidate" ]] || continue
+    pending="$candidate"
+    count=$((count + 1))
+  done < <(list_pending_patches)
+  if (( count > 1 )); then
+    fail "More than one pending update exists. Install an explicit patch with --install PATH." ||
+      return 1
+  fi
+  if (( count == 1 )); then
+    printf '%s\n' "$pending"
+  fi
+}
+
+boot_check() {
+  require_root
+  initialize_layout
+  acquire_lock
+  start_log "boot-check"
+  recover_interrupted_transaction
+  refresh_runtime_inventory
+  local pending
+  if ! pending="$(find_single_pending_patch)"; then
+    set_last_status "MULTIPLE_PENDING_UPDATES current=$(current_version)"
+    info "No update was installed."
+    return 0
+  fi
+  if [[ -z "$pending" ]]; then
+    set_last_status "NO_PENDING_UPDATE current=$(current_version)"
+    info "No pending PhotoBooth update."
+    return 0
+  fi
+
+  info "Pending update found: $pending"
+  if extract_and_validate_patch "$pending" yes; then
+    set_last_status "PENDING_VALID target=$VALIDATED_TARGET patch=$(basename "$pending")"
+    ok "Pending update is valid. It was NOT installed automatically."
+    info "Install explicitly with: sudo photobooth-update --install-pending"
+  else
+    set_last_status "PENDING_INVALID patch=$(basename "$pending")"
+    fail "Pending update is invalid. It was not installed." || true
+  fi
+  return 0
+}
+
+find_backup_for_version() {
+  local version="$1"
+  local backup_manifest
+  backup_manifest="$(
+    find "$backups_dir" -mindepth 2 -maxdepth 2 -name backup-manifest.json -type f -print |
+      sort -r |
+      while IFS= read -r candidate; do
+        if [[ "$(jq -r 'select(.state == "complete") | .target_version // empty' \
+            "$candidate" 2>/dev/null)" == "$version" ]]; then
+          printf '%s\n' "$candidate"
+          break
+        fi
+      done
+  )"
+  [[ -n "$backup_manifest" ]] ||
+    fail "No previous backup was found for current version $version" || return 1
+  printf '%s\n' "$(dirname "$backup_manifest")"
+}
+
+restore_previous_version() {
+  local current backup_dir backup_manifest
+  current="$(current_version)"
+  backup_dir="$(find_backup_for_version "$current")"
+  backup_manifest="$backup_dir/backup-manifest.json"
+  restore_backup "$backup_dir" yes
+  if jq -e 'any(.files[]; .destination | startswith("/etc/systemd/system/"))' \
+      "$backup_manifest" >/dev/null && [[ -z "$install_root" ]]; then
+    systemctl daemon-reload
+  fi
+  refresh_runtime_inventory
+  RESTORED_BACKUP_DIR="$backup_dir"
+}
+
+rollback_once() {
+  require_root
+  initialize_layout
+  acquire_lock
+  start_log "rollback"
+  recover_interrupted_transaction
+  restore_previous_version
+  set_last_status \
+    "ROLLBACK_SUCCESS current=$(current_version) backup=$RESTORED_BACKUP_DIR"
+  ok "Rolled back to $(current_version)"
+  info "Restored from: $RESTORED_BACKUP_DIR"
+}
+
+rollback_known_good() {
+  require_root
+  initialize_layout
+  acquire_lock
+  start_log "rollback-known-good"
+  recover_interrupted_transaction
+  local known current safety_counter
+  known="$(known_good_version)"
+  is_full_sha "$known" ||
+    fail "No known-good version has been marked." || return 1
+  current="$(current_version)"
+  safety_counter=0
+  while [[ "$current" != "$known" ]]; do
+    safety_counter=$((safety_counter + 1))
+    (( safety_counter <= 20 )) ||
+      fail "Rollback chain is longer than 20 updates; aborting." || return 1
+    restore_previous_version
+    info "Restored one step from: $RESTORED_BACKUP_DIR"
+    current="$(current_version)"
+  done
+  set_last_status "KNOWN_GOOD_RESTORED current=$known"
+  ok "Known-good version restored: $known"
+}
+
+mark_known_good() {
+  require_root
+  initialize_layout
+  [[ ! -f "$transaction_file" ]] ||
+    fail "An interrupted update must be recovered before marking KNOWN GOOD." || return 1
+  local current
+  current="$(current_version)"
+  is_full_sha "$current" || fail "Current version is invalid." || return 1
+  atomic_write "$known_good_file" "$current"
+  set_last_status "KNOWN_GOOD_MARKED current=$current"
+  ok "Marked as known good: $current"
+}
+
+show_status() {
+  initialize_layout
+  local base current known pending last_status last_backup transaction inventory
+  base="$(base_version)"
+  current="$(current_version)"
+  known="$(known_good_version)"
+  pending="$(list_pending_patches | paste -sd ',' -)"
+  last_status="$(read_first_line "$last_status_file")"
+  last_backup="$(find "$backups_dir" -mindepth 1 -maxdepth 1 -type d -print 2>/dev/null | sort -r | head -n 1)"
+  transaction="none"
+  [[ ! -f "$transaction_file" ]] || transaction="RECOVERY REQUIRED: $transaction_file"
+  inventory="missing"
+  [[ ! -f "$runtime_inventory_file" ]] || inventory="$runtime_inventory_file"
+  echo "Base image:"
+  echo "${base:-unknown}"
+  echo
+  echo "Current patch:"
+  echo "${current:-unknown}"
+  echo
+  echo "Known good:"
+  echo "${known:-none}"
+  echo
+  echo "Pending update:"
+  echo "${pending:-none}"
+  echo
+  echo "Last update:"
+  echo "${last_status:-none}"
+  echo
+  echo "Last backup:"
+  echo "${last_backup:-none}"
+  echo
+  echo "Transaction:"
+  echo "$transaction"
+  echo
+  echo "Runtime inventory:"
+  echo "$inventory"
+}
+
+main() {
+  local command="${1:-}"
+  case "$command" in
+    --status)
+      show_status
+      ;;
+    --boot-check)
+      boot_check
+      ;;
+    --dry-run)
+      [[ $# -eq 2 ]] || fail "--dry-run requires a patch path." || return 1
+      initialize_layout
+      print_dry_run "$2"
+      ;;
+    --install)
+      [[ $# -eq 2 ]] || fail "--install requires a patch path." || return 1
+      install_patch "$2"
+      ;;
+    --install-pending)
+      initialize_layout
+      local pending
+      pending="$(find_single_pending_patch)"
+      [[ -n "$pending" ]] || fail "No pending update was found." || return 1
+      install_patch "$pending"
+      ;;
+    --rollback)
+      rollback_once
+      ;;
+    --rollback-known-good)
+      rollback_known_good
+      ;;
+    --mark-known-good)
+      mark_known_good
+      ;;
+    -h|--help|"")
+      usage
+      ;;
+    *)
+      fail "Unknown command: $command" || true
+      usage >&2
+      return 1
+      ;;
+  esac
+}
+
+main "$@"

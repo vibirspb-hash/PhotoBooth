@@ -21,6 +21,15 @@ image_root="$repo_root/kiosk-image"
 build_root="$image_root/build"
 output_root="$image_root/output"
 publish_root="$build_root/app"
+base_version="${PHOTOBOOTH_BUILD_COMMIT:-}"
+
+if [[ -z "$base_version" ]] && command -v git >/dev/null 2>&1; then
+  base_version="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || true)"
+fi
+if [[ ! "$base_version" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "PHOTOBOOTH_BUILD_COMMIT must contain the full Git commit SHA."
+  exit 1
+fi
 
 rm -rf "$build_root" "$output_root"
 mkdir -p "$build_root" "$output_root"
@@ -89,6 +98,8 @@ cp "$image_root/photobooth-schedule-poweroff" \
   config/includes.chroot/usr/local/sbin/photobooth-schedule-poweroff
 cp "$image_root/photobooth-set-time" \
   config/includes.chroot/usr/local/sbin/photobooth-set-time
+cp "$image_root/photobooth-update" \
+  config/includes.chroot/usr/local/sbin/photobooth-update
 
 mkdir -p config/includes.chroot/usr/local/bin
 cp "$image_root/photobooth-touch-setup" \
@@ -103,6 +114,12 @@ cp "$image_root/photobooth-persistence.service" \
   config/includes.chroot/etc/systemd/system/photobooth-persistence.service
 cp "$image_root/photobooth-printer-setup.service" \
   config/includes.chroot/etc/systemd/system/photobooth-printer-setup.service
+cp "$image_root/photobooth-update-check.service" \
+  config/includes.chroot/etc/systemd/system/photobooth-update-check.service
+
+mkdir -p config/includes.chroot/usr/share/photobooth
+printf '%s\n' "$base_version" \
+  > config/includes.chroot/usr/share/photobooth/base-version.txt
 
 mkdir -p config/hooks/live
 cat > config/hooks/live/010-photobooth-kiosk.hook.chroot <<'HOOK'
@@ -129,6 +146,7 @@ chmod +x /usr/local/sbin/photobooth-printer-setup
 chmod +x /usr/local/sbin/photobooth-install-touch-calibration
 chmod +x /usr/local/sbin/photobooth-schedule-poweroff
 chmod +x /usr/local/sbin/photobooth-set-time
+chmod +x /usr/local/sbin/photobooth-update
 chmod +x /usr/local/bin/photobooth-touch-setup
 chmod +x /usr/local/bin/photobooth-touch-calibrate
 chmod +x /usr/local/bin/photobooth-hardware-diagnostics
@@ -149,14 +167,18 @@ printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-schedule-poweroff *
   > /etc/sudoers.d/photobooth-schedule
 printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-set-time *\n' \
   > /etc/sudoers.d/photobooth-time
+printf 'user ALL=(root) NOPASSWD: /usr/local/sbin/photobooth-update *\n' \
+  > /etc/sudoers.d/photobooth-update
 chmod 440 /etc/sudoers.d/photobooth-reboot
 chmod 440 /etc/sudoers.d/photobooth-storage
 chmod 440 /etc/sudoers.d/photobooth-printer
 chmod 440 /etc/sudoers.d/photobooth-touch
 chmod 440 /etc/sudoers.d/photobooth-schedule
 chmod 440 /etc/sudoers.d/photobooth-time
+chmod 440 /etc/sudoers.d/photobooth-update
 systemctl enable photobooth-persistence.service
 systemctl enable photobooth-printer-setup.service
+systemctl enable photobooth-update-check.service
 systemctl enable cups.service
 systemctl enable lightdm.service
 HOOK

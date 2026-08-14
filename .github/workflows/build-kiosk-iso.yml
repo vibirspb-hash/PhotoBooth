@@ -45,6 +45,7 @@ jobs:
             -v "$PWD:/work" \
             -w /work \
             -e PHOTOBOOTH_PREPUBLISHED_DIR=/work/kiosk-image/prebuilt-app \
+            -e PHOTOBOOTH_BUILD_COMMIT="$GITHUB_SHA" \
             debian:trixie \
             bash -c 'apt-get update && apt-get install -y live-build ca-certificates && ./kiosk-image/BUILD_KIOSK_ISO.sh'
 
