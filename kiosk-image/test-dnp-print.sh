@@ -16,6 +16,25 @@ exec > >(tee -a "$log_file") 2>&1
 
 finish() {
   echo "Diagnostic log: $log_file"
+
+  local data_root="/media/user/PHOTOBOOTH"
+  local diagnostics_dir="$data_root/Diagnostics"
+  local timestamped_log
+  if mountpoint -q "$data_root"; then
+    timestamped_log="$diagnostics_dir/dnp-print-test-$(date +%Y%m%d-%H%M%S).log"
+    if ! mkdir -p "$diagnostics_dir" ||
+       ! cp "$log_file" "$diagnostics_dir/dnp-print-test.log" ||
+       ! cp "$log_file" "$timestamped_log"; then
+      echo "[ERROR] Failed to copy the diagnostic log to the PHOTOBOOTH data partition." >&2
+      return
+    fi
+    chown user:user "$diagnostics_dir/dnp-print-test.log" "$timestamped_log" || true
+    sync "$diagnostics_dir/dnp-print-test.log" "$timestamped_log" || true
+    echo "Persistent diagnostic log: $diagnostics_dir/dnp-print-test.log"
+    echo "Archived diagnostic log: $timestamped_log"
+  else
+    echo "[ERROR] PHOTOBOOTH data partition is not mounted; the diagnostic log was not copied to the USB drive." >&2
+  fi
 }
 trap finish EXIT
 
