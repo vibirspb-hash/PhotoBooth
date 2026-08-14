@@ -328,6 +328,7 @@ public sealed partial class MainWindow : Window
             WindowState = WindowState.FullScreen;
         }
 
+        AddHandler(KeyDownEvent, MainWindow_OnKeyDown, RoutingStrategies.Tunnel);
         ShowStartupLock();
         _scheduleTimer.Start();
         Opened += async (_, _) =>
@@ -1671,12 +1672,58 @@ public sealed partial class MainWindow : Window
 
     private void SettingsPinDigitButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Button button || _pinEntry.Length >= 4)
+        if (sender is not Button button)
         {
             return;
         }
 
-        _pinEntry += button.Tag?.ToString();
+        AppendPinDigit(button.Tag?.ToString());
+    }
+
+    private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (!_settingsOverlay.IsVisible || !_settingsPinPanel.IsVisible)
+        {
+            return;
+        }
+
+        string? digit = e.Key switch
+        {
+            Key.D0 or Key.NumPad0 => "0",
+            Key.D1 or Key.NumPad1 => "1",
+            Key.D2 or Key.NumPad2 => "2",
+            Key.D3 or Key.NumPad3 => "3",
+            Key.D4 or Key.NumPad4 => "4",
+            Key.D5 or Key.NumPad5 => "5",
+            Key.D6 or Key.NumPad6 => "6",
+            Key.D7 or Key.NumPad7 => "7",
+            Key.D8 or Key.NumPad8 => "8",
+            Key.D9 or Key.NumPad9 => "9",
+            _ => null
+        };
+
+        if (digit is not null)
+        {
+            AppendPinDigit(digit);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key is Key.Back or Key.Delete)
+        {
+            RemoveLastPinDigit();
+            e.Handled = true;
+        }
+    }
+
+    private void AppendPinDigit(string? digit)
+    {
+        if (string.IsNullOrEmpty(digit) || _pinEntry.Length >= 4)
+        {
+            return;
+        }
+
+        _pinEntry += digit;
         UpdatePinDisplay();
 
         if (_pinEntry.Length != 4)
@@ -1705,6 +1752,11 @@ public sealed partial class MainWindow : Window
     }
 
     private void SettingsPinBackspaceButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        RemoveLastPinDigit();
+    }
+
+    private void RemoveLastPinDigit()
     {
         if (_pinEntry.Length > 0)
         {

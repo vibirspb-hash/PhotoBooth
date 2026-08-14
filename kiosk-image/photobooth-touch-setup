@@ -6,7 +6,58 @@ log_file="${PHOTOBOOTH_DATA_ROOT:-/tmp}/Diagnostics/touchscreen.log"
 mkdir -p "$(dirname "$log_file")"
 exec >>"$log_file" 2>&1
 
-echo "$(date --iso-8601=seconds) Configuring KeeTouch"
+echo "$(date --iso-8601=seconds) Configuring PhotoBooth input devices"
+pointer_id="$(xinput list --id-only 'Virtual core pointer' 2>/dev/null || true)"
+keyboard_id="$(xinput list --id-only 'Virtual core keyboard' 2>/dev/null || true)"
+if [[ -z "$pointer_id" || -z "$keyboard_id" ]]; then
+  echo "The X11 core pointer or keyboard was not found."
+  xinput list || true
+  exit 0
+fi
+
+# The live X11 session can leave physical devices as floating slaves. Attach
+# every udev-classified device to its matching master before the kiosk opens.
+# This keeps the mouse, touchpad, touchscreen, and keyboard active together.
+echo "Input devices before pointer repair:"
+xinput list || true
+while read -r input_id; do
+  [[ -n "$input_id" ]] || continue
+  if [[ "$input_id" == "$pointer_id" || "$input_id" == "$keyboard_id" ]]; then
+    continue
+  fi
+
+  properties="$(xinput list-props "$input_id" 2>/dev/null || true)"
+  device_node="$(
+    printf '%s\n' "$properties" |
+      sed -n 's/.*Device Node[^:]*:[[:space:]]*"\([^"]*\)".*/\1/p' |
+      head -n 1
+  )"
+  [[ -n "$device_node" && -e "$device_node" ]] || continue
+  udev_properties="$(udevadm info --query=property --name="$device_node" 2>/dev/null || true)"
+  device_name_for_log="$(xinput list --name-only "$input_id" 2>/dev/null || echo "$input_id")"
+
+  if grep -Eq '^ID_INPUT_(MOUSE|TOUCHPAD|TOUCHSCREEN|TABLET)=1$' \
+      <<<"$udev_properties"; then
+    xinput reattach "$input_id" "$pointer_id" || true
+    xinput enable "$input_id" || true
+    if grep -q 'libinput Tapping Enabled' <<<"$properties"; then
+      xinput set-prop "$input_id" 'libinput Tapping Enabled' 1 || true
+    fi
+    echo "Attached pointer device $device_name_for_log ($input_id, $device_node)."
+  elif grep -Eq '^ID_INPUT_(KEYBOARD|KEY)=1$' <<<"$udev_properties"; then
+    xinput reattach "$input_id" "$keyboard_id" || true
+    xinput enable "$input_id" || true
+    echo "Attached keyboard device $device_name_for_log ($input_id, $device_node)."
+  fi
+done < <(
+  xinput list --short |
+    sed -n 's/.*id=\([0-9][0-9]*\).*/\1/p' |
+    sort -nu
+)
+
+echo "Input devices after pointer repair:"
+xinput list || true
+
 for _ in $(seq 1 6); do
   if xinput list --id-only "$device_name" >/dev/null 2>&1; then
     break
@@ -15,9 +66,8 @@ for _ in $(seq 1 6); do
 done
 
 device_id="$(xinput list --id-only "$device_name" 2>/dev/null || true)"
-pointer_id="$(xinput list --id-only 'Virtual core pointer' 2>/dev/null || true)"
-if [[ -z "$device_id" || -z "$pointer_id" ]]; then
-  echo "KeeTouch or the X11 pointer was not found."
+if [[ -z "$device_id" ]]; then
+  echo "KeeTouch was not found; other pointer devices remain available."
   xinput list || true
   exit 0
 fi
