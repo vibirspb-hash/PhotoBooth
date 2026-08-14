@@ -77,7 +77,7 @@ run_checked() {
 detect_printer_uri() {
   local attempt lpinfo_output backend_output uri
   for attempt in $(seq 1 10); do
-    lpinfo_output="$("$lpinfo_command" -v 2>/dev/null || true)"
+    lpinfo_output="$(timeout 10 "$lpinfo_command" -v 2>/dev/null || true)"
     uri="$(
       printf '%s\n' "$lpinfo_output" |
         awk 'tolower($2) ~ /^gutenprint[0-9]+\+usb:\/\/dnp-dsrx1\// {print $2; exit}'
@@ -115,6 +115,14 @@ validate_ppd() {
   fi
   if ! grep -Eiq 'rastertogutenprint|Gutenprint' "$ppd_file"; then
     error "PPD does not reference Gutenprint: $ppd_file"
+    return 1
+  fi
+  if ! grep -q '^\*PageSize w288h432/' "$ppd_file"; then
+    error "PPD does not provide the internal 4x6 option PageSize=w288h432."
+    return 1
+  fi
+  if ! grep -q '^\*Resolution 300dpi/' "$ppd_file"; then
+    error "PPD does not provide the internal option Resolution=300dpi."
     return 1
   fi
   ok "Prebuilt RX1 PPD is available: $ppd_file"
@@ -202,7 +210,7 @@ if ! printer_uri="$(detect_printer_uri)"; then
   info "USB devices:"
   lsusb || true
   info "CUPS devices:"
-  "$lpinfo_command" -v || true
+  timeout 10 "$lpinfo_command" -v || true
   exit 1
 fi
 

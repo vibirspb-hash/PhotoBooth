@@ -114,7 +114,8 @@ if [[ ! -s "$ppd_file" ]] ||
    ! grep -q '^\*PPD-Adobe:' "$ppd_file" ||
    ! grep -Eiq 'DS-?RX1|DSRX1' "$ppd_file" ||
    ! grep -Eiq 'rastertogutenprint|Gutenprint' "$ppd_file" ||
-   ! grep -Fq '*PageSize w288h432/4x6:' "$ppd_file"; then
+   ! grep -q '^\*PageSize w288h432/' "$ppd_file" ||
+   ! grep -q '^\*Resolution 300dpi/' "$ppd_file"; then
   echo "Vendored DNP DS-RX1 PPD is incomplete." >&2
   exit 1
 fi

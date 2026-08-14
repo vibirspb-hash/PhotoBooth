@@ -60,7 +60,7 @@ dump_diagnostics() {
   echo "--- lpstat -t ---"
   lpstat -t 2>&1 || true
   echo "--- lpinfo -v ---"
-  /usr/sbin/lpinfo -v 2>&1 || true
+  timeout 10 /usr/sbin/lpinfo -v 2>&1 || true
   echo "--- DNP RX1 options ---"
   lpoptions -p "$queue_name" -l 2>&1 || true
   echo "--- Gutenprint RX1 backend ---"
@@ -136,12 +136,11 @@ ok "Actual queue URI: $queue_uri"
 if ! run_capture lpoptions -p "$queue_name" -l; then
   fail "Unable to list RX1 PPD options (exit code $RUN_EXIT_CODE): $RUN_ERROR"
 fi
-printer_options="$RUN_OUTPUT"
-if [[ "$printer_options" != *"$page_size/4x6"* ]]; then
-  fail "The installed RX1 PPD does not offer the required 4x6 PageSize=$page_size."
+if ! grep -q "^\\*PageSize $page_size/" "$ppd_file"; then
+  fail "The installed RX1 PPD does not offer internal PageSize=$page_size."
 fi
-if [[ "$printer_options" != *"$resolution/300x300 DPI"* ]]; then
-  fail "The installed RX1 PPD does not offer Resolution=$resolution."
+if ! grep -q "^\\*Resolution $resolution/" "$ppd_file"; then
+  fail "The installed RX1 PPD does not offer internal Resolution=$resolution."
 fi
 ok "Confirmed RX1 media option: PageSize=$page_size (4x6)."
 ok "Confirmed RX1 resolution option: Resolution=$resolution."
@@ -160,6 +159,18 @@ ok "Print job submitted: $job_id"
 info "Waiting up to 90 seconds while CUPS processes $job_id."
 job_number="${job_id##*-}"
 job_completed=false
+
+job_is_in_completed_history() {
+  local completed_jobs
+  if ! completed_jobs="$(lpstat -W completed -o "$queue_name" 2>&1)"; then
+    echo "$completed_jobs" >&2
+    return 2
+  fi
+  echo "$completed_jobs"
+  printf '%s\n' "$completed_jobs" |
+    awk -v target="$job_id" '$1 == target { found = 1 } END { exit !found }'
+}
+
 for _ in $(seq 1 18); do
   queue_state="$(lpstat -p "$queue_name" -l 2>&1 || true)"
   echo "$queue_state"
@@ -170,7 +181,19 @@ for _ in $(seq 1 18); do
   if ! run_capture ipptool -t -v -d "job-id=$job_number" \
       "ipp://localhost/printers/$queue_name" \
       /usr/share/cups/ipptool/get-job-attributes.test; then
-    fail "Unable to query IPP state for $job_id (exit code $RUN_EXIT_CODE): $RUN_ERROR"
+    ipp_exit_code="$RUN_EXIT_CODE"
+    ipp_error="$RUN_ERROR"
+    info "Get-Job-Attributes no longer returned $job_id; checking completed jobs."
+    job_is_in_completed_history
+    completed_check_exit_code=$?
+    if [[ "$completed_check_exit_code" -eq 0 ]]; then
+      job_completed=true
+      break
+    fi
+    if [[ "$completed_check_exit_code" -eq 2 ]]; then
+      fail "Unable to query both IPP state and completed-job history for $job_id (IPP exit code $ipp_exit_code): $ipp_error"
+    fi
+    fail "Unable to query IPP state for $job_id (exit code $ipp_exit_code): $ipp_error; the job is not present in completed history."
   fi
   job_attributes="$RUN_OUTPUT"
   job_state_line="$(
@@ -179,7 +202,17 @@ for _ in $(seq 1 18); do
   )"
   job_state_line="${job_state_line,,}"
   if [[ -z "$job_state_line" ]]; then
-    fail "CUPS returned no job-state for $job_id."
+    info "CUPS returned no job-state for $job_id; checking completed jobs."
+    job_is_in_completed_history
+    completed_check_exit_code=$?
+    if [[ "$completed_check_exit_code" -eq 0 ]]; then
+      job_completed=true
+      break
+    fi
+    if [[ "$completed_check_exit_code" -eq 2 ]]; then
+      fail "CUPS returned no job-state for $job_id and completed-job history could not be queried."
+    fi
+    fail "CUPS returned no job-state for $job_id and it is not present in completed history."
   fi
 
   if [[ "$job_state_line" == *"aborted"* ]] ||
@@ -198,6 +231,13 @@ for _ in $(seq 1 18); do
   info "Current state for $job_id: $job_state_line"
   sleep 5
 done
+
+if [[ "$job_completed" != true ]]; then
+  info "Final completed-jobs fallback check for $job_id."
+  if job_is_in_completed_history; then
+    job_completed=true
+  fi
+fi
 
 echo "--- Final active jobs ---"
 lpstat -o "$queue_name" 2>&1 || true

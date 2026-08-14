@@ -24,7 +24,7 @@ report="$diagnostics_root/hardware-latest.txt"
   systemctl --no-pager --full status cups.service || true
   echo
   echo "=== CUPS DEVICES ==="
-  /usr/sbin/lpinfo -v || true
+  timeout 10 /usr/sbin/lpinfo -v || true
   echo
   echo "=== CUPS DRIVERS ==="
   /usr/sbin/lpinfo -m | grep -Ei 'dnp|rx1' || true
