@@ -3,10 +3,8 @@ set -euo pipefail
 
 source_file="${1:-}"
 target_file="/etc/X11/xorg.conf.d/99-keetouch-calibration.conf"
-normalized_file="$(mktemp)"
-target_temporary=""
-data_temporary=""
-trap 'rm -f "$normalized_file" "$target_temporary" "$data_temporary"' EXIT
+temporary_file="$(mktemp)"
+trap 'rm -f "$temporary_file"' EXIT
 
 resolved_source="$(realpath "$source_file" 2>/dev/null || true)"
 if [[ ! -f "$source_file" || "$resolved_source" != /tmp/* ]]; then
@@ -14,52 +12,23 @@ if [[ ! -f "$source_file" || "$resolved_source" != /tmp/* ]]; then
   exit 1
 fi
 
-calibration_values="$(
-  sed -n 's/.*Option[[:space:]]*"Calibration"[[:space:]]*"\([^"]*\)".*/\1/p' \
-    "$source_file" | head -n 1
-)"
-if [[ ! "$calibration_values" =~ ^-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+$ ]]; then
-  echo "Calibration data is malformed; the working profile was not changed." >&2
+sed -n '/Section "InputClass"/,/EndSection/p' "$source_file" >"$temporary_file"
+if ! grep -q 'Option[[:space:]]*"Calibration"' "$temporary_file" ||
+   ! grep -Fq 'HID 1aad:0001' "$temporary_file"; then
+  echo "Calibration data does not belong to the PhotoBooth touchscreen." >&2
   exit 1
 fi
 
-read -r min_x max_x min_y max_y <<< "$calibration_values"
-if (( min_x >= max_x || min_y >= max_y ||
-      max_x - min_x <= 500 || max_y - min_y <= 500 )); then
-  echo "Calibration data '$calibration_values' is invalid; the working profile was not changed." >&2
-  exit 1
-fi
-
-cat >"$normalized_file" <<EOF
-Section "InputClass"
-    Identifier "PhotoBooth KeeTouch calibration"
-    MatchProduct "HID 1aad:0001"
-    MatchUSBID "1aad:0001"
-    MatchDevicePath "/dev/input/event*"
-    Driver "evdev"
-    Option "Mode" "Absolute"
-    Option "Calibration" "$calibration_values"
-    Option "SwapAxes" "false"
-EndSection
-EOF
-
-target_directory="$(dirname "$target_file")"
-mkdir -p "$target_directory"
-target_temporary="$(mktemp "$target_directory/.99-keetouch-calibration.conf.XXXXXX")"
-install -m 0644 "$normalized_file" "$target_temporary"
-mv -f "$target_temporary" "$target_file"
-target_temporary=""
+install -D -m 0644 "$temporary_file" "$target_file"
 echo "Installed $target_file"
 
 data_root="/media/${SUDO_USER:-user}/PHOTOBOOTH"
 if mountpoint -q "$data_root"; then
   diagnostics_dir="$data_root/Diagnostics"
   mkdir -p "$diagnostics_dir"
-  data_file="$diagnostics_dir/99-keetouch-calibration.conf"
-  data_temporary="$(mktemp "$diagnostics_dir/.99-keetouch-calibration.conf.XXXXXX")"
-  install -m 0644 "$normalized_file" "$data_temporary"
-  chown "${SUDO_USER:-user}:${SUDO_USER:-user}" "$data_temporary" || true
-  mv -f "$data_temporary" "$data_file"
-  data_temporary=""
+  install -m 0644 "$temporary_file" \
+    "$diagnostics_dir/99-keetouch-calibration.conf"
+  chown "${SUDO_USER:-user}:${SUDO_USER:-user}" \
+    "$diagnostics_dir/99-keetouch-calibration.conf" || true
   echo "Exported calibration to $diagnostics_dir"
 fi
