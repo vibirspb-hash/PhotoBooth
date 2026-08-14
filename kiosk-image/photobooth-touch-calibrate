@@ -6,16 +6,27 @@ output_file="$(mktemp)"
 trap 'rm -f "$output_file"' EXIT
 
 /usr/local/bin/photobooth-touch-setup
-xinput_calibrator \
-  --device "$device_name" \
-  --output-type xorg.conf.d \
-  --no-timeout >"$output_file"
+if ! xinput_calibrator \
+    --device "$device_name" \
+    --output-type xorg.conf.d \
+    --no-timeout >"$output_file"; then
+  echo "Калибратор завершился с ошибкой. Рабочий профиль восстановлен." >&2
+  /usr/local/bin/photobooth-touch-setup
+  exit 1
+fi
 
 if ! grep -q 'Option[[:space:]]*"Calibration"' "$output_file"; then
   cat "$output_file" >&2
   echo "The calibration tool did not return calibration values." >&2
+  /usr/local/bin/photobooth-touch-setup
   exit 1
 fi
 
-sudo -n /usr/local/sbin/photobooth-install-touch-calibration "$output_file"
-echo "Калибровка сохранена. Перезагрузите фотобудку для её применения."
+if ! sudo -n /usr/local/sbin/photobooth-install-touch-calibration "$output_file"; then
+  echo "Новая калибровка отклонена. Рабочий профиль не изменён." >&2
+  /usr/local/bin/photobooth-touch-setup
+  exit 1
+fi
+
+/usr/local/bin/photobooth-touch-setup
+echo "Калибровка проверена, применена и сохранена."

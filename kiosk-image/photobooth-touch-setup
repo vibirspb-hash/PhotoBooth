@@ -76,6 +76,17 @@ xinput reattach "$device_id" "$pointer_id" || true
 xinput enable "$device_id" || true
 xinput set-mode "$device_id" ABSOLUTE || true
 
+default_calibration="5640 7620 691 2308"
+read -r min_x max_x min_y max_y <<< "$default_calibration"
+if xinput set-prop "$device_id" "Evdev Axis Calibration" \
+    "$min_x" "$max_x" "$min_y" "$max_y"; then
+  echo "Applied built-in KeeTouch calibration: $default_calibration"
+else
+  echo "Failed to apply built-in KeeTouch calibration: $default_calibration"
+fi
+xinput set-prop "$device_id" "Evdev Axes Swap" 0 || \
+  echo "Failed to disable KeeTouch axis swapping."
+
 data_root="${PHOTOBOOTH_DATA_ROOT:-/media/$USER/PHOTOBOOTH}"
 saved_calibration="$data_root/Diagnostics/99-keetouch-calibration.conf"
 if [[ -f "$saved_calibration" ]]; then
@@ -85,9 +96,19 @@ if [[ -f "$saved_calibration" ]]; then
   )"
   if [[ "$calibration_values" =~ ^-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+$ ]]; then
     read -r min_x max_x min_y max_y <<< "$calibration_values"
-    xinput set-prop "$device_id" "Evdev Axis Calibration" \
-      "$min_x" "$max_x" "$min_y" "$max_y" || true
-    echo "Restored saved KeeTouch calibration: $calibration_values"
+    if (( min_x < max_x && min_y < max_y &&
+          max_x - min_x > 500 && max_y - min_y > 500 )); then
+      if xinput set-prop "$device_id" "Evdev Axis Calibration" \
+          "$min_x" "$max_x" "$min_y" "$max_y"; then
+        echo "Applied validated saved KeeTouch calibration: $calibration_values"
+      else
+        echo "Failed to apply validated saved KeeTouch calibration; built-in calibration remains active."
+      fi
+    else
+      echo "Ignoring invalid saved KeeTouch calibration '$calibration_values'; built-in calibration remains active."
+    fi
+  else
+    echo "Ignoring malformed saved KeeTouch calibration; built-in calibration remains active."
   fi
 fi
 
