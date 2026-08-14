@@ -123,6 +123,10 @@ if [[ ! -s "$ppd_tmp" ]] ||
   echo "Generated DNP DS-RX1 PPD is incomplete." >&2
   exit 1
 fi
+echo 'RX1_PPD_GZIP_BASE64_BEGIN'
+gzip -c "$ppd_tmp" | base64 -w 0
+echo
+echo 'RX1_PPD_GZIP_BASE64_END'
 cupstestppd -q "$ppd_tmp" || echo "CUPS reported non-fatal compatibility warnings for the RX1 PPD."
 mv "$ppd_tmp" "$ppd_file"
 chmod 644 "$ppd_file"
