@@ -4,6 +4,7 @@ lightdm
 openbox
 cups
 cups-client
+cups-ipp-utils
 dosfstools
 fdisk
 printer-driver-gutenprint

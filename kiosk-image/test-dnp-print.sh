@@ -4,6 +4,8 @@ set -uo pipefail
 export LC_ALL=C
 
 queue_name="DNP_RX1"
+page_size="w288h432"
+resolution="300dpi"
 setup_script="/usr/local/sbin/photobooth-printer-setup"
 ppd_file="/usr/share/ppd/photobooth/DNP-DSRX1.ppd"
 test_image="/opt/photobooth/test-print.jpg"
@@ -59,6 +61,8 @@ dump_diagnostics() {
   lpstat -t 2>&1 || true
   echo "--- lpinfo -v ---"
   /usr/sbin/lpinfo -v 2>&1 || true
+  echo "--- DNP RX1 options ---"
+  lpoptions -p "$queue_name" -l 2>&1 || true
   echo "--- Gutenprint RX1 backend ---"
   timeout 15 /usr/lib/cups/backend/gutenprint53+usb 2>&1 || true
   echo "--- CUPS service ---"
@@ -78,7 +82,7 @@ fail() {
 }
 
 if [[ "$EUID" -ne 0 ]]; then
-  fail "Run this test as root: sudo ./test-dnp-print.sh"
+  fail "Run this test as root: sudo /usr/local/sbin/test-dnp-print"
 fi
 
 info "DNP DS-RX1 manual print test"
@@ -129,8 +133,22 @@ if [[ ! "$queue_uri" =~ ^gutenprint[0-9]+\+usb://dnp-dsrx1/ ]]; then
 fi
 ok "Actual queue URI: $queue_uri"
 
+if ! run_capture lpoptions -p "$queue_name" -l; then
+  fail "Unable to list RX1 PPD options (exit code $RUN_EXIT_CODE): $RUN_ERROR"
+fi
+printer_options="$RUN_OUTPUT"
+if [[ "$printer_options" != *"$page_size/4x6"* ]]; then
+  fail "The installed RX1 PPD does not offer the required 4x6 PageSize=$page_size."
+fi
+if [[ "$printer_options" != *"$resolution/300x300 DPI"* ]]; then
+  fail "The installed RX1 PPD does not offer Resolution=$resolution."
+fi
+ok "Confirmed RX1 media option: PageSize=$page_size (4x6)."
+ok "Confirmed RX1 resolution option: Resolution=$resolution."
+
 info "Submitting exactly one test image."
-if ! run_capture lp -d "$queue_name" "$test_image"; then
+if ! run_capture lp -d "$queue_name" \
+    -o "PageSize=$page_size" -o "Resolution=$resolution" "$test_image"; then
   fail "Print submission failed (exit code $RUN_EXIT_CODE): $RUN_ERROR"
 fi
 job_id="$(printf '%s\n' "$RUN_OUTPUT" | grep -oE "${queue_name}-[0-9]+" | head -n 1)"
@@ -140,19 +158,44 @@ fi
 ok "Print job submitted: $job_id"
 
 info "Waiting up to 90 seconds while CUPS processes $job_id."
-job_active=true
+job_number="${job_id##*-}"
+job_completed=false
 for _ in $(seq 1 18); do
-  active_jobs="$(lpstat -o "$queue_name" 2>&1 || true)"
   queue_state="$(lpstat -p "$queue_name" -l 2>&1 || true)"
   echo "$queue_state"
   if [[ "$queue_state" == *"disabled"* ]]; then
     fail "Queue $queue_name became disabled while processing $job_id."
   fi
-  if [[ "$active_jobs" != *"$job_id"* ]]; then
-    job_active=false
+
+  if ! run_capture ipptool -t -v -d "job-id=$job_number" \
+      "ipp://localhost/printers/$queue_name" \
+      /usr/share/cups/ipptool/get-job-attributes.test; then
+    fail "Unable to query IPP state for $job_id (exit code $RUN_EXIT_CODE): $RUN_ERROR"
+  fi
+  job_attributes="$RUN_OUTPUT"
+  job_state_line="$(
+    printf '%s\n' "$job_attributes" |
+      grep -m1 -E 'job-state[[:space:]]+\(enum\)[[:space:]]*=' || true
+  )"
+  job_state_line="${job_state_line,,}"
+  if [[ -z "$job_state_line" ]]; then
+    fail "CUPS returned no job-state for $job_id."
+  fi
+
+  if [[ "$job_state_line" == *"aborted"* ]] ||
+     [[ "$job_state_line" =~ =[[:space:]]*8([^0-9]|$) ]] ||
+     [[ "$job_state_line" == *"canceled"* ]] ||
+     [[ "$job_state_line" =~ =[[:space:]]*7([^0-9]|$) ]] ||
+     [[ "$job_state_line" == *"processing-stopped"* ]] ||
+     [[ "$job_state_line" =~ =[[:space:]]*6([^0-9]|$) ]]; then
+    fail "CUPS reports a failed state for $job_id: $job_state_line"
+  fi
+  if [[ "$job_state_line" == *"completed"* ]] ||
+     [[ "$job_state_line" =~ =[[:space:]]*9([^0-9]|$) ]]; then
+    job_completed=true
     break
   fi
-  info "Job $job_id is still active."
+  info "Current state for $job_id: $job_state_line"
   sleep 5
 done
 
@@ -163,10 +206,10 @@ lpstat -W completed -o "$queue_name" 2>&1 || true
 echo "--- Final queue state ---"
 lpstat -p "$queue_name" -l 2>&1 || true
 
-if [[ "$job_active" == true ]]; then
-  fail "Job $job_id is still active after 90 seconds."
+if [[ "$job_completed" != true ]]; then
+  fail "CUPS did not report $job_id as completed within 90 seconds."
 fi
 
-ok "CUPS no longer reports $job_id as active."
+ok "CUPS reports $job_id as completed."
 info "Confirm that the physical DNP DS-RX1 printed test-print.jpg."
 info "CUPS completion alone is not proof of physical printing."

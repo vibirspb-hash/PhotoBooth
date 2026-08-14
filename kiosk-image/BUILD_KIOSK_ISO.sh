@@ -60,9 +60,13 @@ cp -a "$publish_root/." config/includes.chroot/opt/photobooth/
 cp "$image_root/test-print.jpg" \
   config/includes.chroot/opt/photobooth/test-print.jpg
 
-mkdir -p config/includes.chroot/etc/skel
+mkdir -p config/includes.chroot/usr/share/ppd/photobooth
+cp "$image_root/DNP-DSRX1.ppd" \
+  config/includes.chroot/usr/share/ppd/photobooth/DNP-DSRX1.ppd
+
+mkdir -p config/includes.chroot/usr/local/sbin
 cp "$image_root/test-dnp-print.sh" \
-  config/includes.chroot/etc/skel/test-dnp-print.sh
+  config/includes.chroot/usr/local/sbin/test-dnp-print
 
 mkdir -p config/includes.chroot/etc/lightdm/lightdm.conf.d
 cp "$image_root/lightdm-photobooth.conf" \
@@ -75,7 +79,6 @@ mkdir -p config/includes.chroot/etc/X11/xorg.conf.d
 cp "$image_root/99-keetouch-calibration.conf" \
   config/includes.chroot/etc/X11/xorg.conf.d/99-keetouch-calibration.conf
 
-mkdir -p config/includes.chroot/usr/local/sbin
 cp "$image_root/photobooth-first-boot" \
   config/includes.chroot/usr/local/sbin/photobooth-first-boot
 cp "$image_root/photobooth-printer-setup" \
@@ -103,36 +106,23 @@ cp "$image_root/photobooth-printer-setup.service" \
 
 mkdir -p config/hooks/live
 cat > config/hooks/live/010-photobooth-kiosk.hook.chroot <<'HOOK'
-#!/bin/sh
-set -eu
-driver_helper=/usr/lib/cups/driver/gutenprint.5.3
-driver_uri=gutenprint.5.3://dnp-dsrx1/expert
-ppd_dir=/usr/share/ppd/photobooth
-ppd_file=$ppd_dir/DNP-DSRX1.ppd
-ppd_tmp=$ppd_file.tmp
+#!/usr/bin/env bash
+set -euo pipefail
+ppd_file=/usr/share/ppd/photobooth/DNP-DSRX1.ppd
 
-mkdir -p "$ppd_dir"
-if ! timeout 60 "$driver_helper" cat "$driver_uri" > "$ppd_tmp"; then
-  echo "Unable to generate the DNP DS-RX1 Gutenprint PPD." >&2
+if [[ ! -s "$ppd_file" ]] ||
+   ! grep -q '^\*PPD-Adobe:' "$ppd_file" ||
+   ! grep -Eiq 'DS-?RX1|DSRX1' "$ppd_file" ||
+   ! grep -Eiq 'rastertogutenprint|Gutenprint' "$ppd_file" ||
+   ! grep -Fq '*PageSize w288h432/4x6:' "$ppd_file"; then
+  echo "Vendored DNP DS-RX1 PPD is incomplete." >&2
   exit 1
 fi
-if [[ ! -s "$ppd_tmp" ]] ||
-   ! grep -q '^\*PPD-Adobe:' "$ppd_tmp" ||
-   ! grep -Eiq 'DS-?RX1|DSRX1' "$ppd_tmp" ||
-   ! grep -Eiq 'rastertogutenprint|Gutenprint' "$ppd_tmp"; then
-  echo "Generated DNP DS-RX1 PPD is incomplete." >&2
-  exit 1
-fi
-echo 'RX1_PPD_GZIP_BASE64_BEGIN'
-gzip -c "$ppd_tmp" | base64 -w 0
-echo
-echo 'RX1_PPD_GZIP_BASE64_END'
-cupstestppd -q "$ppd_tmp" || echo "CUPS reported non-fatal compatibility warnings for the RX1 PPD."
-mv "$ppd_tmp" "$ppd_file"
+cupstestppd -q "$ppd_file" || echo "CUPS reported non-fatal compatibility warnings for the RX1 PPD."
 chmod 644 "$ppd_file"
 
 chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
-chmod +x /etc/skel/test-dnp-print.sh
+chmod +x /usr/local/sbin/test-dnp-print
 chmod +x /usr/local/sbin/photobooth-first-boot
 chmod +x /usr/local/sbin/photobooth-printer-setup
 chmod +x /usr/local/sbin/photobooth-install-touch-calibration

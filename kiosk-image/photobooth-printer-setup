@@ -10,6 +10,7 @@ lpinfo_command="/usr/sbin/lpinfo"
 lpadmin_command="/usr/sbin/lpadmin"
 cupsenable_command="/usr/sbin/cupsenable"
 cupsaccept_command="/usr/sbin/cupsaccept"
+lpoptions_command="/usr/bin/lpoptions"
 dye_backend="/usr/lib/cups/backend/gutenprint53+usb"
 ppd_file="/usr/share/ppd/photobooth/DNP-DSRX1.ppd"
 
@@ -75,7 +76,7 @@ run_checked() {
 
 detect_printer_uri() {
   local attempt lpinfo_output backend_output uri
-  for attempt in $(seq 1 30); do
+  for attempt in $(seq 1 10); do
     lpinfo_output="$("$lpinfo_command" -v 2>/dev/null || true)"
     uri="$(
       printf '%s\n' "$lpinfo_output" |
@@ -83,7 +84,7 @@ detect_printer_uri() {
     )"
 
     if [[ -z "$uri" && -x "$dye_backend" ]]; then
-      backend_output="$(timeout 10 "$dye_backend" 2>/dev/null || true)"
+      backend_output="$(timeout 2 "$dye_backend" 2>/dev/null || true)"
       uri="$(
         printf '%s\n' "$backend_output" |
           awk 'tolower($2) ~ /^gutenprint[0-9]+\+usb:\/\/dnp-dsrx1\// {print $2; exit}'
@@ -173,14 +174,14 @@ validate_queue() {
 }
 
 exec 9>"$lock_file"
-if ! flock -w 40 9; then
+if ! flock -w 60 9; then
   error "Printer setup is already running and did not release its lock."
   exit 1
 fi
 
 info "$(date --iso-8601=seconds) Configuring DNP DS-RX1"
 
-for required_command in "$lpinfo_command" "$lpadmin_command" "$cupsenable_command" "$cupsaccept_command"; do
+for required_command in "$lpinfo_command" "$lpadmin_command" "$cupsenable_command" "$cupsaccept_command" "$lpoptions_command"; do
   if [[ ! -x "$required_command" ]]; then
     error "Required CUPS command is missing: $required_command"
     exit 1
@@ -233,6 +234,10 @@ if ! run_checked "Queue $queue_name accepts jobs" timeout 10 \
 fi
 
 if ! validate_queue; then
+  exit 1
+fi
+
+if ! run_checked "RX1 PPD options listed" "$lpoptions_command" -p "$queue_name" -l; then
   exit 1
 fi
 
