@@ -57,6 +57,12 @@ cp "$image_root/packages.list.chroot" config/package-lists/photobooth.list.chroo
 
 mkdir -p config/includes.chroot/opt/photobooth
 cp -a "$publish_root/." config/includes.chroot/opt/photobooth/
+cp "$image_root/test-print.jpg" \
+  config/includes.chroot/opt/photobooth/test-print.jpg
+
+mkdir -p config/includes.chroot/etc/skel
+cp "$image_root/test-dnp-print.sh" \
+  config/includes.chroot/etc/skel/test-dnp-print.sh
 
 mkdir -p config/includes.chroot/etc/lightdm/lightdm.conf.d
 cp "$image_root/lightdm-photobooth.conf" \
@@ -122,6 +128,7 @@ mv "$ppd_tmp" "$ppd_file"
 chmod 644 "$ppd_file"
 
 chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
+chmod +x /etc/skel/test-dnp-print.sh
 chmod +x /usr/local/sbin/photobooth-first-boot
 chmod +x /usr/local/sbin/photobooth-printer-setup
 chmod +x /usr/local/sbin/photobooth-install-touch-calibration

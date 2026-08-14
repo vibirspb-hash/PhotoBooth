@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
+
+export LC_ALL=C
 
 queue_name="DNP_RX1"
-printer_uri=""
 log_file="/var/log/photobooth-printer-setup.log"
 lock_file="/run/photobooth-printer-setup.lock"
 lpinfo_command="/usr/sbin/lpinfo"
@@ -11,15 +12,18 @@ cupsenable_command="/usr/sbin/cupsenable"
 cupsaccept_command="/usr/sbin/cupsaccept"
 dye_backend="/usr/lib/cups/backend/gutenprint53+usb"
 ppd_file="/usr/share/ppd/photobooth/DNP-DSRX1.ppd"
-exec >>"$log_file" 2>&1
-exec 9>"$lock_file"
-if ! flock -w 40 9; then
-  echo "$(date --iso-8601=seconds) Printer setup is already running."
-  exit 0
+
+if [[ "$EUID" -ne 0 ]]; then
+  echo "[ERROR] photobooth-printer-setup must run as root." >&2
+  exit 1
 fi
 
+mkdir -p "$(dirname "$log_file")"
+touch "$log_file"
+exec > >(tee -a "$log_file") 2>&1
+
 mirror_log() {
-  data_root="/media/user/PHOTOBOOTH"
+  local data_root="/media/user/PHOTOBOOTH"
   if mountpoint -q "$data_root"; then
     mkdir -p "$data_root/Diagnostics"
     cp "$log_file" "$data_root/Diagnostics/printer-setup.log" || true
@@ -28,71 +32,208 @@ mirror_log() {
 }
 trap mirror_log EXIT
 
-echo "$(date --iso-8601=seconds) Configuring DNP DS-RX1"
-systemctl start cups.service
+info() {
+  echo "[INFO] $*"
+}
 
-if [[ ! -x "$lpinfo_command" ]]; then
-  echo "CUPS lpinfo is missing at $lpinfo_command."
-  exit 0
+ok() {
+  echo "[OK] $*"
+}
+
+error() {
+  echo "[ERROR] $*" >&2
+}
+
+print_command() {
+  printf '[INFO] Command:'
+  printf ' %q' "$@"
+  printf '\n'
+}
+
+run_checked() {
+  local description="$1"
+  shift
+  local stdout_file stderr_file exit_code
+  stdout_file="$(mktemp)"
+  stderr_file="$(mktemp)"
+
+  print_command "$@"
+  "$@" >"$stdout_file" 2>"$stderr_file"
+  exit_code=$?
+  [[ ! -s "$stdout_file" ]] || cat "$stdout_file"
+  if [[ "$exit_code" -ne 0 ]]; then
+    [[ ! -s "$stderr_file" ]] || cat "$stderr_file" >&2
+    error "$description failed (exit code $exit_code)."
+    rm -f "$stdout_file" "$stderr_file"
+    return "$exit_code"
+  fi
+
+  [[ ! -s "$stderr_file" ]] || cat "$stderr_file" >&2
+  rm -f "$stdout_file" "$stderr_file"
+  ok "$description"
+}
+
+detect_printer_uri() {
+  local attempt lpinfo_output backend_output uri
+  for attempt in $(seq 1 30); do
+    lpinfo_output="$("$lpinfo_command" -v 2>/dev/null || true)"
+    uri="$(
+      printf '%s\n' "$lpinfo_output" |
+        awk 'tolower($2) ~ /^gutenprint[0-9]+\+usb:\/\/dnp-dsrx1\// {print $2; exit}'
+    )"
+
+    if [[ -z "$uri" && -x "$dye_backend" ]]; then
+      backend_output="$(timeout 10 "$dye_backend" 2>/dev/null || true)"
+      uri="$(
+        printf '%s\n' "$backend_output" |
+          awk 'tolower($2) ~ /^gutenprint[0-9]+\+usb:\/\/dnp-dsrx1\// {print $2; exit}'
+      )"
+    fi
+
+    if [[ -n "$uri" ]]; then
+      printf '%s\n' "$uri"
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+validate_ppd() {
+  if [[ ! -s "$ppd_file" ]]; then
+    error "Prebuilt DNP DS-RX1 PPD is missing or empty: $ppd_file"
+    return 1
+  fi
+  if ! grep -q '^\*PPD-Adobe:' "$ppd_file"; then
+    error "Invalid PPD header: $ppd_file"
+    return 1
+  fi
+  if ! grep -Eiq 'DS-?RX1|DSRX1' "$ppd_file"; then
+    error "PPD does not identify the DNP DS-RX1: $ppd_file"
+    return 1
+  fi
+  if ! grep -Eiq 'rastertogutenprint|Gutenprint' "$ppd_file"; then
+    error "PPD does not reference Gutenprint: $ppd_file"
+    return 1
+  fi
+  ok "Prebuilt RX1 PPD is available: $ppd_file"
+}
+
+validate_queue() {
+  local scheduler_state queue_state accepting_state device_state actual_uri
+
+  if ! scheduler_state="$(lpstat -r 2>&1)"; then
+    echo "$scheduler_state" >&2
+    error "Unable to query the CUPS scheduler."
+    return 1
+  fi
+  echo "$scheduler_state"
+  if [[ "$scheduler_state" != *"scheduler is running"* ]]; then
+    error "CUPS scheduler is not running."
+    return 1
+  fi
+  ok "CUPS scheduler is running."
+
+  if ! queue_state="$(lpstat -p "$queue_name" 2>&1)"; then
+    echo "$queue_state" >&2
+    error "Unable to query queue $queue_name."
+    return 1
+  fi
+  echo "$queue_state"
+  if [[ "$queue_state" == *"disabled"* ]] || [[ "$queue_state" == *"not found"* ]]; then
+    error "Queue $queue_name does not exist or is disabled."
+    return 1
+  fi
+  ok "Queue $queue_name exists and is enabled."
+
+  if ! accepting_state="$(lpstat -a "$queue_name" 2>&1)"; then
+    echo "$accepting_state" >&2
+    error "Unable to query whether $queue_name accepts jobs."
+    return 1
+  fi
+  echo "$accepting_state"
+  if [[ "$accepting_state" != "$queue_name accepting requests"* ]]; then
+    error "Queue $queue_name is not accepting jobs."
+    return 1
+  fi
+  ok "Queue $queue_name accepts jobs."
+
+  if ! device_state="$(lpstat -v "$queue_name" 2>&1)"; then
+    echo "$device_state" >&2
+    error "Unable to query the URI for $queue_name."
+    return 1
+  fi
+  echo "$device_state"
+  actual_uri="${device_state#*: }"
+  if [[ ! "$actual_uri" =~ ^gutenprint[0-9]+\+usb://dnp-dsrx1/ ]]; then
+    error "Queue $queue_name uses an unexpected URI: $actual_uri"
+    return 1
+  fi
+  ok "Queue $queue_name uses the Gutenprint RX1 USB backend."
+}
+
+exec 9>"$lock_file"
+if ! flock -w 40 9; then
+  error "Printer setup is already running and did not release its lock."
+  exit 1
 fi
 
-for _ in $(seq 1 90); do
-  printer_uri="$(
-    "$lpinfo_command" -v 2>/dev/null |
-      awk '
-        tolower($0) ~ /gutenprint[0-9]+\+usb:\/\/(dnp-?dsrx1|dnprx1|dnp|citizen)/ {
-          preferred=$2
-        }
-        tolower($0) ~ /(dnp|citizen|ds-?rx1|dsrx1|dnprx1|1343.*0005)/ && fallback == "" {
-          fallback=$2
-        }
-        END {
-          if (preferred != "") print preferred
-          else if (fallback != "") print fallback
-        }
-      '
-  )"
-  if [[ -z "$printer_uri" && -x "$dye_backend" ]]; then
-    printer_uri="$(
-      "$dye_backend" 2>/dev/null |
-        awk 'tolower($0) ~ /gutenprint[0-9]+\+usb:\/\/(dnp-?dsrx1|dnprx1|dnp|citizen)/ {print $2; exit}'
-    )"
+info "$(date --iso-8601=seconds) Configuring DNP DS-RX1"
+
+for required_command in "$lpinfo_command" "$lpadmin_command" "$cupsenable_command" "$cupsaccept_command"; do
+  if [[ ! -x "$required_command" ]]; then
+    error "Required CUPS command is missing: $required_command"
+    exit 1
   fi
-  [[ -n "$printer_uri" ]] && break
-  sleep 1
 done
 
-if [[ -z "$printer_uri" ]]; then
-  echo "DNP DS-RX1 is not available through the Gutenprint USB backend."
-  echo "USB devices:"
+if [[ ! -x "$dye_backend" ]]; then
+  error "Gutenprint dye-sub USB backend is missing: $dye_backend"
+  exit 1
+fi
+
+if ! run_checked "CUPS service started" systemctl start cups.service; then
+  exit 1
+fi
+
+if ! printer_uri="$(detect_printer_uri)"; then
+  error "DNP DS-RX1 was not found through the Gutenprint USB backend."
+  info "USB devices:"
   lsusb || true
-  echo "CUPS devices:"
+  info "CUPS devices:"
   "$lpinfo_command" -v || true
-  exit 0
+  exit 1
 fi
 
-echo "Detected printer URI: $printer_uri"
-if [[ "$printer_uri" != gutenprint*+usb://* ]]; then
-  echo "Warning: special Gutenprint dye-sub backend was not advertised; using $printer_uri"
+if [[ ! "$printer_uri" =~ ^gutenprint[0-9]+\+usb://dnp-dsrx1/ ]]; then
+  error "Refusing unsupported printer URI: $printer_uri"
+  exit 1
+fi
+ok "Detected printer URI: $printer_uri"
+
+if ! validate_ppd; then
+  exit 1
 fi
 
-if [[ ! -s "$ppd_file" ]]; then
-  echo "DNP DS-RX1 was detected, but its prebuilt PPD is unavailable at $ppd_file." >&2
-  exit 0
+if ! run_checked "CUPS queue $queue_name created or updated" timeout 30 \
+    "$lpadmin_command" -p "$queue_name" -E -v "$printer_uri" -P "$ppd_file"; then
+  exit 1
+fi
+if ! run_checked "Default printer set to $queue_name" timeout 10 \
+    "$lpadmin_command" -d "$queue_name"; then
+  exit 1
+fi
+if ! run_checked "Queue $queue_name enabled" timeout 10 \
+    "$cupsenable_command" "$queue_name"; then
+  exit 1
+fi
+if ! run_checked "Queue $queue_name accepts jobs" timeout 10 \
+    "$cupsaccept_command" "$queue_name"; then
+  exit 1
 fi
 
-echo "Using prebuilt Gutenprint PPD: $ppd_file"
-
-if ! timeout 20 "$lpadmin_command" \
-    -p "$queue_name" -E -v "$printer_uri" -P "$ppd_file"; then
-  echo "CUPS failed to create queue $queue_name with the prebuilt RX1 PPD." >&2
-  lpstat -t || true
-  exit 0
+if ! validate_queue; then
+  exit 1
 fi
 
-timeout 10 "$lpadmin_command" -d "$queue_name"
-timeout 10 "$cupsenable_command" "$queue_name"
-timeout 10 "$cupsaccept_command" "$queue_name"
-
-echo "Printer queue $queue_name is ready at $printer_uri."
-lpstat -p "$queue_name" -l
+ok "Printer queue $queue_name is ready for a manual hardware test."
