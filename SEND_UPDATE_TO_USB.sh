@@ -411,7 +411,7 @@ PY
 
   patch_name="PhotoBooth-Patch-$short_sha.tar.gz"
   patch_path="$staging_root/$patch_name"
-  tar -C "$staging_root" -czf "$patch_path" manifest.json files
+  COPYFILE_DISABLE=1 tar -C "$staging_root" -czf "$patch_path" manifest.json files
   patch_checksum="$(shasum -a 256 "$patch_path" | awk '{print $1}')"
 
   incoming_dir="$usb_root/Updates/incoming"
