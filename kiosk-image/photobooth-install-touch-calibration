@@ -7,28 +7,61 @@ temporary_file="$(mktemp)"
 trap 'rm -f "$temporary_file"' EXIT
 
 resolved_source="$(realpath "$source_file" 2>/dev/null || true)"
+
 if [[ ! -f "$source_file" || "$resolved_source" != /tmp/* ]]; then
   echo "Calibration source is invalid." >&2
   exit 1
 fi
 
 sed -n '/Section "InputClass"/,/EndSection/p' "$source_file" >"$temporary_file"
+
 if ! grep -q 'Option[[:space:]]*"Calibration"' "$temporary_file" ||
    ! grep -Fq 'HID 1aad:0001' "$temporary_file"; then
   echo "Calibration data does not belong to the PhotoBooth touchscreen." >&2
   exit 1
 fi
 
-install -D -m 0644 "$temporary_file" "$target_file"
-echo "Installed $target_file"
+calibration_values="$(
+  sed -n 's/.*Option[[:space:]]*"Calibration"[[:space:]]*"\([^"]*\)".*/\1/p' \
+    "$temporary_file" | head -n 1
+)"
+
+if [[ ! "$calibration_values" =~ ^-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+$ ]]; then
+  echo "Calibration values are malformed." >&2
+  exit 1
+fi
+
+read -r min_x max_x min_y max_y <<< "$calibration_values"
+
+if ! (( min_x < max_x &&
+        min_y < max_y &&
+        max_x - min_x > 500 &&
+        max_y - min_y > 500 )); then
+  echo "Calibration values are invalid: $calibration_values" >&2
+  echo "Previous working calibration was not changed." >&2
+  exit 1
+fi
+
+# Only after all validation succeeds do we replace the working profile.
+target_dir="$(dirname "$target_file")"
+mkdir -p "$target_dir"
+
+target_tmp="$(mktemp "$target_dir/.99-keetouch-calibration.conf.XXXXXX")"
+install -m 0644 "$temporary_file" "$target_tmp"
+mv -f "$target_tmp" "$target_file"
+
+echo "Installed validated calibration: $target_file"
 
 data_root="/media/${SUDO_USER:-user}/PHOTOBOOTH"
+
 if mountpoint -q "$data_root"; then
   diagnostics_dir="$data_root/Diagnostics"
   mkdir -p "$diagnostics_dir"
-  install -m 0644 "$temporary_file" \
-    "$diagnostics_dir/99-keetouch-calibration.conf"
-  chown "${SUDO_USER:-user}:${SUDO_USER:-user}" \
-    "$diagnostics_dir/99-keetouch-calibration.conf" || true
-  echo "Exported calibration to $diagnostics_dir"
+
+  usb_tmp="$(mktemp "$diagnostics_dir/.99-keetouch-calibration.conf.XXXXXX")"
+  install -m 0644 "$temporary_file" "$usb_tmp"
+  chown "${SUDO_USER:-user}:${SUDO_USER:-user}" "$usb_tmp" || true
+  mv -f "$usb_tmp" "$diagnostics_dir/99-keetouch-calibration.conf"
+
+  echo "Exported validated calibration to $diagnostics_dir"
 fi
