@@ -3,19 +3,41 @@ set -u
 
 device_name="HID 1aad:0001"
 log_file="${PHOTOBOOTH_DATA_ROOT:-/tmp}/Diagnostics/touchscreen.log"
+lock_file="/run/photobooth-touch-setup.lock"
+default_calibration="5640 7620 691 2308"
+
 mkdir -p "$(dirname "$log_file")"
 exec >>"$log_file" 2>&1
 
 echo "$(date --iso-8601=seconds) Configuring KeeTouch"
-for _ in $(seq 1 6); do
-  if xinput list --id-only "$device_name" >/dev/null 2>&1; then
+
+exec 9>"$lock_file"
+if ! flock -w 8 9; then
+  echo "KeeTouch setup skipped: another invocation still holds the lock."
+  exit 0
+fi
+
+device_id=""
+pointer_id=""
+
+for _ in $(seq 1 15); do
+  pointer_id="$(xinput list --id-only 'Virtual core pointer' 2>/dev/null | head -n 1 || true)"
+
+  while IFS= read -r candidate; do
+    [[ "$candidate" =~ ^[0-9]+$ ]] || continue
+    if xinput list-props "$candidate" 2>/dev/null | grep -q 'Evdev Axis Calibration'; then
+      device_id="$candidate"
+      break
+    fi
+  done < <(xinput list --id-only "$device_name" 2>/dev/null || true)
+
+  if [[ -n "$device_id" && -n "$pointer_id" ]]; then
     break
   fi
+
   sleep 1
 done
 
-device_id="$(xinput list --id-only "$device_name" 2>/dev/null || true)"
-pointer_id="$(xinput list --id-only 'Virtual core pointer' 2>/dev/null || true)"
 if [[ -z "$device_id" || -z "$pointer_id" ]]; then
   echo "KeeTouch or the X11 pointer was not found."
   xinput list || true
@@ -26,18 +48,43 @@ xinput reattach "$device_id" "$pointer_id" || true
 xinput enable "$device_id" || true
 xinput set-mode "$device_id" ABSOLUTE || true
 
+read -r min_x max_x min_y max_y <<< "$default_calibration"
+
+if xinput set-prop "$device_id" "Evdev Axis Calibration" \
+    "$min_x" "$max_x" "$min_y" "$max_y"; then
+  echo "Applied built-in KeeTouch calibration: $default_calibration"
+else
+  echo "Failed to apply built-in KeeTouch calibration: $default_calibration"
+fi
+
+xinput set-prop "$device_id" "Evdev Axes Swap" 0 || \
+  echo "Failed to disable KeeTouch axis swapping."
+
 data_root="${PHOTOBOOTH_DATA_ROOT:-/media/$USER/PHOTOBOOTH}"
 saved_calibration="$data_root/Diagnostics/99-keetouch-calibration.conf"
+
 if [[ -f "$saved_calibration" ]]; then
   calibration_values="$(
     sed -n 's/.*Option[[:space:]]*"Calibration"[[:space:]]*"\([^"]*\)".*/\1/p' \
       "$saved_calibration" | head -n 1
   )"
+
   if [[ "$calibration_values" =~ ^-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+[[:space:]]+-?[0-9]+$ ]]; then
     read -r min_x max_x min_y max_y <<< "$calibration_values"
-    xinput set-prop "$device_id" "Evdev Axis Calibration" \
-      "$min_x" "$max_x" "$min_y" "$max_y" || true
-    echo "Restored saved KeeTouch calibration: $calibration_values"
+
+    if (( min_x < max_x && min_y < max_y &&
+          max_x - min_x > 500 && max_y - min_y > 500 )); then
+      if xinput set-prop "$device_id" "Evdev Axis Calibration" \
+          "$min_x" "$max_x" "$min_y" "$max_y"; then
+        echo "Applied validated saved KeeTouch calibration: $calibration_values"
+      else
+        echo "Saved KeeTouch calibration could not be applied; built-in calibration remains active."
+      fi
+    else
+      echo "Ignoring invalid saved KeeTouch calibration '$calibration_values'; built-in calibration remains active."
+    fi
+  else
+    echo "Ignoring malformed saved KeeTouch calibration; built-in calibration remains active."
   fi
 fi
 
