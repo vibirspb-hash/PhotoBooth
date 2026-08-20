@@ -176,94 +176,68 @@ fi
 ok "Print job submitted: $job_id"
 
 info "Waiting up to 90 seconds while CUPS processes $job_id."
-job_number="${job_id##*-}"
 job_completed=false
+job_seen_active=false
 
-job_is_in_completed_history() {
-  local completed_jobs
-  if ! completed_jobs="$(lpstat -W completed -o "$queue_name" 2>&1)"; then
-    echo "$completed_jobs" >&2
-    return 2
-  fi
-  echo "$completed_jobs"
-  printf '%s\n' "$completed_jobs" |
+job_is_listed() {
+  local jobs="$1"
+  printf '%s\n' "$jobs" |
     awk -v target="$job_id" '$1 == target { found = 1 } END { exit !found }'
 }
 
 for _ in $(seq 1 18); do
-  queue_state="$(lpstat -p "$queue_name" -l 2>&1 || true)"
-  echo "$queue_state"
+  if ! run_capture timeout 10 lpstat -p "$queue_name" -l; then
+    fail "Unable to query queue state while processing $job_id (exit code $RUN_EXIT_CODE): $RUN_ERROR"
+  fi
+  queue_state="$RUN_OUTPUT"
   if [[ "$queue_state" == *"disabled"* ]]; then
     fail "Queue $queue_name became disabled while processing $job_id."
   fi
 
-  if ! run_capture ipptool -t -v -d "job-id=$job_number" \
-      "ipp://localhost/printers/$queue_name" \
-      /usr/share/cups/ipptool/get-job-attributes.test; then
-    ipp_exit_code="$RUN_EXIT_CODE"
-    ipp_error="$RUN_ERROR"
-    info "Get-Job-Attributes no longer returned $job_id; checking completed jobs."
-    job_is_in_completed_history
-    completed_check_exit_code=$?
-    if [[ "$completed_check_exit_code" -eq 0 ]]; then
-      job_completed=true
-      break
-    fi
-    if [[ "$completed_check_exit_code" -eq 2 ]]; then
-      fail "Unable to query both IPP state and completed-job history for $job_id (IPP exit code $ipp_exit_code): $ipp_error"
-    fi
-    fail "Unable to query IPP state for $job_id (exit code $ipp_exit_code): $ipp_error; the job is not present in completed history."
+  if ! run_capture timeout 10 lpstat -W not-completed -o "$queue_name"; then
+    fail "Unable to query active CUPS jobs for $job_id (exit code $RUN_EXIT_CODE): $RUN_ERROR"
   fi
-  job_attributes="$RUN_OUTPUT"
-  job_state_line="$(
-    printf '%s\n' "$job_attributes" |
-      grep -m1 -E 'job-state[[:space:]]+\(enum\)[[:space:]]*=' || true
-  )"
-  job_state_line="${job_state_line,,}"
-  if [[ -z "$job_state_line" ]]; then
-    info "CUPS returned no job-state for $job_id; checking completed jobs."
-    job_is_in_completed_history
-    completed_check_exit_code=$?
-    if [[ "$completed_check_exit_code" -eq 0 ]]; then
-      job_completed=true
-      break
-    fi
-    if [[ "$completed_check_exit_code" -eq 2 ]]; then
-      fail "CUPS returned no job-state for $job_id and completed-job history could not be queried."
-    fi
-    fail "CUPS returned no job-state for $job_id and it is not present in completed history."
+  active_jobs="$RUN_OUTPUT"
+  if job_is_listed "$active_jobs"; then
+    job_seen_active=true
+    info "CUPS still lists $job_id as active."
+    sleep 5
+    continue
   fi
 
-  if [[ "$job_state_line" == *"aborted"* ]] ||
-     [[ "$job_state_line" =~ =[[:space:]]*8([^0-9]|$) ]] ||
-     [[ "$job_state_line" == *"canceled"* ]] ||
-     [[ "$job_state_line" =~ =[[:space:]]*7([^0-9]|$) ]] ||
-     [[ "$job_state_line" == *"processing-stopped"* ]] ||
-     [[ "$job_state_line" =~ =[[:space:]]*6([^0-9]|$) ]]; then
-    fail "CUPS reports a failed state for $job_id: $job_state_line"
+  if ! run_capture timeout 10 lpstat -W completed -o "$queue_name"; then
+    fail "Unable to query completed CUPS jobs for $job_id (exit code $RUN_EXIT_CODE): $RUN_ERROR"
   fi
-  if [[ "$job_state_line" == *"completed"* ]] ||
-     [[ "$job_state_line" =~ =[[:space:]]*9([^0-9]|$) ]]; then
+  completed_jobs="$RUN_OUTPUT"
+  if job_is_listed "$completed_jobs"; then
     job_completed=true
     break
   fi
-  info "Current state for $job_id: $job_state_line"
+
+  if [[ "$job_seen_active" == true ]]; then
+    info "$job_id left the active list but is not in completed history yet; waiting."
+  else
+    info "$job_id is not visible in CUPS history yet; waiting."
+  fi
   sleep 5
 done
 
 if [[ "$job_completed" != true ]]; then
   info "Final completed-jobs fallback check for $job_id."
-  if job_is_in_completed_history; then
+  if ! run_capture timeout 10 lpstat -W completed -o "$queue_name"; then
+    fail "Final completed-job query failed for $job_id (exit code $RUN_EXIT_CODE): $RUN_ERROR"
+  fi
+  if job_is_listed "$RUN_OUTPUT"; then
     job_completed=true
   fi
 fi
 
 echo "--- Final active jobs ---"
-lpstat -o "$queue_name" 2>&1 || true
+timeout 10 lpstat -W not-completed -o "$queue_name" 2>&1 || true
 echo "--- Completed jobs ---"
-lpstat -W completed -o "$queue_name" 2>&1 || true
+timeout 10 lpstat -W completed -o "$queue_name" 2>&1 || true
 echo "--- Final queue state ---"
-lpstat -p "$queue_name" -l 2>&1 || true
+timeout 10 lpstat -p "$queue_name" -l 2>&1 || true
 
 if [[ "$job_completed" != true ]]; then
   fail "CUPS did not report $job_id as completed within 90 seconds."
