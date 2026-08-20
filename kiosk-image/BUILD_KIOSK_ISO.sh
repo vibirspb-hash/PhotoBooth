@@ -156,11 +156,80 @@ fi
 chmod +x "$image_root/VERIFY_PARTITION_LAYOUT.sh"
 "$image_root/VERIFY_PARTITION_LAYOUT.sh" "$iso_path"
 
-cp "$iso_path" "$output_root/PhotoBooth-Kiosk-amd64.iso"
+disk_image="$output_root/PhotoBooth-Kiosk-amd64.img"
+image_size_mib=7500
+data_size_mib=4096
+iso_bytes="$(stat -c '%s' "$iso_path")"
+start_mib=$(( (iso_bytes + 1048575) / 1048576 + 8 ))
+data_end_mib=$((start_mib + data_size_mib))
+data_start_sector=$((start_mib * 2048))
+data_size_sectors=$((data_size_mib * 2048))
+persistence_start_sector=$((data_end_mib * 2048))
+
+if (( data_end_mib + 1024 >= image_size_mib )); then
+  echo "The prebuilt storage layout does not fit in the disk image." >&2
+  exit 1
+fi
+
+cp --sparse=always "$iso_path" "$disk_image"
+truncate -s "${image_size_mib}M" "$disk_image"
+printf '%s : start=%s, size=%s, type=c\n%s : start=%s, type=83\n' \
+  "${disk_image}3" "$data_start_sector" "$data_size_sectors" \
+  "${disk_image}4" "$persistence_start_sector" |
+  sfdisk --append --force --no-reread "$disk_image"
+
+loop_device="$(losetup --find --show --partscan "$disk_image")"
+data_partition="${loop_device}p3"
+persistence_partition="${loop_device}p4"
+data_mount="$(mktemp -d --tmpdir photobooth-data.XXXXXX)"
+persistence_mount="$(mktemp -d --tmpdir photobooth-persistence.XXXXXX)"
+cleanup_storage_image() {
+  mountpoint -q "$data_mount" && umount "$data_mount" || true
+  mountpoint -q "$persistence_mount" && umount "$persistence_mount" || true
+  losetup -d "$loop_device" 2>/dev/null || true
+  rmdir "$data_mount" "$persistence_mount" 2>/dev/null || true
+}
+trap cleanup_storage_image EXIT
+
+partprobe "$loop_device" || true
+udevadm settle
+for _ in {1..50}; do
+  [[ -b "$data_partition" && -b "$persistence_partition" ]] && break
+  sleep 0.1
+done
+if [[ ! -b "$data_partition" || ! -b "$persistence_partition" ]]; then
+  echo "Prebuilt PhotoBooth partition devices were not created." >&2
+  exit 1
+fi
+
+mkfs.vfat -F 32 -n PHOTOBOOTH "$data_partition"
+mount "$data_partition" "$data_mount"
+mkdir -p "$data_mount/Templates" "$data_mount/Output" "$data_mount/Diagnostics"
+cat > "$data_mount/PUT_TEMPLATES_HERE.txt" <<'EOF'
+Put each PhotoBooth template folder inside the Templates directory.
+
+Example:
+Templates/Event/2.png
+Templates/Event/2.json
+EOF
+sync
+umount "$data_mount"
+
+mkfs.ext4 -F -L persistence "$persistence_partition"
+mount "$persistence_partition" "$persistence_mount"
+printf '/ union\n' > "$persistence_mount/persistence.conf"
+sync
+umount "$persistence_mount"
+
+blkid "$data_partition" | grep -Fq 'LABEL="PHOTOBOOTH"'
+blkid "$persistence_partition" | grep -Fq 'LABEL="persistence"'
+cleanup_storage_image
+trap - EXIT
+
 (
   cd "$output_root"
-  sha256sum PhotoBooth-Kiosk-amd64.iso > PhotoBooth-Kiosk-amd64.iso.sha256
-  split -b 1500M -d -a 2 PhotoBooth-Kiosk-amd64.iso PhotoBooth-Kiosk-amd64.iso.part-
+  sha256sum PhotoBooth-Kiosk-amd64.img > PhotoBooth-Kiosk-amd64.img.sha256
+  gzip -1 -c PhotoBooth-Kiosk-amd64.img > PhotoBooth-Kiosk-amd64.img.gz
 )
 
 echo "Kiosk image created in $output_root"

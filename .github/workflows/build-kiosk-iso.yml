@@ -46,14 +46,14 @@ jobs:
             -w /work \
             -e PHOTOBOOTH_PREPUBLISHED_DIR=/work/kiosk-image/prebuilt-app \
             debian:trixie \
-            bash -c 'apt-get update && apt-get install -y live-build ca-certificates && ./kiosk-image/BUILD_KIOSK_ISO.sh'
+            bash -c 'apt-get update && apt-get install -y live-build ca-certificates fdisk dosfstools e2fsprogs parted udev util-linux && ./kiosk-image/BUILD_KIOSK_ISO.sh'
 
       - name: Upload image parts
         uses: actions/upload-artifact@v4
         with:
           name: PhotoBooth-Kiosk-amd64
           path: |
-            kiosk-image/output/PhotoBooth-Kiosk-amd64.iso.part-*
-            kiosk-image/output/PhotoBooth-Kiosk-amd64.iso.sha256
+            kiosk-image/output/PhotoBooth-Kiosk-amd64.img.gz
+            kiosk-image/output/PhotoBooth-Kiosk-amd64.img.sha256
           compression-level: 0
           retention-days: 7
