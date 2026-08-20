@@ -57,6 +57,12 @@ cp "$image_root/packages.list.chroot" config/package-lists/photobooth.list.chroo
 
 mkdir -p config/includes.chroot/opt/photobooth
 cp -a "$publish_root/." config/includes.chroot/opt/photobooth/
+cp "$image_root/test-print.jpg" \
+  config/includes.chroot/opt/photobooth/test-print.jpg
+
+mkdir -p config/includes.chroot/usr/share/ppd/photobooth
+cp "$image_root/DNP-DSRX1.ppd" \
+  config/includes.chroot/usr/share/ppd/photobooth/DNP-DSRX1.ppd
 
 mkdir -p config/includes.chroot/etc/lightdm/lightdm.conf.d
 cp "$image_root/lightdm-photobooth.conf" \
@@ -70,6 +76,8 @@ cp "$image_root/99-keetouch-calibration.conf" \
   config/includes.chroot/etc/X11/xorg.conf.d/99-keetouch-calibration.conf
 
 mkdir -p config/includes.chroot/usr/local/sbin
+cp "$image_root/test-dnp-print.sh" \
+  config/includes.chroot/usr/local/sbin/test-dnp-print
 cp "$image_root/photobooth-first-boot" \
   config/includes.chroot/usr/local/sbin/photobooth-first-boot
 cp "$image_root/photobooth-printer-setup" \
@@ -99,7 +107,22 @@ mkdir -p config/hooks/live
 cat > config/hooks/live/010-photobooth-kiosk.hook.chroot <<'HOOK'
 #!/bin/sh
 set -eu
+ppd_file=/usr/share/ppd/photobooth/DNP-DSRX1.ppd
+
+if [ ! -s "$ppd_file" ] ||
+   ! grep -q '^\*PPD-Adobe:' "$ppd_file" ||
+   ! grep -Eiq 'DS-?RX1|DSRX1' "$ppd_file" ||
+   ! grep -Eiq 'rastertogutenprint|Gutenprint' "$ppd_file" ||
+   ! grep -q '^\*PageSize w288h432/' "$ppd_file" ||
+   ! grep -q '^\*Resolution 300dpi/' "$ppd_file"; then
+  echo "Vendored DNP DS-RX1 PPD is incomplete." >&2
+  exit 1
+fi
+cupstestppd -q "$ppd_file" || echo "CUPS reported non-fatal compatibility warnings for the RX1 PPD."
+chmod 644 "$ppd_file"
+
 chmod +x /opt/photobooth/PhotoBooth.Linux /opt/photobooth/*.sh
+chmod +x /usr/local/sbin/test-dnp-print
 chmod +x /usr/local/sbin/photobooth-first-boot
 chmod +x /usr/local/sbin/photobooth-printer-setup
 chmod +x /usr/local/sbin/photobooth-install-touch-calibration
