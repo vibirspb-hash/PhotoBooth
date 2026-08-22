@@ -8,5 +8,8 @@ public interface IPrinterService
 
     string DisplayName { get; }
 
-    PrintResult Print(string imagePath, int copies);
+    Task<PrintResult> PrintAsync(
+        string imagePath,
+        int copies,
+        CancellationToken cancellationToken = default);
 }

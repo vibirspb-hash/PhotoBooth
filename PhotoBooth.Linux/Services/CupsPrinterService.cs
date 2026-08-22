@@ -37,20 +37,17 @@ public sealed class CupsPrinterService : IPrinterService
         $"Качество: {(SupportsQualitySelection ? "доступно" : "не предоставлено драйвером")}; " +
         $"рез 5×15: {(SupportsTwoInchCut ? "доступен" : "не предоставлен драйвером")}.";
 
-    public string Status
+    public async Task<string> GetStatusAsync(CancellationToken cancellationToken = default)
     {
-        get
-        {
-            CommandResult result = CommandRunner.RunAsync(
-                    _lpstatCommand,
-                    ["-p", _queueName],
-                    TimeSpan.FromSeconds(5))
-                .GetAwaiter()
-                .GetResult();
-            return result.Success
-                ? result.StandardOutput.Trim()
-                : $"Очередь {_queueName} недоступна: {result.CombinedOutput}";
-        }
+        CommandResult result = await CommandRunner.RunAsync(
+                _lpstatCommand,
+                ["-p", _queueName],
+                TimeSpan.FromSeconds(5),
+                cancellationToken)
+            .ConfigureAwait(false);
+        return result.Success
+            ? result.StandardOutput.Trim()
+            : $"Очередь {_queueName} недоступна: {result.CombinedOutput}";
     }
 
     public static async Task<(CupsPrinterService? Service, string Error)> TryCreateAsync(
@@ -119,7 +116,10 @@ public sealed class CupsPrinterService : IPrinterService
         _cutMode = cutMode;
     }
 
-    public PrintResult Print(string imagePath, int copies)
+    public async Task<PrintResult> PrintAsync(
+        string imagePath,
+        int copies,
+        CancellationToken cancellationToken = default)
     {
         if (!File.Exists(imagePath))
         {
@@ -146,12 +146,12 @@ public sealed class CupsPrinterService : IPrinterService
         AddSelectedOption(arguments, _cutOption, _cutMode == "TwoInch");
         arguments.Add(imagePath);
 
-        CommandResult result = CommandRunner.RunAsync(
+        CommandResult result = await CommandRunner.RunAsync(
                 _lpCommand,
                 arguments,
-                TimeSpan.FromSeconds(15))
-            .GetAwaiter()
-            .GetResult();
+                TimeSpan.FromSeconds(15),
+                cancellationToken)
+            .ConfigureAwait(false);
         return result.Success
             ? new PrintResult(true, result.StandardOutput.Trim())
             : new PrintResult(

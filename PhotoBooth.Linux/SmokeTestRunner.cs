@@ -34,7 +34,7 @@ internal static class SmokeTestRunner
                 shots,
                 resultPath);
             PrintResult printResult =
-                new DemoPrinterService().Print(resultPath, 3);
+                new DemoPrinterService().PrintAsync(resultPath, 3).GetAwaiter().GetResult();
             PrintAuditService audit = new();
             audit.Record(testRoot, resultPath, 2);
             audit.Record(testRoot, resultPath, 1);

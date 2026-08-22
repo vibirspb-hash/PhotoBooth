@@ -72,7 +72,7 @@ public static class CommandRunner
 
         try
         {
-            await process.WaitForExitAsync(linkedSource.Token);
+            await process.WaitForExitAsync(linkedSource.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -88,12 +88,27 @@ public static class CommandRunner
             string reason = timeoutSource.IsCancellationRequested
                 ? $"Команда не завершилась за {timeout.TotalSeconds:0} сек."
                 : "Команда отменена.";
-            return new CommandResult(-1, await outputTask, reason);
+            string output = string.Empty;
+            try
+            {
+                await process.WaitForExitAsync()
+                    .WaitAsync(TimeSpan.FromSeconds(2))
+                    .ConfigureAwait(false);
+                output = await outputTask
+                    .WaitAsync(TimeSpan.FromSeconds(2))
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // Cleanup is deliberately bounded so a stuck device command
+                // can never hold the application workflow indefinitely.
+            }
+            return new CommandResult(-1, output, reason);
         }
 
         return new CommandResult(
             process.ExitCode,
-            await outputTask,
-            await errorTask);
+            await outputTask.ConfigureAwait(false),
+            await errorTask.ConfigureAwait(false));
     }
 }

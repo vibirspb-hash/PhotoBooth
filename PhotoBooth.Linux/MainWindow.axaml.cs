@@ -387,7 +387,9 @@ public sealed partial class MainWindow : Window
             ? printer
             : new DemoPrinterService();
         printer?.Configure(_config.PrinterQuality, _config.PrinterCutMode);
-        _printerStatus = printer?.Status ?? $"Демо-печать: {printerError}.";
+        _printerStatus = printer is not null
+            ? await printer.GetStatusAsync()
+            : $"Демо-печать: {printerError}.";
         UpdatePublicHardwareStatus();
     }
 
@@ -420,7 +422,7 @@ public sealed partial class MainWindow : Window
 
             printer.Configure(_config.PrinterQuality, _config.PrinterCutMode);
             _printerService = printer;
-            _printerStatus = printer.Status;
+            _printerStatus = await printer.GetStatusAsync();
             UpdatePublicHardwareStatus();
             return;
         }
@@ -1256,8 +1258,9 @@ public sealed partial class MainWindow : Window
         ShowHomeScreen();
     }
 
-    private void PrintButton_OnClick(object? sender, RoutedEventArgs e)
+    private async void PrintButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        Button? printButton = sender as Button;
         if (!_hardwareFallbackAllowed && _printerService.IsDemo)
         {
             _printButtonText.Text =
@@ -1269,12 +1272,18 @@ public sealed partial class MainWindow : Window
         string? adjustedPath = null;
         try
         {
-            adjustedPath = _printerCalibrationService.CreateAdjustedCopy(
-                _resultPath,
-                _config.PrinterOffsetX,
-                _config.PrinterOffsetY,
-                _config.PrinterScalePercent);
-            result = _printerService.Print(adjustedPath, _copyCount);
+            if (printButton is not null)
+            {
+                printButton.IsEnabled = false;
+            }
+            _printButtonText.Text = "Отправка в принтер…";
+            adjustedPath = await Task.Run(() =>
+                _printerCalibrationService.CreateAdjustedCopy(
+                    _resultPath,
+                    _config.PrinterOffsetX,
+                    _config.PrinterOffsetY,
+                    _config.PrinterScalePercent));
+            result = await _printerService.PrintAsync(adjustedPath, _copyCount);
         }
         catch (Exception exception)
         {
@@ -1282,6 +1291,10 @@ public sealed partial class MainWindow : Window
         }
         finally
         {
+            if (printButton is not null)
+            {
+                printButton.IsEnabled = true;
+            }
             DeleteTemporaryFile(adjustedPath);
         }
 
@@ -1974,24 +1987,34 @@ public sealed partial class MainWindow : Window
             "Значения сброшены. Нажмите «Сохранить», чтобы применить.";
     }
 
-    private void PrinterTestButton_OnClick(object? sender, RoutedEventArgs e)
+    private async void PrinterTestButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        Button? testButton = sender as Button;
         string? testPagePath = null;
         string? adjustedPath = null;
         try
         {
-            testPagePath = _printerCalibrationService.CreateTestPage();
-            adjustedPath = _printerCalibrationService.CreateAdjustedCopy(
-                testPagePath,
-                _printerOffsetXDraft,
-                _printerOffsetYDraft,
-                _printerScaleDraft);
+            if (testButton is not null)
+            {
+                testButton.IsEnabled = false;
+            }
+            _printerSettingsStatusText.Text = "Отправка тестовой страницы…";
+            (testPagePath, adjustedPath) = await Task.Run(() =>
+            {
+                string page = _printerCalibrationService.CreateTestPage();
+                string adjusted = _printerCalibrationService.CreateAdjustedCopy(
+                    page,
+                    _printerOffsetXDraft,
+                    _printerOffsetYDraft,
+                    _printerScaleDraft);
+                return (page, adjusted);
+            });
             if (_printerService is CupsPrinterService cups)
             {
                 cups.Configure(_printerQualityDraft, _printerCutModeDraft);
             }
 
-            PrintResult result = _printerService.Print(adjustedPath, 1);
+            PrintResult result = await _printerService.PrintAsync(adjustedPath, 1);
             _printerSettingsStatusText.Text = result.Success
                 ? "Тестовая страница отправлена в принтер."
                 : result.Message;
@@ -2003,6 +2026,10 @@ public sealed partial class MainWindow : Window
         }
         finally
         {
+            if (testButton is not null)
+            {
+                testButton.IsEnabled = true;
+            }
             if (_printerService is CupsPrinterService cups)
             {
                 cups.Configure(_config.PrinterQuality, _config.PrinterCutMode);

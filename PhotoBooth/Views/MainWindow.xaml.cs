@@ -1198,7 +1198,7 @@ public partial class MainWindow : Window
         ShowHomeScreen();
     }
 
-    private void PrintButton_Click(object sender, RoutedEventArgs e)
+    private async void PrintButton_Click(object sender, RoutedEventArgs e)
     {
         PrintButton.IsEnabled = false;
         CopyOptionsPanel.IsEnabled = false;
@@ -1206,7 +1206,7 @@ public partial class MainWindow : Window
 
         try
         {
-            result = _printerService.Print(_currentResultPath, _copyCount);
+            result = await _printerService.PrintAsync(_currentResultPath, _copyCount);
         }
         catch (Exception exception)
         {
