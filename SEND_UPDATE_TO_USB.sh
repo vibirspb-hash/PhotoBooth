@@ -130,6 +130,10 @@ direct_mapping() {
       MAP_DESTINATION="/usr/local/bin/photobooth-touch-calibrate"
       MAP_TYPE="shell"; MAP_MODE="0755"; MAP_COMPONENT="Touchscreen"
       ;;
+    kiosk-image/photobooth-touch-click-bridge)
+      MAP_DESTINATION="/usr/local/bin/photobooth-touch-click-bridge"
+      MAP_TYPE="shell"; MAP_MODE="0755"; MAP_COMPONENT="Touchscreen"; MAP_REBOOT=true
+      ;;
     kiosk-image/photobooth-hardware-diagnostics)
       MAP_DESTINATION="/usr/local/bin/photobooth-hardware-diagnostics"
       MAP_TYPE="shell"; MAP_MODE="0755"; MAP_COMPONENT="Diagnostics"

@@ -14,6 +14,7 @@ unclutter-xfixes
 x11-xserver-utils
 xinput
 xinput-calibrator
+xdotool
 evtest
 xserver-xorg
 xserver-xorg-input-evdev

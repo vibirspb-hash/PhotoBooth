@@ -38,6 +38,7 @@ fi
 # Attach and restore the touchscreen before the UI starts. Printer setup is
 # repeated in the background because USB may become ready after systemd boot.
 /usr/local/bin/photobooth-touch-setup || true
+(/usr/local/bin/photobooth-touch-click-bridge || true) &
 (sudo -n /usr/local/sbin/photobooth-printer-setup || true) &
 
 if [[ -d "$media_root" ]]; then

@@ -23,6 +23,9 @@ output_root="$image_root/output"
 publish_root="$build_root/app"
 base_version="${PHOTOBOOTH_BUILD_COMMIT:-}"
 
+bash -n "$image_root/photobooth-touch-setup" \
+  "$image_root/photobooth-touch-click-bridge"
+
 if [[ -z "$base_version" ]] && command -v git >/dev/null 2>&1; then
   base_version="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || true)"
 fi
@@ -106,6 +109,8 @@ cp "$image_root/photobooth-touch-setup" \
   config/includes.chroot/usr/local/bin/photobooth-touch-setup
 cp "$image_root/photobooth-touch-calibrate" \
   config/includes.chroot/usr/local/bin/photobooth-touch-calibrate
+cp "$image_root/photobooth-touch-click-bridge" \
+  config/includes.chroot/usr/local/bin/photobooth-touch-click-bridge
 cp "$image_root/photobooth-hardware-diagnostics" \
   config/includes.chroot/usr/local/bin/photobooth-hardware-diagnostics
 
@@ -136,6 +141,7 @@ if [[ ! -s "$ppd_file" ]] ||
   echo "Vendored DNP DS-RX1 PPD is incomplete." >&2
   exit 1
 fi
+command -v xdotool >/dev/null
 cupstestppd -q "$ppd_file" || echo "CUPS reported non-fatal compatibility warnings for the RX1 PPD."
 chmod 644 "$ppd_file"
 
@@ -149,6 +155,7 @@ chmod +x /usr/local/sbin/photobooth-set-time
 chmod +x /usr/local/sbin/photobooth-update
 chmod +x /usr/local/bin/photobooth-touch-setup
 chmod +x /usr/local/bin/photobooth-touch-calibrate
+chmod +x /usr/local/bin/photobooth-touch-click-bridge
 chmod +x /usr/local/bin/photobooth-hardware-diagnostics
 chown -R 1000:1000 /opt/photobooth
 mkdir -p /media/user/PHOTOBOOTH

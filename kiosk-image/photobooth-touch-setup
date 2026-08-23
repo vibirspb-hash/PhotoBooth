@@ -2,7 +2,10 @@
 set -u
 
 device_name="HID 1aad:0001"
-default_calibration="5640 7620 691 2308"
+# Measured on the physical PhotoBooth KeeTouch panel on 2026-08-23.
+# The controller advertises 0..32767, but the usable glass reports only this
+# smaller range.
+default_calibration="2843 3805 394 1141"
 log_file="${PHOTOBOOTH_DATA_ROOT:-/tmp}/Diagnostics/touchscreen.log"
 
 mkdir -p "$(dirname "$log_file")"
@@ -26,7 +29,6 @@ if [[ -z "$device_id" || -z "$pointer_id" ]]; then
   exit 0
 fi
 
-# Keep the hardware behavior of the confirmed c30fa9a build.
 # Only KeeTouch is modified. Mouse and keyboard are never touched here.
 xinput reattach "$device_id" "$pointer_id" || true
 xinput enable "$device_id" || true

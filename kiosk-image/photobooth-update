@@ -332,6 +332,7 @@ destination_metadata() {
   case "$destination" in
     /usr/local/bin/photobooth-touch-setup|\
     /usr/local/bin/photobooth-touch-calibrate|\
+    /usr/local/bin/photobooth-touch-click-bridge|\
     /usr/local/bin/photobooth-hardware-diagnostics|\
     /usr/local/sbin/photobooth-printer-setup|\
     /usr/local/sbin/photobooth-install-touch-calibration|\
