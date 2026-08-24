@@ -1270,6 +1270,7 @@ public sealed partial class MainWindow : Window
 
         PrintResult result;
         string? adjustedPath = null;
+        CupsPrinterService? cupsPrinter = _printerService as CupsPrinterService;
         try
         {
             if (printButton is not null)
@@ -1283,6 +1284,9 @@ public sealed partial class MainWindow : Window
                     _config.PrinterOffsetX,
                     _config.PrinterOffsetY,
                     _config.PrinterScalePercent));
+            cupsPrinter?.Configure(
+                _config.PrinterQuality,
+                ShouldUseTwoInchCut(_resultPath) ? "TwoInch" : "Standard");
             result = await _printerService.PrintAsync(adjustedPath, _copyCount);
         }
         catch (Exception exception)
@@ -1291,6 +1295,9 @@ public sealed partial class MainWindow : Window
         }
         finally
         {
+            cupsPrinter?.Configure(
+                _config.PrinterQuality,
+                _config.PrinterCutMode);
             if (printButton is not null)
             {
                 printButton.IsEnabled = true;
@@ -1319,6 +1326,41 @@ public sealed partial class MainWindow : Window
         _printProgressPanel.IsVisible = true;
         _printProgressTimer.Start();
     }
+
+    private bool ShouldUseTwoInchCut(string imagePath)
+    {
+        if (!_isHistoryPreview)
+        {
+            return _selectedDefinition?.RequiredShotCount >= 3;
+        }
+
+        string? printsPath = Path.GetDirectoryName(imagePath);
+        string? sessionPath = printsPath is null
+            ? null
+            : Directory.GetParent(printsPath)?.FullName;
+        if (sessionPath is null)
+        {
+            return false;
+        }
+
+        string originalsPath = Path.Combine(
+            sessionPath,
+            "Photos",
+            Path.GetFileNameWithoutExtension(imagePath));
+        if (!Directory.Exists(originalsPath))
+        {
+            return false;
+        }
+
+        return Directory.EnumerateFiles(originalsPath)
+            .Count(path => IsPhotoFile(path)) >= 3;
+    }
+
+    private static bool IsPhotoFile(string path) =>
+        Path.GetExtension(path).Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+        Path.GetExtension(path).Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+        Path.GetExtension(path).Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+        Path.GetExtension(path).Equals(".bmp", StringComparison.OrdinalIgnoreCase);
 
     private void PrintProgressTimer_OnTick(object? sender, EventArgs e)
     {

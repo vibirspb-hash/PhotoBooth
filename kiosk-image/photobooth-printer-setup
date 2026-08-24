@@ -121,6 +121,10 @@ validate_ppd() {
     error "PPD does not provide the internal 4x6 option PageSize=w288h432."
     return 1
   fi
+  if ! grep -q '^\*PageSize w288h432-div2/' "$ppd_file"; then
+    error "PPD does not provide the 2x6*2 cut option PageSize=w288h432-div2."
+    return 1
+  fi
   if ! grep -q '^\*Resolution 300dpi/' "$ppd_file"; then
     error "PPD does not provide the internal option Resolution=300dpi."
     return 1

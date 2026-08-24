@@ -4,6 +4,9 @@ namespace PhotoBooth.Services;
 
 public sealed class CupsPrinterService : IPrinterService
 {
+    private const string FourBySixMedia = "w288h432";
+    private const string TwoInchStripMedia = "w288h432-div2";
+
     private readonly string _lpCommand;
     private readonly string _lpstatCommand;
     private readonly string _media;
@@ -31,7 +34,9 @@ public sealed class CupsPrinterService : IPrinterService
 
     public bool SupportsQualitySelection => _qualityOption is not null;
 
-    public bool SupportsTwoInchCut => _cutOption is not null;
+    public bool SupportsTwoInchCut =>
+        _cutOption is not null ||
+        _media.Equals(FourBySixMedia, StringComparison.OrdinalIgnoreCase);
 
     public string DriverOptionsSummary =>
         $"Качество: {(SupportsQualitySelection ? "доступно" : "не предоставлено драйвером")}; " +
@@ -137,13 +142,21 @@ public sealed class CupsPrinterService : IPrinterService
             "-n", copies.ToString(),
             "-o", "fit-to-page"
         ];
-        if (!string.IsNullOrWhiteSpace(_media))
+        bool useTwoInchCut = _cutMode == "TwoInch";
+        bool useTwoInchMedia =
+            useTwoInchCut &&
+            _media.Equals(FourBySixMedia, StringComparison.OrdinalIgnoreCase);
+        string selectedMedia = useTwoInchMedia ? TwoInchStripMedia : _media;
+        if (!string.IsNullOrWhiteSpace(selectedMedia))
         {
             arguments.Add("-o");
-            arguments.Add($"media={_media}");
+            arguments.Add($"media={selectedMedia}");
         }
         AddSelectedOption(arguments, _qualityOption, _quality == "High");
-        AddSelectedOption(arguments, _cutOption, _cutMode == "TwoInch");
+        if (!useTwoInchMedia)
+        {
+            AddSelectedOption(arguments, _cutOption, useTwoInchCut);
+        }
         arguments.Add(imagePath);
 
         CommandResult result = await CommandRunner.RunAsync(
