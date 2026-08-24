@@ -8,6 +8,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using PhotoBooth.Linux.Branding;
 using PhotoBooth.Models;
 using PhotoBooth.Services;
 
@@ -185,6 +186,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         AvaloniaXamlLoader.Load(this);
+        ApplyBrandingImages();
 
         _activeSessionText = Find<TextBlock>("ActiveSessionText");
         _currentSessionNameText = Find<TextBlock>("CurrentSessionNameText");
@@ -336,6 +338,30 @@ public sealed partial class MainWindow : Window
             await InitializeHardwareAsync();
             _ = RetryPrinterDiscoveryAsync();
         };
+    }
+
+    private void ApplyBrandingImages()
+    {
+        Image background = Find<Image>("BrandingBackgroundImage");
+        if (BrandingTheme.BackgroundImage is not null)
+        {
+            background.Source = BrandingTheme.BackgroundImage;
+            background.IsVisible = true;
+        }
+
+        if (BrandingTheme.LogoImage is null)
+        {
+            return;
+        }
+
+        Find<TextBlock>("SessionBrandText").IsVisible = false;
+        Find<TextBlock>("HomeBrandText").IsVisible = false;
+        Image sessionLogo = Find<Image>("SessionLogoImage");
+        Image homeLogo = Find<Image>("HomeLogoImage");
+        sessionLogo.Source = BrandingTheme.LogoImage;
+        homeLogo.Source = BrandingTheme.LogoImage;
+        sessionLogo.IsVisible = true;
+        homeLogo.IsVisible = true;
     }
 
     private T Find<T>(string name) where T : Control =>

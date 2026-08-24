@@ -47,6 +47,8 @@
   <ItemGroup>
     <None Update="config.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Branding\**\*"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\PhotoBooth\Templates\**\*"
           Link="Templates\%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />

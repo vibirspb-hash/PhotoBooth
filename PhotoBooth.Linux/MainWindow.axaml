@@ -9,22 +9,23 @@
         WindowStartupLocation="CenterScreen"
         WindowDecorations="None"
         Cursor="None"
-        Background="#5F72E9">
+        FontFamily="{DynamicResource Theme.FontFamily}"
+        Background="{DynamicResource Theme.window.Brush}">
     <Window.Styles>
         <Style Selector="Button">
-            <Setter Property="FontFamily" Value="Inter, Arial, sans-serif" />
-            <Setter Property="FontSize" Value="20" />
-            <Setter Property="MinHeight" Value="58" />
-            <Setter Property="Padding" Value="28,13" />
-            <Setter Property="CornerRadius" Value="29" />
+            <Setter Property="FontFamily" Value="{DynamicResource Theme.FontFamily}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.buttonFontSize}" />
+            <Setter Property="MinHeight" Value="{DynamicResource Theme.buttonMinHeight}" />
+            <Setter Property="Padding" Value="{DynamicResource Theme.ButtonPadding}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.ButtonCornerRadius}" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
 
         <Style Selector="Button.glass">
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="Background" Value="#20FFFFFF" />
-            <Setter Property="BorderBrush" Value="#BFFFFFFF" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textOnColor.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.glass.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.glassBorder.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
 
@@ -33,159 +34,159 @@
         </Style>
 
         <Style Selector="Button.primary">
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textOnColor.Brush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Background">
                 <LinearGradientBrush StartPoint="0%,0%"
                                      EndPoint="100%,0%">
-                    <GradientStop Color="#9B70FF" Offset="0" />
-                    <GradientStop Color="#C378E8" Offset="0.52" />
-                    <GradientStop Color="#F37EC9" Offset="1" />
+                    <GradientStop Color="{DynamicResource Theme.primaryGradient1.Color}" Offset="0" />
+                    <GradientStop Color="{DynamicResource Theme.primaryGradient2.Color}" Offset="0.52" />
+                    <GradientStop Color="{DynamicResource Theme.primaryGradient3.Color}" Offset="1" />
                 </LinearGradientBrush>
             </Setter>
-            <Setter Property="BorderBrush" Value="#A8FFFFFF" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.primaryBorder.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
 
         <Style Selector="TextBox.session">
-            <Setter Property="Height" Value="64" />
-            <Setter Property="Padding" Value="22,14" />
-            <Setter Property="FontSize" Value="21" />
-            <Setter Property="Foreground" Value="#172238" />
-            <Setter Property="Background" Value="#EFFFFFFF" />
-            <Setter Property="BorderBrush" Value="#D8FFFFFF" />
+            <Setter Property="Height" Value="{DynamicResource Theme.fieldHeight}" />
+            <Setter Property="Padding" Value="{DynamicResource Theme.FieldPadding}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.fieldFontSize}" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textDark.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.field.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.fieldBorder.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="22" />
-            <Setter Property="SelectionBrush" Value="#887B61FF" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.FieldCornerRadius}" />
+            <Setter Property="SelectionBrush" Value="{DynamicResource Theme.selection.Brush}" />
         </Style>
 
         <Style Selector="Button.keyboardKey">
-            <Setter Property="Height" Value="58" />
-            <Setter Property="MinWidth" Value="62" />
-            <Setter Property="Padding" Value="12,6" />
-            <Setter Property="FontSize" Value="22" />
+            <Setter Property="Height" Value="{DynamicResource Theme.keyboardHeight}" />
+            <Setter Property="MinWidth" Value="{DynamicResource Theme.keyboardMinWidth}" />
+            <Setter Property="Padding" Value="{DynamicResource Theme.KeyboardPadding}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.font22}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="#172238" />
-            <Setter Property="Background" Value="#EFFFFFFF" />
-            <Setter Property="BorderBrush" Value="#B8FFFFFF" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textDark.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.field.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.glassBorderStrong.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.corner18}" />
         </Style>
 
         <Style Selector="Button.actionButton">
-            <Setter Property="Height" Value="92" />
-            <Setter Property="MinWidth" Value="320" />
-            <Setter Property="FontSize" Value="25" />
+            <Setter Property="Height" Value="{DynamicResource Theme.actionButtonHeight}" />
+            <Setter Property="MinWidth" Value="{DynamicResource Theme.actionButtonMinWidth}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.actionButtonFontSize}" />
         </Style>
 
         <Style Selector="Button.pinKey">
-            <Setter Property="Width" Value="124" />
-            <Setter Property="Height" Value="68" />
-            <Setter Property="FontSize" Value="25" />
+            <Setter Property="Width" Value="{DynamicResource Theme.pinWidth}" />
+            <Setter Property="Height" Value="{DynamicResource Theme.pinHeight}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.font25}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="8" />
-            <Setter Property="CornerRadius" Value="22" />
+            <Setter Property="Padding" Value="{DynamicResource Theme.PinPadding}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.corner22}" />
         </Style>
 
         <Style Selector="Button.calibrationOption">
-            <Setter Property="MinHeight" Value="52" />
-            <Setter Property="Padding" Value="18,9" />
-            <Setter Property="FontSize" Value="17" />
-            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="MinHeight" Value="{DynamicResource Theme.optionMinHeight}" />
+            <Setter Property="Padding" Value="{DynamicResource Theme.OptionPadding}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.font17}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.corner18}" />
         </Style>
 
         <Style Selector="Button.calibrationOption.selected">
-            <Setter Property="Background" Value="#667B61FF" />
-            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="Background" Value="{DynamicResource Theme.accent.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.textOnColor.Brush}" />
             <Setter Property="BorderThickness" Value="2" />
         </Style>
 
         <Style Selector="CheckBox.scheduleToggle">
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="FontSize" Value="18" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textOnColor.Brush}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.font18}" />
             <Setter Property="MinHeight" Value="44" />
         </Style>
 
         <Style Selector="ComboBox.cameraSetting">
-            <Setter Property="MinHeight" Value="58" />
-            <Setter Property="FontSize" Value="19" />
-            <Setter Property="Foreground" Value="#172238" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#B8FFFFFF" />
+            <Setter Property="MinHeight" Value="{DynamicResource Theme.comboMinHeight}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.font19}" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textDark.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.textOnColor.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.glassBorder.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="18" />
-            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.corner18}" />
+            <Setter Property="Padding" Value="{DynamicResource Theme.ComboPadding}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
 
         <Style Selector="Button.templateCard">
-            <Setter Property="Width" Value="220" />
-            <Setter Property="Height" Value="382" />
-            <Setter Property="Margin" Value="10" />
-            <Setter Property="Padding" Value="18" />
-            <Setter Property="Foreground" Value="#172238" />
-            <Setter Property="Background" Value="#42FFFFFF" />
-            <Setter Property="BorderBrush" Value="#8AFFFFFF" />
+            <Setter Property="Width" Value="{DynamicResource Theme.templateCardWidth}" />
+            <Setter Property="Height" Value="{DynamicResource Theme.templateCardHeight}" />
+            <Setter Property="Margin" Value="{DynamicResource Theme.TemplateCardMargin}" />
+            <Setter Property="Padding" Value="{DynamicResource Theme.TemplateCardPadding}" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textDark.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.glassStrong.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.glassBorderSoft.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="30" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.CardCornerRadius}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
         </Style>
 
         <Style Selector="Button.templateCard.selected">
-            <Setter Property="Background" Value="#E8FFFFFF" />
-            <Setter Property="BorderBrush" Value="#6F55E8" />
+            <Setter Property="Background" Value="{DynamicResource Theme.glassOpaque.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.accentDark.Brush}" />
             <Setter Property="BorderThickness" Value="5" />
         </Style>
 
         <Style Selector="Button.copyOption">
-            <Setter Property="Width" Value="106" />
-            <Setter Property="Height" Value="58" />
-            <Setter Property="Margin" Value="7" />
+            <Setter Property="Width" Value="{DynamicResource Theme.copyOptionWidth}" />
+            <Setter Property="Height" Value="{DynamicResource Theme.copyOptionHeight}" />
+            <Setter Property="Margin" Value="{DynamicResource Theme.CopyOptionMargin}" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="Foreground" Value="#172238" />
-            <Setter Property="Background" Value="#E8FFFFFF" />
-            <Setter Property="BorderBrush" Value="#D6DCE8" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textDark.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.glassOpaque.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.controlBorder.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="FontSize" Value="22" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.corner12}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.font22}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style Selector="Button.copyOption.selected">
-            <Setter Property="Foreground" Value="#6F55E8" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#7B61FF" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.accentDark.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.textOnColor.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.accent.Brush}" />
             <Setter Property="BorderThickness" Value="2" />
         </Style>
 
         <Style Selector="Button.historyCard">
-            <Setter Property="Width" Value="230" />
-            <Setter Property="Height" Value="350" />
-            <Setter Property="Margin" Value="10" />
-            <Setter Property="Padding" Value="12" />
-            <Setter Property="Foreground" Value="#172238" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#DDE2EC" />
+            <Setter Property="Width" Value="{DynamicResource Theme.historyCardWidth}" />
+            <Setter Property="Height" Value="{DynamicResource Theme.historyCardHeight}" />
+            <Setter Property="Margin" Value="{DynamicResource Theme.HistoryCardMargin}" />
+            <Setter Property="Padding" Value="{DynamicResource Theme.HistoryCardPadding}" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textDark.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.textOnColor.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.cardBorder.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.corner18}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
         </Style>
 
         <Style Selector="Button.historyFilter">
-            <Setter Property="Foreground" Value="#172238" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#D6DCE8" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textDark.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.textOnColor.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.controlBorder.Brush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="20" />
-            <Setter Property="FontSize" Value="17" />
+            <Setter Property="CornerRadius" Value="{DynamicResource Theme.corner20}" />
+            <Setter Property="FontSize" Value="{DynamicResource Theme.font17}" />
         </Style>
 
         <Style Selector="Button.historyFilter.selected">
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="Background" Value="#7B61FF" />
-            <Setter Property="BorderBrush" Value="#7B61FF" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.textOnColor.Brush}" />
+            <Setter Property="Background" Value="{DynamicResource Theme.accent.Brush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.accent.Brush}" />
         </Style>
     </Window.Styles>
 
@@ -194,14 +195,20 @@
             <Border.Background>
                 <LinearGradientBrush StartPoint="0%,0%"
                                      EndPoint="100%,100%">
-                    <GradientStop Color="#5AA7FF" Offset="0" />
-                    <GradientStop Color="#7B61FF" Offset="0.30" />
-                    <GradientStop Color="#B16CFF" Offset="0.52" />
-                    <GradientStop Color="#FF6EC7" Offset="0.76" />
-                    <GradientStop Color="#FFB278" Offset="1" />
+                    <GradientStop Color="{DynamicResource Theme.backgroundGradient1.Color}" Offset="0" />
+                    <GradientStop Color="{DynamicResource Theme.backgroundGradient2.Color}" Offset="0.30" />
+                    <GradientStop Color="{DynamicResource Theme.backgroundGradient3.Color}" Offset="0.52" />
+                    <GradientStop Color="{DynamicResource Theme.backgroundGradient4.Color}" Offset="0.76" />
+                    <GradientStop Color="{DynamicResource Theme.backgroundGradient5.Color}" Offset="1" />
                 </LinearGradientBrush>
             </Border.Background>
         </Border>
+
+        <Image x:Name="BrandingBackgroundImage"
+               Stretch="UniformToFill"
+               Opacity="{DynamicResource Theme.backgroundImageOpacity}"
+               IsHitTestVisible="False"
+               IsVisible="False" />
 
         <Ellipse Width="760"
                  Height="760"
@@ -211,8 +218,8 @@
                  IsHitTestVisible="False">
             <Ellipse.Fill>
                 <RadialGradientBrush>
-                    <GradientStop Color="#805AA7FF" Offset="0" />
-                    <GradientStop Color="#005AA7FF" Offset="1" />
+                    <GradientStop Color="{DynamicResource Theme.blueGlowStart.Color}" Offset="0" />
+                    <GradientStop Color="{DynamicResource Theme.blueGlowEnd.Color}" Offset="1" />
                 </RadialGradientBrush>
             </Ellipse.Fill>
         </Ellipse>
@@ -225,35 +232,43 @@
                  IsHitTestVisible="False">
             <Ellipse.Fill>
                 <RadialGradientBrush>
-                    <GradientStop Color="#78FF6EC7" Offset="0" />
-                    <GradientStop Color="#00FF6EC7" Offset="1" />
+                    <GradientStop Color="{DynamicResource Theme.pinkGlowStart.Color}" Offset="0" />
+                    <GradientStop Color="{DynamicResource Theme.pinkGlowEnd.Color}" Offset="1" />
                 </RadialGradientBrush>
             </Ellipse.Fill>
         </Ellipse>
 
         <Grid x:Name="SessionPanel"
-              Margin="42,32">
+              Margin="{DynamicResource Theme.SessionMargin}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TextBlock Text="P H O T O   S T A R  ✦"
-                       Foreground="White"
-                       FontSize="20"
+            <Grid>
+                <TextBlock x:Name="SessionBrandText"
+                       Text="{DynamicResource Text.brand}"
+                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                       FontSize="{DynamicResource Theme.font20}"
                        FontWeight="SemiBold" />
+                <Image x:Name="SessionLogoImage"
+                       HorizontalAlignment="Left"
+                       MaxHeight="{DynamicResource Theme.logoMaxHeight}"
+                       IsHitTestVisible="False"
+                       IsVisible="False" />
+            </Grid>
 
             <Border Grid.Row="1"
                     Width="980"
                     MinHeight="590"
-                    Padding="36,22"
+                    Padding="{DynamicResource Theme.MainPanelPadding}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="#25FFFFFF"
-                    BorderBrush="#B8FFFFFF"
+                    Background="{DynamicResource Theme.glassPanel.Brush}"
+                    BorderBrush="{DynamicResource Theme.glassBorderStrong.Brush}"
                     BorderThickness="1"
-                    CornerRadius="46"
+                    CornerRadius="{DynamicResource Theme.corner46}"
                     BoxShadow="0 18 50 0 #300F235A">
                 <StackPanel Width="880"
                             HorizontalAlignment="Center"
@@ -261,39 +276,39 @@
                     <Border Width="52"
                             Height="52"
                             HorizontalAlignment="Center"
-                            Background="#28FFFFFF"
-                            BorderBrush="#C8FFFFFF"
+                            Background="{DynamicResource Theme.glassBadge.Brush}"
+                            BorderBrush="{DynamicResource Theme.iconBorder.Brush}"
                             BorderThickness="1"
-                            CornerRadius="26"
+                            CornerRadius="{DynamicResource Theme.corner26}"
                             Margin="0,0,0,8">
                         <PathIcon Width="26"
                                   Height="26"
-                                  Foreground="White"
+                                  Foreground="{DynamicResource Theme.textOnColor.Brush}"
                                   Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
                     </Border>
 
                     <StackPanel x:Name="CurrentSessionPanel"
                                 IsVisible="False">
-                        <TextBlock Text="Продолжить работу"
-                                   Foreground="White"
-                                   FontSize="36"
+                        <TextBlock Text="{DynamicResource Text.continueWorkTitle}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font36}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
-                        <TextBlock Text="Найдена незавершенная сессия"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="18"
+                        <TextBlock Text="{DynamicResource Text.unfinishedSession}"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center"
                                    Margin="0,6,0,22" />
 
                         <Border Padding="22,16"
-                                Background="#1AFFFFFF"
-                                BorderBrush="#80FFFFFF"
+                                Background="{DynamicResource Theme.glassFaint.Brush}"
+                                BorderBrush="{DynamicResource Theme.sessionBorder.Brush}"
                                 BorderThickness="1"
-                                CornerRadius="20"
+                                CornerRadius="{DynamicResource Theme.corner20}"
                                 Margin="0,0,0,22">
                             <TextBlock x:Name="CurrentSessionNameText"
-                                       Foreground="White"
-                                       FontSize="25"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font25}"
                                        FontWeight="SemiBold"
                                        TextAlignment="Center"
                                        TextWrapping="Wrap" />
@@ -302,34 +317,34 @@
                         <Button Classes="primary actionButton"
                                 Margin="0,0,0,12"
                                 Click="ContinueSessionButton_OnClick">
-                            <TextBlock Text="Продолжить сессию"
-                                       FontSize="23" />
+                            <TextBlock Text="{DynamicResource Text.continueSession}"
+                                       FontSize="{DynamicResource Theme.font23}" />
                         </Button>
 
                         <Button Classes="glass"
                                 Height="60"
                                 Click="ShowNewSessionButton_OnClick">
-                            <TextBlock Text="＋  Начать новую сессию"
-                                       FontSize="20" />
+                            <TextBlock Text="{DynamicResource Text.startNewSession}"
+                                       FontSize="{DynamicResource Theme.font20}" />
                         </Button>
                     </StackPanel>
 
                     <StackPanel x:Name="NewSessionPanel"
                                 IsVisible="False">
-                        <TextBlock Text="Новая сессия"
-                                   Foreground="White"
-                                   FontSize="32"
+                        <TextBlock Text="{DynamicResource Text.newSessionTitle}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font32}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
-                        <TextBlock Text="Создайте папку для фотографий мероприятия"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="18"
+                        <TextBlock Text="{DynamicResource Text.newSessionSubtitle}"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center"
                                    Margin="0,6,0,24" />
 
-                        <TextBlock Text="Название мероприятия"
-                                   Foreground="White"
-                                   FontSize="17"
+                        <TextBlock Text="{DynamicResource Text.eventName}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font17}"
                                    FontWeight="SemiBold"
                                    Margin="4,0,0,9" />
 
@@ -339,8 +354,8 @@
                                  KeyDown="SessionNameTextBox_OnKeyDown" />
 
                         <TextBlock x:Name="SessionErrorText"
-                                   Foreground="#FFFFD8"
-                                   FontSize="16"
+                                   Foreground="{DynamicResource Theme.warningText.Brush}"
+                                   FontSize="{DynamicResource Theme.font16}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
                                    MinHeight="26"
@@ -348,8 +363,8 @@
 
                         <Button Classes="primary actionButton"
                                 Click="CreateSessionButton_OnClick">
-                            <TextBlock Text="Создать сессию"
-                                       FontSize="23" />
+                            <TextBlock Text="{DynamicResource Text.createSession}"
+                                       FontSize="{DynamicResource Theme.font23}" />
                         </Button>
 
                         <StackPanel x:Name="SessionKeyboardPanel"
@@ -359,14 +374,14 @@
 
                     <StackPanel x:Name="SavedSessionsPanel"
                                 IsVisible="False">
-                        <TextBlock Text="Выберите сессию"
-                                   Foreground="White"
-                                   FontSize="32"
+                        <TextBlock Text="{DynamicResource Text.chooseSession}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font32}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
-                        <TextBlock Text="Сохранённые сесии с этой флешки"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="18"
+                        <TextBlock Text="{DynamicResource Text.savedSessionsSubtitle}"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center"
                                    Margin="0,6,0,18" />
                         <ScrollViewer Height="360"
@@ -377,8 +392,8 @@
                         <Button Classes="primary actionButton"
                                 Margin="0,16,0,0"
                                 Click="ShowNewSessionButton_OnClick">
-                            <TextBlock Text="＋  Начать новую сессию"
-                                       FontSize="22" />
+                            <TextBlock Text="{DynamicResource Text.startNewSession}"
+                                       FontSize="{DynamicResource Theme.font22}" />
                         </Button>
                     </StackPanel>
                 </StackPanel>
@@ -386,7 +401,7 @@
         </Grid>
 
         <Grid x:Name="HomePanel"
-              Margin="44,36"
+              Margin="{DynamicResource Theme.ScreenMargin}"
               IsVisible="False">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -401,10 +416,19 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="P H O T O   S T A R  ✦"
-                           Foreground="White"
-                           FontSize="21"
+                <Grid>
+                    <TextBlock x:Name="HomeBrandText"
+                           Text="{DynamicResource Text.brand}"
+                           Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                           FontSize="{DynamicResource Theme.font21}"
                            VerticalAlignment="Center" />
+                    <Image x:Name="HomeLogoImage"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           MaxHeight="{DynamicResource Theme.logoMaxHeight}"
+                           IsHitTestVisible="False"
+                           IsVisible="False" />
+                </Grid>
 
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
@@ -414,28 +438,28 @@
                     <Border x:Name="HomeCameraStatusBadge"
                             Width="54"
                             Height="54"
-                            Background="#28FFFFFF"
-                            BorderBrush="#90FFFFFF"
+                            Background="{DynamicResource Theme.glassBadge.Brush}"
+                            BorderBrush="{DynamicResource Theme.glassBorderMedium.Brush}"
                             BorderThickness="1"
-                            CornerRadius="27"
+                            CornerRadius="{DynamicResource Theme.corner27}"
                             ToolTip.Tip="Проверяем камеру">
                         <PathIcon Width="25"
                                   Height="25"
-                                  Foreground="White"
+                                  Foreground="{DynamicResource Theme.textOnColor.Brush}"
                                   Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
                     </Border>
 
                     <Border x:Name="HomePrinterStatusBadge"
                             Width="54"
                             Height="54"
-                            Background="#28FFFFFF"
-                            BorderBrush="#90FFFFFF"
+                            Background="{DynamicResource Theme.glassBadge.Brush}"
+                            BorderBrush="{DynamicResource Theme.glassBorderMedium.Brush}"
                             BorderThickness="1"
-                            CornerRadius="27"
+                            CornerRadius="{DynamicResource Theme.corner27}"
                             ToolTip.Tip="Проверяем принтер">
                         <PathIcon Width="27"
                                   Height="27"
-                                  Foreground="White"
+                                  Foreground="{DynamicResource Theme.textOnColor.Brush}"
                                   Data="M19,8 L5,8 C3.34,8 2,9.34 2,11 L2,17 L6,17 L6,21 L18,21 L18,17 L22,17 L22,11 C22,9.34 20.66,8 19,8 M16,19 L8,19 L8,14 L16,14 L16,19 M19,12 C18.45,12 18,11.55 18,11 C18,10.45 18.45,10 19,10 C19.55,10 20,10.45 20,11 C20,11.55 19.55,12 19,12 M18,3 L6,3 L6,7 L18,7 L18,3 Z" />
                     </Border>
                 </StackPanel>
@@ -444,8 +468,8 @@
                         Classes="glass"
                         MinWidth="250"
                         Click="SettingsButton_OnClick">
-                    <TextBlock Text="⚙  Настройки"
-                               FontSize="22" />
+                    <TextBlock Text="{DynamicResource Text.settings}"
+                               FontSize="{DynamicResource Theme.font22}" />
                 </Button>
             </Grid>
 
@@ -455,41 +479,41 @@
                     MinHeight="410"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    CornerRadius="54"
+                    CornerRadius="{DynamicResource Theme.corner54}"
                     Click="StartButton_OnClick">
                 <StackPanel HorizontalAlignment="Center"
                             VerticalAlignment="Center">
                     <Border Width="190"
                             Height="190"
-                            CornerRadius="95"
-                            BorderBrush="#EFFFFFFF"
+                            CornerRadius="{DynamicResource Theme.corner95}"
+                            BorderBrush="{DynamicResource Theme.field.Brush}"
                             BorderThickness="1"
                             Margin="0,0,0,26">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0%,0%"
                                                  EndPoint="100%,100%">
-                                <GradientStop Color="#B05AA7FF" Offset="0" />
-                                <GradientStop Color="#B0B16CFF" Offset="0.48" />
-                                <GradientStop Color="#B0FF6EC7" Offset="0.72" />
-                                <GradientStop Color="#B0FFB278" Offset="1" />
+                                <GradientStop Color="{DynamicResource Theme.homeGradient1.Color}" Offset="0" />
+                                <GradientStop Color="{DynamicResource Theme.homeGradient2.Color}" Offset="0.48" />
+                                <GradientStop Color="{DynamicResource Theme.homeGradient3.Color}" Offset="0.72" />
+                                <GradientStop Color="{DynamicResource Theme.homeGradient4.Color}" Offset="1" />
                             </LinearGradientBrush>
                         </Border.Background>
                         <PathIcon Width="78"
                                   Height="78"
-                                  Foreground="White"
+                                  Foreground="{DynamicResource Theme.textOnColor.Brush}"
                                   Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
                     </Border>
 
-                    <TextBlock Text="Начать фотосессию"
-                               Foreground="White"
-                               FontSize="50"
+                    <TextBlock Text="{DynamicResource Text.startPhotoSession}"
+                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                               FontSize="{DynamicResource Theme.font50}"
                                FontWeight="SemiBold"
                                TextAlignment="Center" />
 
                     <TextBlock x:Name="HomeSubtitleText"
-                               Text="Создавайте яркие воспоминания"
-                               Foreground="White"
-                               FontSize="24"
+                               Text="{DynamicResource Text.homeSubtitle}"
+                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                               FontSize="{DynamicResource Theme.font24}"
                                TextAlignment="Center"
                                Margin="0,14,0,0" />
                 </StackPanel>
@@ -500,15 +524,15 @@
                         MinWidth="420"
                         HorizontalAlignment="Left"
                         Click="InstructionButton_OnClick">
-                    <TextBlock Text="ⓘ  Инструкция по использованию"
-                               FontSize="19" />
+                    <TextBlock Text="{DynamicResource Text.instructions}"
+                               FontSize="{DynamicResource Theme.font19}" />
                 </Button>
 
                 <TextBlock x:Name="ActiveSessionText"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
-                           Foreground="#D8FFFFFF"
-                           FontSize="16" />
+                           Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                           FontSize="{DynamicResource Theme.font16}" />
             </Grid>
         </Grid>
 
@@ -518,11 +542,11 @@
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0%,0%"
                                          EndPoint="100%,100%">
-                        <GradientStop Color="#BED8FF" Offset="0" />
-                        <GradientStop Color="#D2C9FF" Offset="0.32" />
-                        <GradientStop Color="#E6CEFF" Offset="0.52" />
-                        <GradientStop Color="#FFD3EA" Offset="0.76" />
-                        <GradientStop Color="#FFE3C5" Offset="1" />
+                        <GradientStop Color="{DynamicResource Theme.captureGradient1.Color}" Offset="0" />
+                        <GradientStop Color="{DynamicResource Theme.captureGradient2.Color}" Offset="0.32" />
+                        <GradientStop Color="{DynamicResource Theme.captureGradient3.Color}" Offset="0.52" />
+                        <GradientStop Color="{DynamicResource Theme.captureGradient4.Color}" Offset="0.76" />
+                        <GradientStop Color="{DynamicResource Theme.captureGradient5.Color}" Offset="1" />
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
@@ -545,22 +569,22 @@
                     <Button Classes="glass"
                             MinWidth="180"
                             HorizontalAlignment="Left"
-                            Foreground="#172238"
-                            BorderBrush="#70FFFFFF"
+                            Foreground="{DynamicResource Theme.textDark.Brush}"
+                            BorderBrush="{DynamicResource Theme.glassBorderLight.Brush}"
                             Click="TemplatesBackButton_OnClick">
-                        <TextBlock Text="‹  Назад"
-                                   FontSize="20" />
+                        <TextBlock Text="{DynamicResource Text.back}"
+                                   FontSize="{DynamicResource Theme.font20}" />
                     </Button>
 
                     <StackPanel Grid.Column="1">
-                        <TextBlock Text="Выбор макета"
-                                   Foreground="#172238"
-                                   FontSize="38"
+                        <TextBlock Text="{DynamicResource Text.templateTitle}"
+                                   Foreground="{DynamicResource Theme.textDark.Brush}"
+                                   FontSize="{DynamicResource Theme.font38}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
-                        <TextBlock Text="Выберите подходящий макет для печати"
-                                   Foreground="#65718A"
-                                   FontSize="18"
+                        <TextBlock Text="{DynamicResource Text.templateSubtitle}"
+                                   Foreground="{DynamicResource Theme.textDarkSecondary.Brush}"
+                                   FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center"
                                    Margin="0,5,0,0" />
                     </StackPanel>
@@ -571,13 +595,13 @@
                             MinHeight="58"
                             Padding="24,13"
                             HorizontalAlignment="Right"
-                            Background="#24FFFFFF"
-                            BorderBrush="#70FFFFFF"
+                            Background="{DynamicResource Theme.glassSubtle.Brush}"
+                            BorderBrush="{DynamicResource Theme.glassBorderLight.Brush}"
                             BorderThickness="1"
-                            CornerRadius="29">
+                            CornerRadius="{DynamicResource Theme.corner29}">
                         <TextBlock x:Name="TemplatesCountText"
-                                   Foreground="#172238"
-                                   FontSize="18"
+                                   Foreground="{DynamicResource Theme.textDark.Brush}"
+                                   FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center"
                                    VerticalAlignment="Center" />
                     </Border>
@@ -594,8 +618,8 @@
 
                     <TextBlock x:Name="TemplatesEmptyText"
                                IsVisible="False"
-                               Foreground="#536078"
-                               FontSize="25"
+                               Foreground="{DynamicResource Theme.captureText.Brush}"
+                               FontSize="{DynamicResource Theme.font25}"
                                FontWeight="SemiBold"
                                TextAlignment="Center"
                                TextWrapping="Wrap"
@@ -607,8 +631,8 @@
                             HorizontalAlignment="Center">
                     <TextBlock x:Name="SelectedTemplateText"
                                MinHeight="28"
-                               Foreground="#65718A"
-                               FontSize="17"
+                               Foreground="{DynamicResource Theme.textDarkSecondary.Brush}"
+                               FontSize="{DynamicResource Theme.font17}"
                                TextAlignment="Center"
                                Margin="0,0,0,8" />
 
@@ -617,19 +641,19 @@
                             Width="760"
                             IsEnabled="False"
                             Click="TemplateContinueButton_OnClick">
-                        <TextBlock Text="Продолжить  →"
-                                   FontSize="24" />
+                        <TextBlock Text="{DynamicResource Text.continue}"
+                                   FontSize="{DynamicResource Theme.font24}" />
                     </Button>
                 </StackPanel>
             </Grid>
         </Grid>
 
         <Grid x:Name="CapturePanel"
-              Background="#101525"
+              Background="{DynamicResource Theme.captureBackground.Brush}"
               IsVisible="False">
             <Image x:Name="LivePreviewImage"
                    Stretch="UniformToFill" />
-            <Border Background="#220A1020" />
+            <Border Background="{DynamicResource Theme.captureOverlay.Brush}" />
 
             <Grid Margin="36,28">
                 <Grid.RowDefinitions>
@@ -649,19 +673,19 @@
                             MinWidth="180"
                             HorizontalAlignment="Left"
                             Click="CaptureBackButton_OnClick">
-                        <TextBlock Text="‹  Назад" />
+                        <TextBlock Text="{DynamicResource Text.back}" />
                     </Button>
 
                     <Border Grid.Column="1"
                             MinWidth="330"
                             Padding="24,12"
-                            Background="#B0202740"
-                            BorderBrush="#90FFFFFF"
+                            Background="{DynamicResource Theme.overlayPanel.Brush}"
+                            BorderBrush="{DynamicResource Theme.glassBorderMedium.Brush}"
                             BorderThickness="1"
-                            CornerRadius="28">
+                            CornerRadius="{DynamicResource Theme.corner28}">
                         <TextBlock x:Name="CaptureProgressText"
-                                   Foreground="White"
-                                   FontSize="21"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font21}"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"
                                    TextAlignment="Center" />
@@ -671,14 +695,14 @@
                             Grid.Column="2"
                             Padding="22,12"
                             HorizontalAlignment="Right"
-                            Background="#B0202740"
-                            BorderBrush="#90FFFFFF"
+                            Background="{DynamicResource Theme.overlayPanel.Brush}"
+                            BorderBrush="{DynamicResource Theme.glassBorderMedium.Brush}"
                             BorderThickness="1"
-                            CornerRadius="28">
+                            CornerRadius="{DynamicResource Theme.corner28}">
                         <TextBlock x:Name="CaptureDeviceBadgeText"
-                                   Text="CANON EOS"
-                                   Foreground="White"
-                                   FontSize="16"
+                                   Text="{DynamicResource Text.cameraName}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font16}"
                                    VerticalAlignment="Center"
                                    TextAlignment="Center" />
                     </Border>
@@ -690,10 +714,10 @@
                         Padding="12"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
-                        Background="#A0182038"
-                        BorderBrush="#70FFFFFF"
+                        Background="{DynamicResource Theme.capturePanel1.Brush}"
+                        BorderBrush="{DynamicResource Theme.glassBorderLight.Brush}"
                         BorderThickness="1"
-                        CornerRadius="22"
+                        CornerRadius="{DynamicResource Theme.corner22}"
                         IsVisible="False">
                     <StackPanel x:Name="AcceptedShotsPanel" />
                 </Border>
@@ -703,19 +727,19 @@
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
                         <Border Padding="30,20"
-                                Background="#B0182038"
-                                BorderBrush="#90FFFFFF"
+                                Background="{DynamicResource Theme.capturePanel2.Brush}"
+                                BorderBrush="{DynamicResource Theme.glassBorderMedium.Brush}"
                                 BorderThickness="1"
-                                CornerRadius="28">
+                                CornerRadius="{DynamicResource Theme.corner28}">
                             <StackPanel>
                                 <TextBlock x:Name="CaptureReadyTitleText"
-                                           Foreground="White"
-                                           FontSize="32"
+                                           Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                           FontSize="{DynamicResource Theme.font32}"
                                            FontWeight="SemiBold"
                                            TextAlignment="Center" />
-                                <TextBlock Text="Проверьте кадр и приготовьтесь"
-                                           Foreground="#D8FFFFFF"
-                                           FontSize="18"
+                                <TextBlock Text="{DynamicResource Text.capturePrepare}"
+                                           Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                           FontSize="{DynamicResource Theme.font18}"
                                            TextAlignment="Center"
                                            Margin="0,6,0,0" />
                             </StackPanel>
@@ -728,22 +752,22 @@
                             Height="430"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Background="#88182038"
-                            BorderBrush="#B8FFFFFF"
+                            Background="{DynamicResource Theme.capturePanel3.Brush}"
+                            BorderBrush="{DynamicResource Theme.glassBorderStrong.Brush}"
                             BorderThickness="3"
-                            CornerRadius="215"
+                            CornerRadius="{DynamicResource Theme.corner215}"
                             IsVisible="False">
                         <StackPanel HorizontalAlignment="Center"
                                     VerticalAlignment="Center">
                             <TextBlock x:Name="CountdownText"
-                                       Foreground="White"
-                                       FontSize="128"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font128}"
                                        FontWeight="Bold"
                                        TextAlignment="Center" />
                             <TextBlock x:Name="CountdownCaption"
-                                       Text="Смотрите в объектив"
-                                       Foreground="White"
-                                       FontSize="24"
+                                       Text="{DynamicResource Text.lookAtCamera}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font24}"
                                        TextAlignment="Center" />
                         </StackPanel>
                     </Border>
@@ -755,13 +779,13 @@
                                 IsVisible="False">
                         <Border Padding="24,12"
                                 HorizontalAlignment="Center"
-                                Background="#C0182038"
-                                BorderBrush="#90FFFFFF"
+                                Background="{DynamicResource Theme.capturePanel4.Brush}"
+                                BorderBrush="{DynamicResource Theme.glassBorderMedium.Brush}"
                                 BorderThickness="1"
-                                CornerRadius="24">
+                                CornerRadius="{DynamicResource Theme.corner24}">
                             <TextBlock x:Name="ShotReviewProgressText"
-                                       Foreground="White"
-                                       FontSize="20"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font20}"
                                        FontWeight="SemiBold" />
                         </Border>
 
@@ -772,10 +796,10 @@
                             Height="430"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Background="White"
-                            BorderBrush="White"
+                            Background="{DynamicResource Theme.textOnColor.Brush}"
+                            BorderBrush="{DynamicResource Theme.textOnColor.Brush}"
                             BorderThickness="8"
-                            CornerRadius="20"
+                            CornerRadius="{DynamicResource Theme.corner20}"
                             ClipToBounds="True"
                             RenderTransformOrigin="50%,50%"
                             IsVisible="False">
@@ -792,8 +816,8 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom"
                             Click="StartCaptureButton_OnClick">
-                        <TextBlock Text="Снять фото"
-                                   FontSize="25" />
+                        <TextBlock Text="{DynamicResource Text.takePhoto}"
+                                   FontSize="{DynamicResource Theme.font25}" />
                     </Button>
 
                     <StackPanel x:Name="ShotReviewActions"
@@ -805,14 +829,14 @@
                         <Button Classes="glass actionButton"
                                 Width="340"
                                 Click="RetakeCurrentShotButton_OnClick">
-                            <TextBlock Text="↻  Переснять"
-                                       FontSize="25" />
+                            <TextBlock Text="{DynamicResource Text.retake}"
+                                       FontSize="{DynamicResource Theme.font25}" />
                         </Button>
                         <Button Classes="primary actionButton"
                                 Width="340"
                                 Click="AcceptCurrentShotButton_OnClick">
-                            <TextBlock Text="Нравится  ✓"
-                                       FontSize="25" />
+                            <TextBlock Text="{DynamicResource Text.approve}"
+                                       FontSize="{DynamicResource Theme.font25}" />
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -823,7 +847,7 @@
         </Grid>
 
         <Grid x:Name="PreviewPanel"
-              Background="#F7F9FC"
+              Background="{DynamicResource Theme.surfaceSoft.Brush}"
               IsVisible="False">
             <Grid Margin="38,28">
                 <Grid.RowDefinitions>
@@ -836,24 +860,24 @@
                     <Button Classes="glass"
                             MinWidth="190"
                             HorizontalAlignment="Left"
-                            Foreground="#172238"
-                            BorderBrush="#D6DCE8"
+                            Foreground="{DynamicResource Theme.textDark.Brush}"
+                            BorderBrush="{DynamicResource Theme.controlBorder.Brush}"
                             Click="PreviewHomeButton_OnClick">
                         <TextBlock x:Name="PreviewBackButtonText"
-                                   Text="‹  На главную" />
+                                   Text="{DynamicResource Text.home}" />
                     </Button>
 
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock x:Name="PreviewTitleText"
-                                   Text="Предпросмотр"
-                                   Foreground="#141B2A"
-                                   FontSize="38"
+                                   Text="{DynamicResource Text.previewTitle}"
+                                   Foreground="{DynamicResource Theme.inkStrong.Brush}"
+                                   FontSize="{DynamicResource Theme.font38}"
                                    FontWeight="Bold"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="PreviewSubtitleText"
-                                   Text="Проверьте фото перед печатью"
-                                   Foreground="#6B758A"
-                                   FontSize="18"
+                                   Text="{DynamicResource Text.previewSubtitle}"
+                                   Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center" />
                     </StackPanel>
                 </Grid>
@@ -862,8 +886,8 @@
                         Margin="0,18,0,12"
                         Padding="12"
                         HorizontalAlignment="Center"
-                        Background="White"
-                        CornerRadius="12"
+                        Background="{DynamicResource Theme.textOnColor.Brush}"
+                        CornerRadius="{DynamicResource Theme.corner12}"
                         BoxShadow="0 12 34 0 #260C1732">
                     <Image x:Name="ResultPreviewImage"
                            MaxWidth="520"
@@ -873,9 +897,9 @@
 
                 <StackPanel Grid.Row="2"
                             HorizontalAlignment="Center">
-                    <TextBlock Text="Количество копий"
-                               Foreground="#6B758A"
-                               FontSize="18"
+                    <TextBlock Text="{DynamicResource Text.copies}"
+                               Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                               FontSize="{DynamicResource Theme.font18}"
                                TextAlignment="Center" />
 
                     <StackPanel Orientation="Horizontal"
@@ -899,61 +923,61 @@
                             Margin="0,8,0,0"
                             Click="PrintButton_OnClick">
                         <TextBlock x:Name="PrintButtonText"
-                                   Text="Печать"
-                                   FontSize="25" />
+                                   Text="{DynamicResource Text.print}"
+                                   FontSize="{DynamicResource Theme.font25}" />
                     </Button>
                 </StackPanel>
             </Grid>
         </Grid>
 
         <Grid x:Name="PrintProgressPanel"
-              Background="#F7F9FC"
+              Background="{DynamicResource Theme.surfaceSoft.Brush}"
               IsVisible="False">
             <StackPanel Width="760"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center">
-                <TextBlock Text="Печать фотографий"
-                           Foreground="#141B2A"
-                           FontSize="42"
+                <TextBlock Text="{DynamicResource Text.printing}"
+                           Foreground="{DynamicResource Theme.inkStrong.Brush}"
+                           FontSize="{DynamicResource Theme.font42}"
                            FontWeight="Bold"
                            TextAlignment="Center" />
-                <TextBlock Text="Пожалуйста, не отключайте устройство"
-                           Foreground="#6B758A"
-                           FontSize="19"
+                <TextBlock Text="{DynamicResource Text.doNotDisconnect}"
+                           Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                           FontSize="{DynamicResource Theme.font19}"
                            TextAlignment="Center"
                            Margin="0,4,0,30" />
 
                 <Border Width="390"
                         Height="390"
                         HorizontalAlignment="Center"
-                        Background="White"
-                        BorderBrush="#E0E5EF"
+                        Background="{DynamicResource Theme.textOnColor.Brush}"
+                        BorderBrush="{DynamicResource Theme.previewBorder.Brush}"
                         BorderThickness="1"
-                        CornerRadius="195"
+                        CornerRadius="{DynamicResource Theme.corner195}"
                         BoxShadow="0 15 45 0 #260C1732">
                     <StackPanel HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
                         <TextBlock Text="▰"
-                                   Foreground="#7B61FF"
-                                   FontSize="72"
+                                   Foreground="{DynamicResource Theme.accent.Brush}"
+                                   FontSize="{DynamicResource Theme.font72}"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="PrintProgressStatusText"
-                                   Text="Подготовка задания"
-                                   Foreground="#59657B"
-                                   FontSize="20"
+                                   Text="{DynamicResource Text.preparingJob}"
+                                   Foreground="{DynamicResource Theme.previewText.Brush}"
+                                   FontSize="{DynamicResource Theme.font20}"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="PrintProgressPercentText"
                                    Text="0%"
-                                   Foreground="#141B2A"
-                                   FontSize="70"
+                                   Foreground="{DynamicResource Theme.inkStrong.Brush}"
+                                   FontSize="{DynamicResource Theme.font70}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
                     </StackPanel>
                 </Border>
 
                 <TextBlock x:Name="PrintProgressDetailsText"
-                           Foreground="#6B758A"
-                           FontSize="18"
+                           Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                           FontSize="{DynamicResource Theme.font18}"
                            TextAlignment="Center"
                            Margin="0,24,0,20" />
 
@@ -965,14 +989,14 @@
                         IsVisible="False"
                         Click="PrintNextPhotoButton_OnClick">
                     <TextBlock x:Name="PrintNextPhotoButtonText"
-                               Text="Следующее фото"
-                               FontSize="24" />
+                               Text="{DynamicResource Text.nextPhoto}"
+                               FontSize="{DynamicResource Theme.font24}" />
                 </Button>
             </StackPanel>
         </Grid>
 
         <Grid x:Name="HistoryPanel"
-              Background="#F7F9FC"
+              Background="{DynamicResource Theme.surfaceSoft.Brush}"
               IsVisible="False">
             <Grid Margin="38,28">
                 <Grid.RowDefinitions>
@@ -985,21 +1009,21 @@
                     <Button Classes="glass"
                             MinWidth="180"
                             HorizontalAlignment="Left"
-                            Foreground="#172238"
-                            BorderBrush="#D6DCE8"
+                            Foreground="{DynamicResource Theme.textDark.Brush}"
+                            BorderBrush="{DynamicResource Theme.controlBorder.Brush}"
                             Click="HistoryBackButton_OnClick">
-                        <TextBlock Text="‹  Назад" />
+                        <TextBlock Text="{DynamicResource Text.back}" />
                     </Button>
 
                     <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="История печати"
-                                   Foreground="#141B2A"
-                                   FontSize="38"
+                        <TextBlock Text="{DynamicResource Text.history}"
+                                   Foreground="{DynamicResource Theme.inkStrong.Brush}"
+                                   FontSize="{DynamicResource Theme.font38}"
                                    FontWeight="Bold"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="HistorySessionNameText"
-                                   Foreground="#6B758A"
-                                   FontSize="18"
+                                   Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center" />
                     </StackPanel>
                 </Grid>
@@ -1023,23 +1047,23 @@
                         <Border Width="92"
                                 Height="92"
                                 HorizontalAlignment="Center"
-                                Background="#ECE9FF"
-                                CornerRadius="46"
+                                Background="{DynamicResource Theme.accentSurface.Brush}"
+                                CornerRadius="{DynamicResource Theme.corner46}"
                                 Margin="0,0,0,18">
                             <TextBlock Text="▣"
-                                       Foreground="#7B61FF"
-                                       FontSize="44"
+                                       Foreground="{DynamicResource Theme.accent.Brush}"
+                                       FontSize="{DynamicResource Theme.font44}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="История пока пуста"
-                                   Foreground="#172238"
-                                   FontSize="27"
+                        <TextBlock Text="{DynamicResource Text.historyEmpty}"
+                                   Foreground="{DynamicResource Theme.textDark.Brush}"
+                                   FontSize="{DynamicResource Theme.font27}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
-                        <TextBlock Text="Здесь появятся готовые макеты всех сесий"
-                                   Foreground="#6B758A"
-                                   FontSize="18"
+                        <TextBlock Text="{DynamicResource Text.historyEmptySubtitle}"
+                                   Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font18}"
                                    Margin="0,7,0,0" />
                     </StackPanel>
 
@@ -1052,7 +1076,7 @@
         </Grid>
 
         <Grid x:Name="OffHoursPanel"
-              Background="#F02B3150"
+              Background="{DynamicResource Theme.panelDark.Brush}"
               IsVisible="False">
             <StackPanel Width="680"
                         HorizontalAlignment="Center"
@@ -1060,25 +1084,25 @@
                 <Border Width="120"
                         Height="120"
                         HorizontalAlignment="Center"
-                        Background="#24FFFFFF"
-                        BorderBrush="#B8FFFFFF"
+                        Background="{DynamicResource Theme.glassSubtle.Brush}"
+                        BorderBrush="{DynamicResource Theme.glassBorderStrong.Brush}"
                         BorderThickness="1"
-                        CornerRadius="60"
+                        CornerRadius="{DynamicResource Theme.corner60}"
                         Margin="0,0,0,22">
                     <TextBlock Text="◷"
-                               Foreground="White"
-                               FontSize="58"
+                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                               FontSize="{DynamicResource Theme.font58}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center" />
                 </Border>
-                <TextBlock Text="Фотобудка сейчас не работает"
-                           Foreground="White"
-                           FontSize="40"
+                <TextBlock Text="{DynamicResource Text.closedTitle}"
+                           Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                           FontSize="{DynamicResource Theme.font40}"
                            FontWeight="SemiBold"
                            TextAlignment="Center" />
                 <TextBlock x:Name="OffHoursScheduleText"
-                           Foreground="#E5FFFFFF"
-                           FontSize="21"
+                           Foreground="{DynamicResource Theme.textOnColorSoft.Brush}"
+                           FontSize="{DynamicResource Theme.font21}"
                            TextAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="0,10,0,28" />
@@ -1090,67 +1114,67 @@
         </Grid>
 
         <Grid x:Name="InstructionOverlay"
-              Background="#B8101525"
+              Background="{DynamicResource Theme.overlaySoft.Brush}"
               IsVisible="False">
             <Border Width="760"
                     Padding="48"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="#EE2B3150"
-                    BorderBrush="#B8FFFFFF"
+                    Background="{DynamicResource Theme.panelDarkSoft.Brush}"
+                    BorderBrush="{DynamicResource Theme.glassBorderStrong.Brush}"
                     BorderThickness="1"
-                    CornerRadius="36">
+                    CornerRadius="{DynamicResource Theme.corner36}">
                 <StackPanel>
-                    <TextBlock Text="Как пользоваться фотобудкой"
-                               Foreground="White"
-                               FontSize="34"
+                    <TextBlock Text="{DynamicResource Text.helpTitle}"
+                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                               FontSize="{DynamicResource Theme.font34}"
                                FontWeight="SemiBold"
                                TextAlignment="Center" />
-                    <TextBlock Text="1. Нажмите «Начать фотосессию».&#x0a;2. Выберите рамку.&#x0a;3. Встаньте перед камерой и нажмите «Снять фото».&#x0a;4. Подтвердите каждый удачный снимок.&#x0a;5. Выберите количество копий и нажмите «Печать»."
-                               Foreground="#E8FFFFFF"
-                               FontSize="22"
+                    <TextBlock Text="{DynamicResource Text.helpSteps}"
+                               Foreground="{DynamicResource Theme.textOnColorBright.Brush}"
+                               FontSize="{DynamicResource Theme.font22}"
                                LineHeight="38"
                                Margin="0,28"
                                TextWrapping="Wrap" />
                     <Button Classes="primary actionButton"
                             Click="InstructionCloseButton_OnClick">
-                        <TextBlock Text="Понятно"
-                                   FontSize="23" />
+                        <TextBlock Text="{DynamicResource Text.understood}"
+                                   FontSize="{DynamicResource Theme.font23}" />
                     </Button>
                 </StackPanel>
             </Border>
         </Grid>
 
         <Grid x:Name="SettingsOverlay"
-              Background="#D0101525"
+              Background="{DynamicResource Theme.overlay.Brush}"
               IsVisible="False">
             <Border Width="820"
                     MinHeight="560"
                     Padding="44"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="#F02B3150"
-                    BorderBrush="#B8FFFFFF"
+                    Background="{DynamicResource Theme.panelDark.Brush}"
+                    BorderBrush="{DynamicResource Theme.glassBorderStrong.Brush}"
                     BorderThickness="1"
-                    CornerRadius="36">
+                    CornerRadius="{DynamicResource Theme.corner36}">
                 <Grid>
                     <StackPanel x:Name="SettingsPinPanel">
                         <TextBlock x:Name="SettingsPinTitleText"
-                                   Text="Настройки"
-                                   Foreground="White"
-                                   FontSize="36"
+                                   Text="{DynamicResource Text.settingsTitle}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font36}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="SettingsPinSubtitleText"
-                                   Text="Введите код доступа"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="19"
+                                   Text="{DynamicResource Text.enterPin}"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font19}"
                                    TextAlignment="Center"
                                    Margin="0,6,0,18" />
                         <TextBlock x:Name="SettingsPinDisplay"
                                    Text="○  ○  ○  ○"
-                                   Foreground="White"
-                                   FontSize="34"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font34}"
                                    TextAlignment="Center"
                                    Margin="0,0,0,16" />
 
@@ -1173,8 +1197,8 @@
 
                         <TextBlock x:Name="SettingsPinErrorText"
                                    MinHeight="28"
-                                   Foreground="#FFFFD8"
-                                   FontSize="17"
+                                   Foreground="{DynamicResource Theme.warningText.Brush}"
+                                   FontSize="{DynamicResource Theme.font17}"
                                    TextAlignment="Center"
                                    Margin="0,8" />
                         <Button x:Name="SettingsPinCancelButton"
@@ -1184,15 +1208,15 @@
 
                     <StackPanel x:Name="SettingsMenuPanel"
                                 IsVisible="False">
-                        <TextBlock Text="Панель управления"
-                                   Foreground="White"
-                                   FontSize="34"
+                        <TextBlock Text="{DynamicResource Text.controlPanel}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font34}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="SettingsSectionStatusText"
-                                   Text="Выберите раздел"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="17"
+                                   Text="{DynamicResource Text.chooseSection}"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font17}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
                                    MinHeight="50"
@@ -1201,15 +1225,15 @@
                         <UniformGrid Columns="3"
                                      Rows="3"
                                      HorizontalAlignment="Stretch">
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="history" Click="SettingsSectionButton_OnClick">История печати</Button>
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="camera" Click="SettingsSectionButton_OnClick">Камера</Button>
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="printer" Click="SettingsSectionButton_OnClick">Принтер</Button>
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="calibration" Click="SettingsSectionButton_OnClick">Калибровка экрана</Button>
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="schedule" Click="SettingsSectionButton_OnClick">Таймер работы</Button>
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="time" Click="SettingsSectionButton_OnClick">Дата и время</Button>
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="restart" Click="SettingsSectionButton_OnClick">Перезагрузка</Button>
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="shutdown" Click="SettingsSectionButton_OnClick">Выключить будку</Button>
-                            <Button Classes="glass calibrationOption" Margin="7" Tag="session" Click="SettingsSectionButton_OnClick">Сменить сессию</Button>
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="history" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuHistory}" />
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="camera" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuCamera}" />
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="printer" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuPrinter}" />
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="calibration" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuCalibration}" />
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="schedule" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuSchedule}" />
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="time" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuTime}" />
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="restart" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuRestart}" />
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="shutdown" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuShutdown}" />
+                            <Button Classes="glass calibrationOption" Margin="7" Tag="session" Click="SettingsSectionButton_OnClick" Content="{DynamicResource Text.menuSession}" />
                         </UniformGrid>
 
                         <Button Classes="primary"
@@ -1220,14 +1244,14 @@
 
                     <StackPanel x:Name="CameraSettingsPanel"
                                 IsVisible="False">
-                        <TextBlock Text="Настройки Canon"
-                                   Foreground="White"
-                                   FontSize="32"
+                        <TextBlock Text="{DynamicResource Text.cameraSettings}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font32}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="CameraSettingsStatusText"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="15"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font15}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
                                    MinHeight="48"
@@ -1236,36 +1260,36 @@
                         <Grid ColumnDefinitions="190,*"
                               RowDefinitions="68,68,68,68">
                             <TextBlock Grid.Row="0" Grid.Column="0"
-                                       Text="ISO"
-                                       Foreground="White"
-                                       FontSize="19"
+                                       Text="{DynamicResource Text.iso}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font19}"
                                        VerticalAlignment="Center" />
                             <ComboBox x:Name="CameraIsoComboBox"
                                       Grid.Row="0" Grid.Column="1"
                                       Classes="cameraSetting"
                                       Margin="5" />
                             <TextBlock Grid.Row="1" Grid.Column="0"
-                                       Text="Диафрагма"
-                                       Foreground="White"
-                                       FontSize="19"
+                                       Text="{DynamicResource Text.aperture}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font19}"
                                        VerticalAlignment="Center" />
                             <ComboBox x:Name="CameraApertureComboBox"
                                       Grid.Row="1" Grid.Column="1"
                                       Classes="cameraSetting"
                                       Margin="5" />
                             <TextBlock Grid.Row="2" Grid.Column="0"
-                                       Text="Выдержка"
-                                       Foreground="White"
-                                       FontSize="19"
+                                       Text="{DynamicResource Text.shutter}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font19}"
                                        VerticalAlignment="Center" />
                             <ComboBox x:Name="CameraShutterComboBox"
                                       Grid.Row="2" Grid.Column="1"
                                       Classes="cameraSetting"
                                       Margin="5" />
                             <TextBlock Grid.Row="3" Grid.Column="0"
-                                       Text="Баланс белого"
-                                       Foreground="White"
-                                       FontSize="19"
+                                       Text="{DynamicResource Text.whiteBalance}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font19}"
                                        VerticalAlignment="Center" />
                             <ComboBox x:Name="CameraWhiteBalanceComboBox"
                                       Grid.Row="3" Grid.Column="1"
@@ -1292,14 +1316,14 @@
 
                     <StackPanel x:Name="PrinterSettingsPanel"
                                 IsVisible="False">
-                        <TextBlock Text="Калибровка печати"
-                                   Foreground="White"
-                                   FontSize="32"
+                        <TextBlock Text="{DynamicResource Text.printCalibration}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font32}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="PrinterSettingsStatusText"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="15"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font15}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
                                    MinHeight="42"
@@ -1309,9 +1333,9 @@
                               RowDefinitions="56,56,56"
                               HorizontalAlignment="Center">
                             <TextBlock Grid.Row="0" Grid.Column="0"
-                                       Text="Смещение по X"
-                                       Foreground="White"
-                                       FontSize="18"
+                                       Text="{DynamicResource Text.offsetX}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font18}"
                                        VerticalAlignment="Center" />
                             <Button Grid.Row="0" Grid.Column="1"
                                     Classes="glass calibrationOption"
@@ -1320,8 +1344,8 @@
                                     Click="PrinterAdjustmentButton_OnClick">−</Button>
                             <TextBlock x:Name="PrinterOffsetXText"
                                        Grid.Row="0" Grid.Column="2"
-                                       Foreground="White"
-                                       FontSize="19"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font19}"
                                        FontWeight="SemiBold"
                                        TextAlignment="Center"
                                        VerticalAlignment="Center" />
@@ -1332,9 +1356,9 @@
                                     Click="PrinterAdjustmentButton_OnClick">+</Button>
 
                             <TextBlock Grid.Row="1" Grid.Column="0"
-                                       Text="Смещение по Y"
-                                       Foreground="White"
-                                       FontSize="18"
+                                       Text="{DynamicResource Text.offsetY}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font18}"
                                        VerticalAlignment="Center" />
                             <Button Grid.Row="1" Grid.Column="1"
                                     Classes="glass calibrationOption"
@@ -1343,8 +1367,8 @@
                                     Click="PrinterAdjustmentButton_OnClick">−</Button>
                             <TextBlock x:Name="PrinterOffsetYText"
                                        Grid.Row="1" Grid.Column="2"
-                                       Foreground="White"
-                                       FontSize="19"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font19}"
                                        FontWeight="SemiBold"
                                        TextAlignment="Center"
                                        VerticalAlignment="Center" />
@@ -1355,9 +1379,9 @@
                                     Click="PrinterAdjustmentButton_OnClick">+</Button>
 
                             <TextBlock Grid.Row="2" Grid.Column="0"
-                                       Text="Масштаб"
-                                       Foreground="White"
-                                       FontSize="18"
+                                       Text="{DynamicResource Text.scale}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font18}"
                                        VerticalAlignment="Center" />
                             <Button Grid.Row="2" Grid.Column="1"
                                     Classes="glass calibrationOption"
@@ -1366,8 +1390,8 @@
                                     Click="PrinterAdjustmentButton_OnClick">−</Button>
                             <TextBlock x:Name="PrinterScaleText"
                                        Grid.Row="2" Grid.Column="2"
-                                       Foreground="White"
-                                       FontSize="19"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font19}"
                                        FontWeight="SemiBold"
                                        TextAlignment="Center"
                                        VerticalAlignment="Center" />
@@ -1383,9 +1407,9 @@
                               HorizontalAlignment="Center"
                               Margin="0,8,0,0">
                             <TextBlock Grid.Row="0" Grid.Column="0"
-                                       Text="Качество"
-                                       Foreground="White"
-                                       FontSize="18"
+                                       Text="{DynamicResource Text.quality}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font18}"
                                        VerticalAlignment="Center" />
                             <Button x:Name="PrinterQualityFastButton"
                                     Grid.Row="0" Grid.Column="1"
@@ -1401,9 +1425,9 @@
                                     Click="PrinterOptionButton_OnClick">300×600</Button>
 
                             <TextBlock Grid.Row="1" Grid.Column="0"
-                                       Text="Рез"
-                                       Foreground="White"
-                                       FontSize="18"
+                                       Text="{DynamicResource Text.cut}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font18}"
                                        VerticalAlignment="Center" />
                             <Button x:Name="PrinterCutStandardButton"
                                     Grid.Row="1" Grid.Column="1"
@@ -1442,28 +1466,28 @@
 
                     <StackPanel x:Name="ScheduleSettingsPanel"
                                 IsVisible="False">
-                        <TextBlock Text="Таймер работы"
-                                   Foreground="White"
-                                   FontSize="32"
+                        <TextBlock Text="{DynamicResource Text.scheduleTitle}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font32}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
-                        <TextBlock Text="Автоматическое включение и выключение будки"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="16"
+                        <TextBlock Text="{DynamicResource Text.scheduleSubtitle}"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font16}"
                                    TextAlignment="Center"
                                    Margin="0,4,0,10" />
 
                         <CheckBox x:Name="ScheduleEnabledCheckBox"
                                   Classes="scheduleToggle"
-                                  Content="Включить расписание работы"
+                                  Content="{DynamicResource Text.enableSchedule}"
                                   HorizontalAlignment="Center" />
 
                         <Grid ColumnDefinitions="*,1,*"
                               Margin="0,8,0,4">
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Начало работы"
-                                           Foreground="#D8FFFFFF"
-                                           FontSize="17"
+                                <TextBlock Text="{DynamicResource Text.scheduleStart}"
+                                           Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                           FontSize="{DynamicResource Theme.font17}"
                                            TextAlignment="Center"
                                            Margin="0,0,0,6" />
                                 <Grid ColumnDefinitions="78,28,78"
@@ -1474,8 +1498,8 @@
                                                 Click="ScheduleStepButton_OnClick">+</Button>
                                         <TextBlock x:Name="ScheduleStartHourText"
                                                    Text="09"
-                                                   Foreground="White"
-                                                   FontSize="34"
+                                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                                   FontSize="{DynamicResource Theme.font34}"
                                                    FontWeight="SemiBold"
                                                    TextAlignment="Center"
                                                    Margin="0,3" />
@@ -1485,8 +1509,8 @@
                                     </StackPanel>
                                     <TextBlock Grid.Column="1"
                                                Text=":"
-                                               Foreground="White"
-                                               FontSize="34"
+                                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                               FontSize="{DynamicResource Theme.font34}"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center" />
                                     <StackPanel Grid.Column="2">
@@ -1495,8 +1519,8 @@
                                                 Click="ScheduleStepButton_OnClick">+</Button>
                                         <TextBlock x:Name="ScheduleStartMinuteText"
                                                    Text="30"
-                                                   Foreground="White"
-                                                   FontSize="34"
+                                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                                   FontSize="{DynamicResource Theme.font34}"
                                                    FontWeight="SemiBold"
                                                    TextAlignment="Center"
                                                    Margin="0,3" />
@@ -1508,12 +1532,12 @@
                             </StackPanel>
 
                             <Border Grid.Column="1"
-                                    Background="#55FFFFFF" />
+                                    Background="{DynamicResource Theme.glassLine.Brush}" />
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Завершение работы"
-                                           Foreground="#D8FFFFFF"
-                                           FontSize="17"
+                                <TextBlock Text="{DynamicResource Text.scheduleEnd}"
+                                           Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                           FontSize="{DynamicResource Theme.font17}"
                                            TextAlignment="Center"
                                            Margin="0,0,0,6" />
                                 <Grid ColumnDefinitions="78,28,78"
@@ -1524,8 +1548,8 @@
                                                 Click="ScheduleStepButton_OnClick">+</Button>
                                         <TextBlock x:Name="ScheduleEndHourText"
                                                    Text="22"
-                                                   Foreground="White"
-                                                   FontSize="34"
+                                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                                   FontSize="{DynamicResource Theme.font34}"
                                                    FontWeight="SemiBold"
                                                    TextAlignment="Center"
                                                    Margin="0,3" />
@@ -1535,8 +1559,8 @@
                                     </StackPanel>
                                     <TextBlock Grid.Column="1"
                                                Text=":"
-                                               Foreground="White"
-                                               FontSize="34"
+                                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                               FontSize="{DynamicResource Theme.font34}"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center" />
                                     <StackPanel Grid.Column="2">
@@ -1545,8 +1569,8 @@
                                                 Click="ScheduleStepButton_OnClick">+</Button>
                                         <TextBlock x:Name="ScheduleEndMinuteText"
                                                    Text="00"
-                                                   Foreground="White"
-                                                   FontSize="34"
+                                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                                   FontSize="{DynamicResource Theme.font34}"
                                                    FontWeight="SemiBold"
                                                    TextAlignment="Center"
                                                    Margin="0,3" />
@@ -1560,11 +1584,11 @@
 
                         <CheckBox x:Name="ScheduleShutdownCheckBox"
                                   Classes="scheduleToggle"
-                                  Content="Выключать после окончания и включать к началу"
+                                  Content="{DynamicResource Text.shutdownOnSchedule}"
                                   HorizontalAlignment="Center" />
                         <TextBlock x:Name="ScheduleStatusText"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="15"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font15}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
                                    MinHeight="36"
@@ -1583,14 +1607,14 @@
 
                     <StackPanel x:Name="SystemTimeSettingsPanel"
                                 IsVisible="False">
-                        <TextBlock Text="Дата и время"
-                                   Foreground="White"
-                                   FontSize="32"
+                        <TextBlock Text="{DynamicResource Text.dateTime}"
+                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                   FontSize="{DynamicResource Theme.font32}"
                                    FontWeight="SemiBold"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="SystemTimeStatusText"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="16"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font16}"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
                                    MinHeight="46"
@@ -1599,48 +1623,48 @@
                         <Grid ColumnDefinitions="90,90,125,36,90,90"
                               HorizontalAlignment="Center">
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="День" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <TextBlock Text="{DynamicResource Text.day}" Foreground="{DynamicResource Theme.textOnColorMuted.Brush}" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="day:1" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
-                                <TextBlock x:Name="SystemTimeDayText" Text="01" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <TextBlock x:Name="SystemTimeDayText" Text="01" Foreground="{DynamicResource Theme.textOnColor.Brush}" FontSize="{DynamicResource Theme.font32}" FontWeight="SemiBold" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="day:-1" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <TextBlock Text="Месяц" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <TextBlock Text="{DynamicResource Text.month}" Foreground="{DynamicResource Theme.textOnColorMuted.Brush}" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="month:1" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
-                                <TextBlock x:Name="SystemTimeMonthText" Text="01" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <TextBlock x:Name="SystemTimeMonthText" Text="01" Foreground="{DynamicResource Theme.textOnColor.Brush}" FontSize="{DynamicResource Theme.font32}" FontWeight="SemiBold" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="month:-1" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Год" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <TextBlock Text="{DynamicResource Text.year}" Foreground="{DynamicResource Theme.textOnColorMuted.Brush}" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="year:1" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
-                                <TextBlock x:Name="SystemTimeYearText" Text="2026" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <TextBlock x:Name="SystemTimeYearText" Text="2026" Foreground="{DynamicResource Theme.textOnColor.Brush}" FontSize="{DynamicResource Theme.font32}" FontWeight="SemiBold" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="year:-1" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
                             </StackPanel>
 
                             <TextBlock Grid.Column="3"
                                        Text="·"
-                                       Foreground="White"
-                                       FontSize="36"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontSize="{DynamicResource Theme.font36}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
 
                             <StackPanel Grid.Column="4">
-                                <TextBlock Text="Час" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <TextBlock Text="{DynamicResource Text.hour}" Foreground="{DynamicResource Theme.textOnColorMuted.Brush}" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="hour:1" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
-                                <TextBlock x:Name="SystemTimeHourText" Text="12" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <TextBlock x:Name="SystemTimeHourText" Text="12" Foreground="{DynamicResource Theme.textOnColor.Brush}" FontSize="{DynamicResource Theme.font32}" FontWeight="SemiBold" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="hour:-1" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
                             </StackPanel>
                             <StackPanel Grid.Column="5">
-                                <TextBlock Text="Минуты" Foreground="#D8FFFFFF" TextAlignment="Center" />
+                                <TextBlock Text="{DynamicResource Text.minutes}" Foreground="{DynamicResource Theme.textOnColorMuted.Brush}" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="minute:5" Margin="4" Click="SystemTimeStepButton_OnClick">+</Button>
-                                <TextBlock x:Name="SystemTimeMinuteText" Text="00" Foreground="White" FontSize="32" FontWeight="SemiBold" TextAlignment="Center" />
+                                <TextBlock x:Name="SystemTimeMinuteText" Text="00" Foreground="{DynamicResource Theme.textOnColor.Brush}" FontSize="{DynamicResource Theme.font32}" FontWeight="SemiBold" TextAlignment="Center" />
                                 <Button Classes="glass calibrationOption" Tag="minute:-5" Margin="4" Click="SystemTimeStepButton_OnClick">−</Button>
                             </StackPanel>
                         </Grid>
 
-                        <TextBlock Text="Время будет записано и в аппаратные часы компьютера"
-                                   Foreground="#D8FFFFFF"
-                                   FontSize="15"
+                        <TextBlock Text="{DynamicResource Text.hardwareClockHint}"
+                                   Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                                   FontSize="{DynamicResource Theme.font15}"
                                    TextAlignment="Center"
                                    Margin="0,18,0,8" />
                         <Grid ColumnDefinitions="*,*">

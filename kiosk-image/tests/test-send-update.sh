@@ -18,17 +18,21 @@ fail() {
   exit 1
 }
 
-mkdir -p "$test_repo/kiosk-image" "$usb_root/Updates/incoming"
+mkdir -p "$test_repo/kiosk-image" "$test_repo/PhotoBooth.Linux/Branding" \
+  "$usb_root/Updates/incoming"
 cp "$repo_root/SEND_UPDATE_TO_USB.sh" "$test_repo/SEND_UPDATE_TO_USB.sh"
 printf '#!/usr/bin/env bash\necho old\n' \
   >"$test_repo/kiosk-image/photobooth-set-time"
+printf '{"colors":{"accent":"#7B61FF"}}\n' \
+  >"$test_repo/PhotoBooth.Linux/Branding/theme.json"
 chmod +x "$test_repo/SEND_UPDATE_TO_USB.sh" \
   "$test_repo/kiosk-image/photobooth-set-time"
 
 git -C "$test_repo" init -q
 git -C "$test_repo" config user.name "PhotoBooth Test"
 git -C "$test_repo" config user.email "photobooth-test@example.invalid"
-git -C "$test_repo" add SEND_UPDATE_TO_USB.sh kiosk-image/photobooth-set-time
+git -C "$test_repo" add SEND_UPDATE_TO_USB.sh kiosk-image/photobooth-set-time \
+  PhotoBooth.Linux/Branding/theme.json
 git -C "$test_repo" commit -qm "Base"
 base_sha="$(git -C "$test_repo" rev-parse HEAD)"
 
@@ -67,13 +71,40 @@ tar -xOf "$patch" manifest.json >"$manifest"
    "/usr/local/sbin/photobooth-set-time" ]] ||
   fail "Manifest destination is wrong."
 
+design_usb="$test_root/PHOTOBOOTH-DESIGN"
+mkdir -p "$design_usb/Updates/incoming"
+printf '%s\nvolume_id=design-test\n' \
+  "PHOTOBOOTH_OFFLINE_UPDATE_VOLUME_V1" >"$design_usb/.photobooth-volume"
+printf '%s\n' "$target_sha" >"$design_usb/Updates/current-version.txt"
+printf '{"colors":{"accent":"#FF0000"}}\n' \
+  >"$test_repo/PhotoBooth.Linux/Branding/theme.json"
+git -C "$test_repo" add PhotoBooth.Linux/Branding/theme.json
+git -C "$test_repo" commit -qm "Change design only"
+design_target_sha="$(git -C "$test_repo" rev-parse HEAD)"
+(
+  cd "$test_repo"
+  PHOTOBOOTH_USB_ROOT="$design_usb" ./SEND_UPDATE_TO_USB.sh >/dev/null
+)
+design_patch="$(find "$design_usb/Updates/incoming" -name 'PhotoBooth-Patch-*.tar.gz' -type f -print -quit)"
+design_manifest="$test_root/design-manifest.json"
+tar -xOf "$design_patch" manifest.json >"$design_manifest"
+[[ "$(jq -r '.git_commit' "$design_manifest")" == "$design_target_sha" ]] ||
+  fail "Design patch target is wrong."
+[[ "$(jq -r '.components[0]' "$design_manifest")" == "Design" ]] ||
+  fail "Design patch component is wrong."
+[[ "$(jq -r '.files[0].destination' "$design_manifest")" == \
+   "/opt/photobooth/Branding/theme.json" ]] ||
+  fail "Design patch destination is wrong."
+[[ "$(jq -r '.restart_required' "$design_manifest")" == "true" ]] ||
+  fail "Design patch must restart the application."
+
 app_usb="$test_root/PHOTOBOOTH-APP"
 fake_dotnet="$test_root/fake-dotnet"
 mkdir -p "$app_usb/Updates/incoming" "$app_usb/Updates/current" \
   "$test_repo/PhotoBooth.Linux"
 printf '%s\nvolume_id=app-test\n' \
   "PHOTOBOOTH_OFFLINE_UPDATE_VOLUME_V1" >"$app_usb/.photobooth-volume"
-printf '%s\n' "$target_sha" >"$app_usb/Updates/current-version.txt"
+printf '%s\n' "$design_target_sha" >"$app_usb/Updates/current-version.txt"
 old_app="$test_root/old-app"
 same_library="$test_root/libsame.so"
 printf 'old application\n' >"$old_app"

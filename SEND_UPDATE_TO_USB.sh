@@ -58,6 +58,9 @@ find_photobooth_usb() {
 
 is_application_source() {
   case "$1" in
+    PhotoBooth.Linux/Branding/*)
+      return 1
+      ;;
     PhotoBooth.Linux/*|PhotoBooth/*|START_KIOSK.sh|\
     INSTALL_LINUX_HARDWARE.sh|CONFIGURE_DNP_RX1.sh|\
     CHECK_LINUX_HARDWARE.sh|SETUP_KIOSK.sh|VERIFY_KIOSK_BOOT.sh)
@@ -69,7 +72,7 @@ is_application_source() {
 
 is_source_only_file() {
   case "$1" in
-    *.md|.gitignore|.gitattributes|SEND_UPDATE_TO_USB.sh|\
+    *.md|*.command|.gitignore|.gitattributes|SEND_UPDATE_TO_USB.sh|\
     kiosk-image/OFFLINE_UPDATES.md|kiosk-image/tests/*)
       return 0
       ;;
@@ -122,6 +125,19 @@ direct_mapping() {
   MAP_REBOOT=false
 
   case "$source" in
+    PhotoBooth.Linux/Branding/*)
+      local branding_relative="${source#PhotoBooth.Linux/Branding/}"
+      [[ -n "$branding_relative" && "$branding_relative" != *".."* &&
+         "$branding_relative" != /* ]] || return 1
+      case "$branding_relative" in
+        *.json|*.png|*.jpg|*.jpeg|*.webp)
+          MAP_DESTINATION="/opt/photobooth/Branding/$branding_relative"
+          MAP_TYPE="file"; MAP_MODE="0644"; MAP_OWNER="user"; MAP_GROUP="user"
+          MAP_COMPONENT="Design"; MAP_RESTART=true
+          ;;
+        *) return 1 ;;
+      esac
+      ;;
     kiosk-image/photobooth-touch-setup)
       MAP_DESTINATION="/usr/local/bin/photobooth-touch-setup"
       MAP_TYPE="shell"; MAP_MODE="0755"; MAP_COMPONENT="Touchscreen"; MAP_REBOOT=true
