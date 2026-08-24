@@ -1,0 +1,15 @@
+{
+  "Width": 1240,
+  "Height": 1844,
+  "Overlay": "triumph.png",
+  "PreviewSelect": "triumph.png",
+  "ComboPrint": "y",
+  "Photos": [
+    { "shoot": 1, "x": 66, "y": 67, "w": 510, "h": 510 },
+    { "shoot": 2, "x": 66, "y": 595, "w": 510, "h": 510 },
+    { "shoot": 3, "x": 66, "y": 1122, "w": 510, "h": 510 },
+    { "shoot": 1, "x": 666, "y": 67, "w": 510, "h": 510 },
+    { "shoot": 2, "x": 666, "y": 595, "w": 510, "h": 510 },
+    { "shoot": 3, "x": 666, "y": 1122, "w": 510, "h": 510 }
+  ]
+}

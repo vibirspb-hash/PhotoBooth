@@ -354,13 +354,9 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        Find<TextBlock>("SessionBrandText").IsVisible = false;
         Find<TextBlock>("HomeBrandText").IsVisible = false;
-        Image sessionLogo = Find<Image>("SessionLogoImage");
         Image homeLogo = Find<Image>("HomeLogoImage");
-        sessionLogo.Source = BrandingTheme.LogoImage;
         homeLogo.Source = BrandingTheme.LogoImage;
-        sessionLogo.IsVisible = true;
         homeLogo.IsVisible = true;
     }
 
@@ -780,20 +776,21 @@ public sealed partial class MainWindow : Window
             Text = template.PhotoCountText,
             FontSize = 23,
             FontWeight = FontWeight.SemiBold,
-            Foreground = Brush.Parse("#172238"),
+            Foreground = Brush.Parse("#12244A"),
             HorizontalAlignment = HorizontalAlignment.Center
         });
         content.Children.Add(new TextBlock
         {
             Text = template.Name,
             FontSize = 16,
-            Foreground = Brush.Parse("#65718A"),
+            Foreground = Brush.Parse("#7A315E"),
             TextTrimming = TextTrimming.CharacterEllipsis,
             HorizontalAlignment = HorizontalAlignment.Center
         });
 
         Button card = new() { Content = content, Tag = template };
         card.Classes.Add("templateCard");
+        card.Classes.Add("triumphTemplate");
         card.Click += TemplateCard_OnClick;
         return card;
     }

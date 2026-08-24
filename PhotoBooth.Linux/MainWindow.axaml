@@ -188,6 +188,46 @@
             <Setter Property="Background" Value="{DynamicResource Theme.accent.Brush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource Theme.accent.Brush}" />
         </Style>
+
+        <!-- Triumph identity: display serif + jewel-tone controls. -->
+        <Style Selector="TextBlock.triumphTitle">
+            <Setter Property="FontFamily" Value="Bodoni 72, Didot, Georgia, serif" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+        </Style>
+
+        <Style Selector="Button.triumphGlass">
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="Background" Value="#2419C9D8" />
+            <Setter Property="BorderBrush" Value="#66FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style Selector="Button.triumphPrimary">
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#FFF39A22" Offset="0" />
+                    <GradientStop Color="#FFE94878" Offset="0.52" />
+                    <GradientStop Color="#FFB71972" Offset="1" />
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#99FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style Selector="Button.templateCard.triumphTemplate">
+            <Setter Property="Background" Value="#F2FFFFFF" />
+            <Setter Property="BorderBrush" Value="#6639DDE7" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <Style Selector="Button.templateCard.triumphTemplate.selected">
+            <Setter Property="Background" Value="#FFFFFFFF" />
+            <Setter Property="BorderBrush" Value="#FFE84A83" />
+            <Setter Property="BorderThickness" Value="5" />
+        </Style>
     </Window.Styles>
 
     <Grid>
@@ -403,6 +443,14 @@
         <Grid x:Name="HomePanel"
               Margin="{DynamicResource Theme.ScreenMargin}"
               IsVisible="False">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Color="#FF07132F" Offset="0" />
+                    <GradientStop Color="#FF11275A" Offset="0.36" />
+                    <GradientStop Color="#FF7A185B" Offset="0.72" />
+                    <GradientStop Color="#FFF08E24" Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -425,7 +473,8 @@
                     <Image x:Name="HomeLogoImage"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Center"
-                           MaxHeight="{DynamicResource Theme.logoMaxHeight}"
+                           MaxWidth="250"
+                           MaxHeight="100"
                            IsHitTestVisible="False"
                            IsVisible="False" />
                 </Grid>
@@ -474,12 +523,12 @@
             </Grid>
 
             <Button Grid.Row="1"
-                    Classes="glass"
+                    Classes="triumphGlass"
                     Width="780"
                     MinHeight="410"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    CornerRadius="{DynamicResource Theme.corner54}"
+                    CornerRadius="36"
                     Click="StartButton_OnClick">
                 <StackPanel HorizontalAlignment="Center"
                             VerticalAlignment="Center">
@@ -504,10 +553,9 @@
                                   Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
                     </Border>
 
-                    <TextBlock Text="{DynamicResource Text.startPhotoSession}"
-                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                    <TextBlock Classes="triumphTitle"
+                               Text="{DynamicResource Text.startPhotoSession}"
                                FontSize="{DynamicResource Theme.font50}"
-                               FontWeight="SemiBold"
                                TextAlignment="Center" />
 
                     <TextBlock x:Name="HomeSubtitleText"
@@ -520,7 +568,7 @@
             </Button>
 
             <Grid Grid.Row="2">
-                <Button Classes="glass"
+                <Button Classes="triumphGlass"
                         MinWidth="420"
                         HorizontalAlignment="Left"
                         Click="InstructionButton_OnClick">
@@ -542,11 +590,10 @@
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0%,0%"
                                          EndPoint="100%,100%">
-                        <GradientStop Color="{DynamicResource Theme.captureGradient1.Color}" Offset="0" />
-                        <GradientStop Color="{DynamicResource Theme.captureGradient2.Color}" Offset="0.32" />
-                        <GradientStop Color="{DynamicResource Theme.captureGradient3.Color}" Offset="0.52" />
-                        <GradientStop Color="{DynamicResource Theme.captureGradient4.Color}" Offset="0.76" />
-                        <GradientStop Color="{DynamicResource Theme.captureGradient5.Color}" Offset="1" />
+                        <GradientStop Color="#FF081631" Offset="0" />
+                        <GradientStop Color="#FF12325F" Offset="0.38" />
+                        <GradientStop Color="#FF76195C" Offset="0.75" />
+                        <GradientStop Color="#FFE67D25" Offset="1" />
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
@@ -566,10 +613,10 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <Button Classes="glass"
+                    <Button Classes="triumphGlass"
                             MinWidth="180"
                             HorizontalAlignment="Left"
-                            Foreground="{DynamicResource Theme.textDark.Brush}"
+                            Foreground="#FFFFFFFF"
                             BorderBrush="{DynamicResource Theme.glassBorderLight.Brush}"
                             Click="TemplatesBackButton_OnClick">
                         <TextBlock Text="{DynamicResource Text.back}"
@@ -577,13 +624,12 @@
                     </Button>
 
                     <StackPanel Grid.Column="1">
-                        <TextBlock Text="{DynamicResource Text.templateTitle}"
-                                   Foreground="{DynamicResource Theme.textDark.Brush}"
+                        <TextBlock Classes="triumphTitle"
+                                   Text="{DynamicResource Text.templateTitle}"
                                    FontSize="{DynamicResource Theme.font38}"
-                                   FontWeight="SemiBold"
                                    TextAlignment="Center" />
                         <TextBlock Text="{DynamicResource Text.templateSubtitle}"
-                                   Foreground="{DynamicResource Theme.textDarkSecondary.Brush}"
+                                   Foreground="#D9FFFFFF"
                                    FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center"
                                    Margin="0,5,0,0" />
@@ -595,12 +641,12 @@
                             MinHeight="58"
                             Padding="24,13"
                             HorizontalAlignment="Right"
-                            Background="{DynamicResource Theme.glassSubtle.Brush}"
-                            BorderBrush="{DynamicResource Theme.glassBorderLight.Brush}"
+                            Background="#22FFFFFF"
+                            BorderBrush="#66FFFFFF"
                             BorderThickness="1"
                             CornerRadius="{DynamicResource Theme.corner29}">
                         <TextBlock x:Name="TemplatesCountText"
-                                   Foreground="{DynamicResource Theme.textDark.Brush}"
+                                   Foreground="#FFFFFFFF"
                                    FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center"
                                    VerticalAlignment="Center" />
@@ -618,7 +664,7 @@
 
                     <TextBlock x:Name="TemplatesEmptyText"
                                IsVisible="False"
-                               Foreground="{DynamicResource Theme.captureText.Brush}"
+                               Foreground="#FFFFFFFF"
                                FontSize="{DynamicResource Theme.font25}"
                                FontWeight="SemiBold"
                                TextAlignment="Center"
@@ -631,13 +677,13 @@
                             HorizontalAlignment="Center">
                     <TextBlock x:Name="SelectedTemplateText"
                                MinHeight="28"
-                               Foreground="{DynamicResource Theme.textDarkSecondary.Brush}"
+                               Foreground="#D9FFFFFF"
                                FontSize="{DynamicResource Theme.font17}"
                                TextAlignment="Center"
                                Margin="0,0,0,8" />
 
                     <Button x:Name="TemplateContinueButton"
-                            Classes="primary actionButton"
+                            Classes="triumphPrimary actionButton"
                             Width="760"
                             IsEnabled="False"
                             Click="TemplateContinueButton_OnClick">
@@ -847,7 +893,7 @@
         </Grid>
 
         <Grid x:Name="PreviewPanel"
-              Background="{DynamicResource Theme.surfaceSoft.Brush}"
+              Background="#FF081631"
               IsVisible="False">
             <Grid Margin="38,28">
                 <Grid.RowDefinitions>
@@ -857,10 +903,10 @@
                 </Grid.RowDefinitions>
 
                 <Grid>
-                    <Button Classes="glass"
+                    <Button Classes="triumphGlass"
                             MinWidth="190"
                             HorizontalAlignment="Left"
-                            Foreground="{DynamicResource Theme.textDark.Brush}"
+                            Foreground="#FFFFFFFF"
                             BorderBrush="{DynamicResource Theme.controlBorder.Brush}"
                             Click="PreviewHomeButton_OnClick">
                         <TextBlock x:Name="PreviewBackButtonText"
@@ -869,14 +915,13 @@
 
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock x:Name="PreviewTitleText"
+                                   Classes="triumphTitle"
                                    Text="{DynamicResource Text.previewTitle}"
-                                   Foreground="{DynamicResource Theme.inkStrong.Brush}"
                                    FontSize="{DynamicResource Theme.font38}"
-                                   FontWeight="Bold"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="PreviewSubtitleText"
                                    Text="{DynamicResource Text.previewSubtitle}"
-                                   Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                                   Foreground="#D9FFFFFF"
                                    FontSize="{DynamicResource Theme.font18}"
                                    TextAlignment="Center" />
                     </StackPanel>
@@ -898,7 +943,7 @@
                 <StackPanel Grid.Row="2"
                             HorizontalAlignment="Center">
                     <TextBlock Text="{DynamicResource Text.copies}"
-                               Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                               Foreground="#D9FFFFFF"
                                FontSize="{DynamicResource Theme.font18}"
                                TextAlignment="Center" />
 
@@ -918,7 +963,7 @@
                                 Click="CopyCountButton_OnClick">3</Button>
                     </StackPanel>
 
-                    <Button Classes="primary actionButton"
+                    <Button Classes="triumphPrimary actionButton"
                             Width="680"
                             Margin="0,8,0,0"
                             Click="PrintButton_OnClick">
@@ -931,18 +976,17 @@
         </Grid>
 
         <Grid x:Name="PrintProgressPanel"
-              Background="{DynamicResource Theme.surfaceSoft.Brush}"
+              Background="#FF081631"
               IsVisible="False">
             <StackPanel Width="760"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center">
-                <TextBlock Text="{DynamicResource Text.printing}"
-                           Foreground="{DynamicResource Theme.inkStrong.Brush}"
+                <TextBlock Classes="triumphTitle"
+                           Text="{DynamicResource Text.printing}"
                            FontSize="{DynamicResource Theme.font42}"
-                           FontWeight="Bold"
                            TextAlignment="Center" />
                 <TextBlock Text="{DynamicResource Text.doNotDisconnect}"
-                           Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                           Foreground="#D9FFFFFF"
                            FontSize="{DynamicResource Theme.font19}"
                            TextAlignment="Center"
                            Margin="0,4,0,30" />
@@ -958,7 +1002,7 @@
                     <StackPanel HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
                         <TextBlock Text="▰"
-                                   Foreground="{DynamicResource Theme.accent.Brush}"
+                                   Foreground="#FFE84A83"
                                    FontSize="{DynamicResource Theme.font72}"
                                    TextAlignment="Center" />
                         <TextBlock x:Name="PrintProgressStatusText"
@@ -976,13 +1020,13 @@
                 </Border>
 
                 <TextBlock x:Name="PrintProgressDetailsText"
-                           Foreground="{DynamicResource Theme.textDarkMuted.Brush}"
+                           Foreground="#D9FFFFFF"
                            FontSize="{DynamicResource Theme.font18}"
                            TextAlignment="Center"
                            Margin="0,24,0,20" />
 
                 <Button x:Name="PrintNextPhotoButton"
-                        Classes="primary"
+                        Classes="triumphPrimary"
                         Width="560"
                         Height="72"
                         HorizontalAlignment="Center"
