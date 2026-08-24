@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - codex/kiosk-image
+      - codex/triumph
     paths:
       - '.github/workflows/build-kiosk-iso.yml'
       - 'kiosk-image/**'
