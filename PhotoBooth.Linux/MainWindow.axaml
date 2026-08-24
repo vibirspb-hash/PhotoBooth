@@ -418,7 +418,7 @@
 
                 <Grid>
                     <TextBlock x:Name="HomeBrandText"
-                           Text="{DynamicResource Text.brand}"
+                           Text="{DynamicResource Text.homeBrand}"
                            Foreground="{DynamicResource Theme.textOnColor.Brush}"
                            FontSize="{DynamicResource Theme.font21}"
                            VerticalAlignment="Center" />
@@ -432,9 +432,9 @@
 
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
-                            Spacing="10"
-                            Margin="0,0,18,0"
-                            VerticalAlignment="Center">
+                            Width="1"
+                            Opacity="0"
+                            IsHitTestVisible="False">
                     <Border x:Name="HomeCameraStatusBadge"
                             Width="54"
                             Height="54"
@@ -466,29 +466,39 @@
 
                 <Button Grid.Column="2"
                         Classes="glass"
-                        MinWidth="250"
+                        Width="{DynamicResource Theme.homeSettingsWidth}"
+                        Height="{DynamicResource Theme.homeSettingsHeight}"
+                        Background="{DynamicResource Theme.homeSettings.Brush}"
+                        BorderBrush="{DynamicResource Theme.homeCardBorder.Brush}"
+                        BorderThickness="1"
+                        CornerRadius="{DynamicResource Theme.corner32}"
                         Click="SettingsButton_OnClick">
                     <TextBlock Text="{DynamicResource Text.settings}"
-                               FontSize="{DynamicResource Theme.font22}" />
+                               FontSize="{DynamicResource Theme.font22}"
+                               FontWeight="SemiBold" />
                 </Button>
             </Grid>
 
             <Button Grid.Row="1"
-                    Classes="glass"
-                    Width="780"
-                    MinHeight="410"
+                    Width="{DynamicResource Theme.homeCardWidth}"
+                    MinHeight="{DynamicResource Theme.homeCardMinHeight}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    CornerRadius="{DynamicResource Theme.corner54}"
+                    Background="{DynamicResource Theme.homeCard.Brush}"
+                    BorderBrush="{DynamicResource Theme.homeCardBorder.Brush}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource Theme.corner60}"
+                    BoxShadow="0 22 70 0 #380B164A"
                     Click="StartButton_OnClick">
                 <StackPanel HorizontalAlignment="Center"
                             VerticalAlignment="Center">
-                    <Border Width="190"
-                            Height="190"
-                            CornerRadius="{DynamicResource Theme.corner95}"
-                            BorderBrush="{DynamicResource Theme.field.Brush}"
+                    <Border Width="{DynamicResource Theme.homeOrbSize}"
+                            Height="{DynamicResource Theme.homeOrbSize}"
+                            CornerRadius="{DynamicResource Theme.corner215}"
+                            BorderBrush="{DynamicResource Theme.homeCardBorder.Brush}"
                             BorderThickness="1"
-                            Margin="0,0,0,26">
+                            BoxShadow="0 0 54 0 #70FFFFFF"
+                            Margin="0,0,0,30">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0%,0%"
                                                  EndPoint="100%,100%">
@@ -498,37 +508,42 @@
                                 <GradientStop Color="{DynamicResource Theme.homeGradient4.Color}" Offset="1" />
                             </LinearGradientBrush>
                         </Border.Background>
-                        <PathIcon Width="78"
-                                  Height="78"
+                        <PathIcon Width="{DynamicResource Theme.homeCameraIconSize}"
+                                  Height="{DynamicResource Theme.homeCameraIconSize}"
                                   Foreground="{DynamicResource Theme.textOnColor.Brush}"
                                   Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
                     </Border>
 
                     <TextBlock Text="{DynamicResource Text.startPhotoSession}"
                                Foreground="{DynamicResource Theme.textOnColor.Brush}"
-                               FontSize="{DynamicResource Theme.font50}"
+                               FontSize="{DynamicResource Theme.font58}"
                                FontWeight="SemiBold"
                                TextAlignment="Center" />
 
                     <TextBlock x:Name="HomeSubtitleText"
                                Text="{DynamicResource Text.homeSubtitle}"
-                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
-                               FontSize="{DynamicResource Theme.font24}"
+                               Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                               FontSize="{DynamicResource Theme.font25}"
                                TextAlignment="Center"
-                               Margin="0,14,0,0" />
+                               Margin="0,16,0,0" />
                 </StackPanel>
             </Button>
 
             <Grid Grid.Row="2">
-                <Button Classes="glass"
-                        MinWidth="420"
+                <Button MinWidth="390"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
                         HorizontalAlignment="Left"
                         Click="InstructionButton_OnClick">
                     <TextBlock Text="{DynamicResource Text.instructions}"
-                               FontSize="{DynamicResource Theme.font19}" />
+                               Foreground="{DynamicResource Theme.homeInstruction.Brush}"
+                               FontSize="{DynamicResource Theme.font19}"
+                               FontWeight="SemiBold" />
                 </Button>
 
                 <TextBlock x:Name="ActiveSessionText"
+                           Opacity="0"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
                            Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
