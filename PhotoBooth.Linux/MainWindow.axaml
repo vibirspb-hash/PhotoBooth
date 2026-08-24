@@ -488,7 +488,6 @@
                     BorderBrush="{DynamicResource Theme.homeCardBorder.Brush}"
                     BorderThickness="1"
                     CornerRadius="{DynamicResource Theme.corner60}"
-                    BoxShadow="0 22 70 0 #380B164A"
                     Click="StartButton_OnClick">
                 <StackPanel HorizontalAlignment="Center"
                             VerticalAlignment="Center">
