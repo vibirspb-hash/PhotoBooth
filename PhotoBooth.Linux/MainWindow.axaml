@@ -441,7 +441,7 @@
         </Grid>
 
         <Grid x:Name="HomePanel"
-              Margin="{DynamicResource Theme.ScreenMargin}"
+              Margin="0"
               IsVisible="False">
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
@@ -457,7 +457,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Grid>
+            <Grid Margin="72,50,72,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -473,8 +473,8 @@
                     <Image x:Name="HomeLogoImage"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Center"
-                           MaxWidth="250"
-                           MaxHeight="100"
+                           MaxWidth="270"
+                           MaxHeight="112"
                            IsHitTestVisible="False"
                            IsVisible="False" />
                 </Grid>
@@ -567,7 +567,8 @@
                 </StackPanel>
             </Button>
 
-            <Grid Grid.Row="2">
+            <Grid Grid.Row="2"
+                  Margin="72,0,72,46">
                 <Button Classes="triumphGlass"
                         MinWidth="420"
                         HorizontalAlignment="Left"
