@@ -111,7 +111,9 @@ mkdir -p "$work_root/data/Templates" \
   "$work_root/data/Updates/logs"
 
 if [[ -n "$templates_dir" && -d "$templates_dir" ]]; then
-  cp -a "$templates_dir/." "$work_root/data/Templates/"
+  # FAT32 cannot store Unix ownership/permissions. Copy file contents without
+  # archive metadata so the Mac/Windows-readable template volume stays valid.
+  cp -R "$templates_dir/." "$work_root/data/Templates/"
 fi
 
 cat > "$work_root/data/.photobooth-volume" <<EOF
