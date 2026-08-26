@@ -114,12 +114,15 @@ PHOTOBOOTH_OFFLINE_UPDATE_VOLUME_V1
 volume_id=$(cat /proc/sys/kernel/random/uuid)
 EOF
 cat > "$work_root/data/КАК_ДОБАВИТЬ_РАМКИ.txt" <<'EOF'
+Скопируйте все рамки прямо в общую папку Templates.
 Каждая рамка состоит из двух файлов: PNG и JSON.
-Имена обоих файлов до расширения должны полностью совпадать.
+Имена файлов одной пары до расширения должны полностью совпадать.
 
 Правильно:
-Templates/Новая рамка/frame.png
-Templates/Новая рамка/frame.json
+Templates/1.png
+Templates/1.json
+Templates/2.png
+Templates/2.json
 
 После копирования безопасно извлеките том PHOTOBOOTH.
 Новые рамки загрузятся при следующем запуске фотобудки.

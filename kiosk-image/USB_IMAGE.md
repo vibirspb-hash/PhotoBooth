@@ -22,17 +22,20 @@ after the image is intentionally unallocated and does not affect operation.
 4. After verification and ejection, reconnect the drive. Finder should show
    the `PHOTOBOOTH` volume.
 
-Each frame consists of a PNG and JSON file in its own folder. The two base
-names must match exactly because the application pairs them by filename:
+Copy all frames directly into the shared `Templates` folder. Each frame
+consists of a PNG and JSON pair. The two base names must match exactly because
+the application pairs them by filename:
 
 ```text
-PHOTOBOOTH/Templates/Event/frame.png
-PHOTOBOOTH/Templates/Event/frame.json
+PHOTOBOOTH/Templates/1.png
+PHOTOBOOTH/Templates/1.json
+PHOTOBOOTH/Templates/2.png
+PHOTOBOOTH/Templates/2.json
 ```
 
 For example, `frame.png` with `1.json` is not a valid pair. The preinstalled
-Triumph frame is included as `Triumph/triumph.png` and
-`Triumph/triumph.json`.
+Triumph frame is included as `Templates/triumph.png` and
+`Templates/triumph.json`.
 
 Always eject `PHOTOBOOTH` before removing the drive. Changes to templates are
 loaded on the next kiosk start.
