@@ -11,7 +11,7 @@ output_path="${2:?Usage: BUILD_USB_IMAGE.sh ISO OUTPUT_IMAGE [TEMPLATES_DIR]}"
 templates_dir="${3:-}"
 image_size_mib="${PHOTOBOOTH_USB_IMAGE_SIZE_MIB:-6144}"
 
-for utility in losetup sgdisk mkfs.vfat mkfs.ext4 grub-install mount umount udevadm; do
+for utility in losetup sgdisk mkfs.vfat mkfs.ext4 grub-install mount umount; do
   command -v "$utility" >/dev/null 2>&1 || {
     echo "Required utility is missing: $utility" >&2
     exit 1
@@ -59,7 +59,6 @@ sgdisk \
   "$output_path"
 
 loop_device="$(losetup --find --show --partscan "$output_path")"
-udevadm settle
 
 mkfs.vfat -F 32 -n EFI "${loop_device}p2"
 mkfs.ext4 -F -L PHOTOBOOT "${loop_device}p3"

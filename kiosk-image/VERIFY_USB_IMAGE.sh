@@ -15,7 +15,6 @@ cleanup() {
 trap cleanup EXIT
 
 loop_device="$(losetup --find --show --partscan --read-only "$image_path")"
-udevadm settle
 
 [[ "$(blkid -s TYPE -o value "${loop_device}p2")" == "vfat" ]]
 [[ "$(blkid -s LABEL -o value "${loop_device}p3")" == "PHOTOBOOT" ]]
