@@ -7,11 +7,12 @@ if [[ "$(uname -s)" != "Linux" ]]; then
 fi
 
 required_packages=(
-  fdisk gdisk dosfstools e2fsprogs grub-pc-bin grub-efi-amd64-bin gzip
+  fdisk gdisk dosfstools e2fsprogs grub-pc-bin grub-efi-amd64-bin gzip kpartx
 )
 if ! command -v sfdisk >/dev/null 2>&1 ||
    ! command -v grub-install >/dev/null 2>&1 ||
-   ! command -v sgdisk >/dev/null 2>&1; then
+   ! command -v sgdisk >/dev/null 2>&1 ||
+   ! command -v kpartx >/dev/null 2>&1; then
   if [[ "$EUID" -eq 0 ]]; then
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get install -y "${required_packages[@]}"

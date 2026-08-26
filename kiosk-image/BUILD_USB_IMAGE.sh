@@ -11,7 +11,7 @@ output_path="${2:?Usage: BUILD_USB_IMAGE.sh ISO OUTPUT_IMAGE [TEMPLATES_DIR]}"
 templates_dir="${3:-}"
 image_size_mib="${PHOTOBOOTH_USB_IMAGE_SIZE_MIB:-6144}"
 
-for utility in losetup sgdisk mkfs.vfat mkfs.ext4 grub-install mount umount; do
+for utility in losetup kpartx sgdisk mkfs.vfat mkfs.ext4 grub-install mount umount; do
   command -v "$utility" >/dev/null 2>&1 || {
     echo "Required utility is missing: $utility" >&2
     exit 1
@@ -25,6 +25,8 @@ fi
 
 work_root="$(mktemp -d --tmpdir photobooth-usb-image.XXXXXX)"
 loop_device=""
+map_prefix=""
+mapped=false
 mounted_live=false
 mounted_data=false
 mounted_efi=false
@@ -38,6 +40,7 @@ cleanup() {
   $mounted_efi && umount "$work_root/live/boot/efi"
   $mounted_data && umount "$work_root/data"
   $mounted_live && umount "$work_root/live"
+  $mapped && kpartx -d "$loop_device"
   [[ -z "$loop_device" ]] || losetup -d "$loop_device"
   rm -rf "$work_root"
 }
@@ -58,19 +61,22 @@ sgdisk \
   --new=5:0:0 --typecode=5:8300 --change-name=5:persistence \
   "$output_path"
 
-loop_device="$(losetup --find --show --partscan "$output_path")"
+loop_device="$(losetup --find --show "$output_path")"
+kpartx -as "$loop_device"
+mapped=true
+map_prefix="/dev/mapper/$(basename "$loop_device")p"
 
-mkfs.vfat -F 32 -n EFI "${loop_device}p2"
-mkfs.ext4 -F -L PHOTOBOOT "${loop_device}p3"
-mkfs.vfat -F 32 -n PHOTOBOOTH "${loop_device}p4"
-mkfs.ext4 -F -L persistence "${loop_device}p5"
+mkfs.vfat -F 32 -n EFI "${map_prefix}2"
+mkfs.ext4 -F -L PHOTOBOOT "${map_prefix}3"
+mkfs.vfat -F 32 -n PHOTOBOOTH "${map_prefix}4"
+mkfs.ext4 -F -L persistence "${map_prefix}5"
 
-mount "${loop_device}p3" "$work_root/live"
+mount "${map_prefix}3" "$work_root/live"
 mounted_live=true
 mkdir -p "$work_root/live/boot/efi"
-mount "${loop_device}p2" "$work_root/live/boot/efi"
+mount "${map_prefix}2" "$work_root/live/boot/efi"
 mounted_efi=true
-mount "${loop_device}p4" "$work_root/data"
+mount "${map_prefix}4" "$work_root/data"
 mounted_data=true
 mount -o loop,ro "$iso_path" "$work_root/iso"
 mounted_iso=true
@@ -126,7 +132,7 @@ Templates/2.json
 После копирования безопасно извлеките том PHOTOBOOTH.
 Новые рамки загрузятся при следующем запуске фотобудки.
 EOF
-mount "${loop_device}p5" "$work_root/persistence"
+mount "${map_prefix}5" "$work_root/persistence"
 mounted_persistence=true
 printf '/ union\n' > "$work_root/persistence/persistence.conf"
 umount "$work_root/persistence"
@@ -141,6 +147,8 @@ umount "$work_root/data"
 mounted_data=false
 umount "$work_root/live"
 mounted_live=false
+kpartx -d "$loop_device"
+mapped=false
 losetup -d "$loop_device"
 loop_device=""
 
