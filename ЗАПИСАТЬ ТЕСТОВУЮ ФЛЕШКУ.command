@@ -10,7 +10,7 @@ fail() {
 }
 
 [[ "$(uname -s)" == "Darwin" ]] || fail "Команда предназначена только для Mac."
-for utility in diskutil shasum stat head; do
+for utility in diskutil plutil shasum stat; do
   command -v "$utility" >/dev/null 2>&1 || fail "Не найдена системная команда $utility."
 done
 
@@ -44,7 +44,7 @@ read -r -p "Введите номер ТЕСТОВОЙ флешки (напри�
 
 disk_info="$(diskutil info "/dev/$disk_id")"
 grep -Eq 'Device / Media Name:|Disk Size:' <<<"$disk_info" || fail "Диск /dev/$disk_id не найден."
-grep -Eq 'Internal:[[:space:]]+No' <<<"$disk_info" || fail "Защита остановила запись: выбранный диск не внешний."
+grep -Eq 'Internal:[[:space:]]+No|Device Location:[[:space:]]+External' <<<"$disk_info" || fail "Защита остановила запись: выбранный диск не внешний."
 grep -Eq 'Whole:[[:space:]]+Yes' <<<"$disk_info" || fail "Нужно выбрать весь диск, а не раздел."
 
 echo
@@ -60,15 +60,50 @@ echo "Запись началась. Введите пароль Mac, если �
 sudo dd if="$iso_path" of="/dev/r$disk_id" bs=4m
 sync
 
-blocks=$(( (iso_size + 1048575) / 1048576 ))
-set +o pipefail
-written_sha="$(sudo dd if="/dev/r$disk_id" bs=1m count="$blocks" 2>/dev/null | head -c "$iso_size" | shasum -a 256 | awk '{print $1}')"
-set -o pipefail
-[[ "$written_sha" == "$iso_sha" ]] || fail "Контрольная сумма флешки не совпала. Не используйте её."
+# macOS automatically mounts PHOTOBOOTH and writes Spotlight/FSEvents metadata
+# to its FAT32 filesystem. Verify every other byte of the image, then validate
+# the writable volume separately so those expected changes do not cause a
+# false checksum failure.
+data_device="/dev/${disk_id}s4"
+for _ in {1..10}; do
+  diskutil info "$data_device" >/dev/null 2>&1 && break
+  sleep 1
+done
+diskutil info "$data_device" >/dev/null 2>&1 || fail "После записи не найден раздел PHOTOBOOTH."
+
+data_plist="$(diskutil info -plist "$data_device")"
+data_offset="$(plutil -extract PartitionMapPartitionOffset raw -o - - <<<"$data_plist")"
+data_size="$(plutil -extract Size raw -o - - <<<"$data_plist")"
+mib=1048576
+[[ "$data_offset" =~ ^[0-9]+$ && "$data_size" =~ ^[0-9]+$ ]] || fail "Не удалось прочитать границы PHOTOBOOTH."
+(( iso_size % mib == 0 && data_offset % mib == 0 && data_size % mib == 0 )) || fail "Границы раздела не выровнены для безопасной проверки."
+
+leading_blocks=$(( data_offset / mib ))
+trailing_skip=$(( (data_offset + data_size) / mib ))
+total_blocks=$(( iso_size / mib ))
+trailing_blocks=$(( total_blocks - trailing_skip ))
+(( leading_blocks > 0 && trailing_blocks > 0 )) || fail "Некорректные границы проверяемых областей."
+
+diskutil unmountDisk "/dev/$disk_id" >/dev/null || fail "Не удалось отключить разделы перед проверкой."
+image_stable_sha="$({
+  dd if="$iso_path" bs=1m count="$leading_blocks" 2>/dev/null
+  dd if="$iso_path" bs=1m skip="$trailing_skip" count="$trailing_blocks" 2>/dev/null
+} | shasum -a 256 | awk '{print $1}')"
+written_stable_sha="$({
+  sudo dd if="/dev/r$disk_id" bs=1m count="$leading_blocks" 2>/dev/null
+  sudo dd if="/dev/r$disk_id" bs=1m skip="$trailing_skip" count="$trailing_blocks" 2>/dev/null
+} | shasum -a 256 | awk '{print $1}')"
+[[ "$written_stable_sha" == "$image_stable_sha" ]] || fail "Неизменяемые области флешки не совпали с образом. Не используйте её."
+
+diskutil mount "$data_device" >/dev/null || fail "Не удалось подключить раздел PHOTOBOOTH для проверки."
+data_plist="$(diskutil info -plist "$data_device")"
+mount_point="$(plutil -extract MountPoint raw -o - - <<<"$data_plist")"
+[[ -d "$mount_point/Templates" && -d "$mount_point/Output" && -f "$mount_point/.photobooth-volume" ]] || fail "На PHOTOBOOTH отсутствует обязательная структура папок."
 
 diskutil eject "/dev/$disk_id" >/dev/null || true
 echo
 echo "ГОТОВО: флешка записана и проверена."
-echo "SHA-256 совпал: $written_sha"
+echo "SHA-256 неизменяемых областей совпал: $written_stable_sha"
+echo "Раздел PHOTOBOOTH и его папки проверены отдельно."
 echo "После повторного подключения Mac должен показать том PHOTOBOOTH."
 read -r -p "Нажмите Enter, чтобы закрыть окно..." _ || true
