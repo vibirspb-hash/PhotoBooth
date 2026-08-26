@@ -6,13 +6,18 @@ if [[ "$(uname -s)" != "Linux" ]]; then
   exit 1
 fi
 
-if ! command -v sfdisk >/dev/null 2>&1; then
+required_packages=(
+  fdisk gdisk dosfstools e2fsprogs grub-pc-bin grub-efi-amd64-bin gzip
+)
+if ! command -v sfdisk >/dev/null 2>&1 ||
+   ! command -v grub-install >/dev/null 2>&1 ||
+   ! command -v sgdisk >/dev/null 2>&1; then
   if [[ "$EUID" -eq 0 ]]; then
     apt-get update
-    apt-get install -y fdisk
+    DEBIAN_FRONTEND=noninteractive apt-get install -y "${required_packages[@]}"
   else
     sudo apt-get update
-    sudo apt-get install -y fdisk
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y "${required_packages[@]}"
   fi
 fi
 
@@ -207,14 +212,15 @@ if [[ -z "$iso_path" ]]; then
   exit 1
 fi
 
-chmod +x "$image_root/VERIFY_PARTITION_LAYOUT.sh"
-"$image_root/VERIFY_PARTITION_LAYOUT.sh" "$iso_path"
-
-cp "$iso_path" "$output_root/PhotoBooth-Kiosk-amd64.iso"
+usb_image="$output_root/PhotoBooth-Kiosk-amd64.img"
+chmod +x "$image_root/BUILD_USB_IMAGE.sh" "$image_root/VERIFY_USB_IMAGE.sh"
+"$image_root/BUILD_USB_IMAGE.sh" "$iso_path" "$usb_image" "$publish_root/Templates"
+"$image_root/VERIFY_USB_IMAGE.sh" "$usb_image"
 (
   cd "$output_root"
-  sha256sum PhotoBooth-Kiosk-amd64.iso > PhotoBooth-Kiosk-amd64.iso.sha256
-  split -b 1500M -d -a 2 PhotoBooth-Kiosk-amd64.iso PhotoBooth-Kiosk-amd64.iso.part-
+  sha256sum PhotoBooth-Kiosk-amd64.img > PhotoBooth-Kiosk-amd64.img.sha256
+  gzip -1 -c PhotoBooth-Kiosk-amd64.img > PhotoBooth-Kiosk-amd64.img.gz
+  rm PhotoBooth-Kiosk-amd64.img
 )
 
-echo "Kiosk image created in $output_root"
+echo "Mac-compatible kiosk USB image created in $output_root"

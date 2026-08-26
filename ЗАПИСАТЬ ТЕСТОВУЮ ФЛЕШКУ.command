@@ -17,25 +17,22 @@ done
 iso_path="${1:-}"
 if [[ -z "$iso_path" ]]; then
   echo
-  echo "Перетащите в это окно ТЕСТОВЫЙ ISO и нажмите Enter:"
+  echo "Перетащите в это окно распакованный USB-образ .img и нажмите Enter:"
   IFS= read -r iso_path
 fi
 iso_path="${iso_path#\'}"
 iso_path="${iso_path%\'}"
 iso_path="${iso_path#\"}"
 iso_path="${iso_path%\"}"
-[[ -f "$iso_path" ]] || fail "ISO-файл не найден: $iso_path"
-case "$(basename "$iso_path")" in
-  *Test*.iso|*TEST*.iso|*test*.iso) ;;
-  *) fail "Разрешена запись только ISO, в имени которого есть слово Test." ;;
-esac
+[[ -f "$iso_path" ]] || fail "Файл образа не найден: $iso_path"
+[[ "$iso_path" == *.img ]] || fail "Нужен распакованный файл с расширением .img."
 
 iso_size="$(stat -f '%z' "$iso_path")"
-[[ "$iso_size" =~ ^[0-9]+$ && "$iso_size" -gt 0 ]] || fail "Не удалось определить размер ISO."
+[[ "$iso_size" =~ ^[0-9]+$ && "$iso_size" -gt 0 ]] || fail "Не удалось определить размер образа."
 iso_sha="$(shasum -a 256 "$iso_path" | awk '{print $1}')"
 
 echo
-echo "Тестовая сборка: $(basename "$iso_path")"
+echo "USB-образ:       $(basename "$iso_path")"
 echo "Размер:           $iso_size байт"
 echo "SHA-256:          $iso_sha"
 echo
@@ -71,7 +68,7 @@ set -o pipefail
 
 diskutil eject "/dev/$disk_id" >/dev/null || true
 echo
-echo "ГОТОВО: тестовая флешка записана и проверена."
+echo "ГОТОВО: флешка записана и проверена."
 echo "SHA-256 совпал: $written_sha"
-echo "Золотой образ и тег в GitHub не изменялись."
+echo "После повторного подключения Mac должен показать том PHOTOBOOTH."
 read -r -p "Нажмите Enter, чтобы закрыть окно..." _ || true
