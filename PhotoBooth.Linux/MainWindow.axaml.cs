@@ -342,11 +342,12 @@ public sealed partial class MainWindow : Window
 
     private void ApplyBrandingImages()
     {
-        Image background = Find<Image>("BrandingBackgroundImage");
+        Image background = Find<Image>("HomeBackgroundImage");
         if (BrandingTheme.BackgroundImage is not null)
         {
             background.Source = BrandingTheme.BackgroundImage;
             background.IsVisible = true;
+            Find<Border>("HomeBackgroundShade").IsVisible = true;
         }
 
         if (BrandingTheme.LogoImage is null)
@@ -699,7 +700,26 @@ public sealed partial class MainWindow : Window
             return;
         }
 
+        _ = WarmUpCameraAsync();
         ShowTemplates();
+    }
+
+    private async Task WarmUpCameraAsync()
+    {
+        if (_cameraService.IsDemo)
+        {
+            return;
+        }
+
+        try
+        {
+            await _cameraService.WarmUpAsync();
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine(
+                $"{DateTime.Now:O} Canon warm-up failed: {exception.Message}");
+        }
     }
 
     private void ShowTemplates()
@@ -823,8 +843,11 @@ public sealed partial class MainWindow : Window
         _templateContinueButton.IsEnabled = template.RequiredShotCount > 0;
     }
 
-    private void TemplatesBackButton_OnClick(object? sender, RoutedEventArgs e) =>
+    private void TemplatesBackButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _ = _cameraService.StopPreviewAsync();
         ShowHomeScreen();
+    }
 
     private void TemplateContinueButton_OnClick(object? sender, RoutedEventArgs e)
     {
@@ -1034,6 +1057,11 @@ public sealed partial class MainWindow : Window
         {
             _currentCapturedPath =
                 await _cameraService.CapturePhotoAsync(_currentShotNumber);
+            if (_selectedDefinition is not null &&
+                _currentShotNumber < _selectedDefinition.RequiredShotCount)
+            {
+                _ = WarmUpCameraAsync();
+            }
             SetLivePreview(_currentCapturedPath);
             _countdownText.Text = "✓";
             _countdownCaption.Text = "Снимок сделан";

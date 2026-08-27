@@ -37,5 +37,17 @@ For example, `frame.png` with `1.json` is not a valid pair. The preinstalled
 Triumph frame is included as `Templates/triumph.png` and
 `Templates/triumph.json`.
 
+The home screen branding can be replaced from macOS without changing the
+application. Put a 16:9 JPEG background (1280x720 through 3840x2160, up to
+10 MiB) and a PNG logo into these fixed paths:
+
+```text
+PHOTOBOOTH/Branding/home-background.jpg
+PHOTOBOOTH/Branding/home-logo.png
+```
+
+Missing, damaged or oversized files are ignored and the built-in Triumph
+design is used instead. Branding changes are loaded on the next kiosk start.
+
 Always eject `PHOTOBOOTH` before removing the drive. Changes to templates are
 loaded on the next kiosk start.

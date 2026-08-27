@@ -7,6 +7,9 @@ namespace PhotoBooth.Linux.Branding;
 
 internal static class BrandingTheme
 {
+    private const long MaxBackgroundBytes = 10 * 1024 * 1024;
+    private const long MaxLogoBytes = 5 * 1024 * 1024;
+
     private static readonly Dictionary<string, string> DefaultColors = new(StringComparer.Ordinal)
     {
         ["window"] = "#5F72E9",
@@ -250,8 +253,30 @@ internal static class BrandingTheme
         application.Resources["Theme.TemplateCardPadding"] = new Thickness(numbers["templateCardPadding"]);
         application.Resources["Theme.HistoryCardPadding"] = new Thickness(numbers["historyCardPadding"]);
 
-        LogoImage = LoadBrandingImage(brandingDirectory, logoFile);
-        BackgroundImage = LoadBrandingImage(brandingDirectory, backgroundFile);
+        Bitmap? builtInLogo = LoadBrandingImage(brandingDirectory, logoFile);
+        Bitmap? builtInBackground = LoadBrandingImage(brandingDirectory, backgroundFile);
+        string? dataRoot = Environment.GetEnvironmentVariable("PHOTOBOOTH_DATA_ROOT");
+        string? externalBrandingDirectory = string.IsNullOrWhiteSpace(dataRoot)
+            ? null
+            : Path.Combine(dataRoot, "Branding");
+
+        LogoImage = LoadExternalImage(
+                externalBrandingDirectory,
+                "home-logo.png",
+                MaxLogoBytes,
+                size => size.Width is >= 128 and <= 4096 &&
+                        size.Height is >= 64 and <= 4096,
+                "логотип")
+            ?? builtInLogo;
+        BackgroundImage = LoadExternalImage(
+                externalBrandingDirectory,
+                "home-background.jpg",
+                MaxBackgroundBytes,
+                size => size.Width is >= 1280 and <= 3840 &&
+                        size.Height is >= 720 and <= 2160 &&
+                        Math.Abs(((double)size.Width / size.Height) - (16d / 9d)) < 0.03,
+                "фон")
+            ?? builtInBackground;
     }
 
     private static Dictionary<string, double> DefaultNumbers() => new(StringComparer.Ordinal)
@@ -402,6 +427,54 @@ internal static class BrandingTheme
         }
         catch
         {
+            return null;
+        }
+    }
+
+    private static Bitmap? LoadExternalImage(
+        string? brandingDirectory,
+        string fileName,
+        long maxBytes,
+        Func<PixelSize, bool> sizeIsValid,
+        string description)
+    {
+        if (string.IsNullOrWhiteSpace(brandingDirectory))
+        {
+            return null;
+        }
+
+        string path = Path.Combine(brandingDirectory, fileName);
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            FileInfo file = new(path);
+            if (file.Length is <= 0 || file.Length > maxBytes)
+            {
+                Console.Error.WriteLine(
+                    $"External home {description} was ignored: invalid file size ({file.Length} bytes).");
+                return null;
+            }
+
+            Bitmap image = new(path);
+            if (sizeIsValid(image.PixelSize))
+            {
+                return image;
+            }
+
+            Console.Error.WriteLine(
+                $"External home {description} was ignored: invalid dimensions " +
+                $"({image.PixelSize.Width}x{image.PixelSize.Height}).");
+            image.Dispose();
+            return null;
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine(
+                $"External home {description} was ignored: {exception.Message}");
             return null;
         }
     }

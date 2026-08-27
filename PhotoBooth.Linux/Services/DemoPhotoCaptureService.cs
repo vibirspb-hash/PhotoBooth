@@ -35,6 +35,9 @@ public sealed class DemoPhotoCaptureService : IPhotoCaptureService
         CancellationToken cancellationToken = default) =>
         await File.ReadAllBytesAsync(GetShot(shotNumber), cancellationToken);
 
+    public Task WarmUpAsync(
+        CancellationToken cancellationToken = default) => Task.CompletedTask;
+
     public Task StopPreviewAsync(
         CancellationToken cancellationToken = default) => Task.CompletedTask;
 

@@ -13,6 +13,9 @@ public interface IPhotoCaptureService
         string originalsPath,
         int shotCount);
 
+    Task WarmUpAsync(
+        CancellationToken cancellationToken = default);
+
     Task<byte[]?> CapturePreviewAsync(
         int shotNumber,
         CancellationToken cancellationToken = default);

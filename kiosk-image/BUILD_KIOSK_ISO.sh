@@ -215,7 +215,8 @@ fi
 
 usb_image="$output_root/PhotoBooth-Kiosk-amd64.img"
 chmod +x "$image_root/BUILD_USB_IMAGE.sh" "$image_root/VERIFY_USB_IMAGE.sh"
-"$image_root/BUILD_USB_IMAGE.sh" "$iso_path" "$usb_image" "$publish_root/Templates"
+"$image_root/BUILD_USB_IMAGE.sh" "$iso_path" "$usb_image" \
+  "$publish_root/Templates" "$publish_root/Branding"
 "$image_root/VERIFY_USB_IMAGE.sh" "$usb_image"
 (
   cd "$output_root"

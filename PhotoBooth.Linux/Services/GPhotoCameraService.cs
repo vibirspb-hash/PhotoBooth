@@ -128,6 +128,20 @@ public sealed class GPhotoCameraService : IPhotoCaptureService
         }
     }
 
+    public async Task WarmUpAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await _cameraLock.WaitAsync(cancellationToken);
+        try
+        {
+            await StartLiveViewAsync(cancellationToken);
+        }
+        finally
+        {
+            _cameraLock.Release();
+        }
+    }
+
     public async Task<string> CapturePhotoAsync(
         int shotNumber,
         CancellationToken cancellationToken = default)

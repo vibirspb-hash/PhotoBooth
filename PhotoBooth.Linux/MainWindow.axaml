@@ -451,11 +451,24 @@
                     <GradientStop Color="#FFF08E24" Offset="1" />
                 </LinearGradientBrush>
             </Grid.Background>
+
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
+
+            <Image x:Name="HomeBackgroundImage"
+                   Grid.RowSpan="3"
+                   Stretch="UniformToFill"
+                   Opacity="{DynamicResource Theme.backgroundImageOpacity}"
+                   IsHitTestVisible="False"
+                   IsVisible="False" />
+            <Border x:Name="HomeBackgroundShade"
+                    Grid.RowSpan="3"
+                    Background="#3007132F"
+                    IsHitTestVisible="False"
+                    IsVisible="False" />
 
             <Grid Margin="72,50,72,0">
                 <Grid.ColumnDefinitions>

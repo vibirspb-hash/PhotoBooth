@@ -6,9 +6,10 @@ if [[ "$(uname -s)" != "Linux" ]]; then
   exit 1
 fi
 
-iso_path="${1:?Usage: BUILD_USB_IMAGE.sh ISO OUTPUT_IMAGE [TEMPLATES_DIR]}"
-output_path="${2:?Usage: BUILD_USB_IMAGE.sh ISO OUTPUT_IMAGE [TEMPLATES_DIR]}"
+iso_path="${1:?Usage: BUILD_USB_IMAGE.sh ISO OUTPUT_IMAGE [TEMPLATES_DIR] [BRANDING_DIR]}"
+output_path="${2:?Usage: BUILD_USB_IMAGE.sh ISO OUTPUT_IMAGE [TEMPLATES_DIR] [BRANDING_DIR]}"
 templates_dir="${3:-}"
+branding_dir="${4:-}"
 image_size_mib="${PHOTOBOOTH_USB_IMAGE_SIZE_MIB:-6144}"
 
 for utility in losetup kpartx sgdisk mkfs.vfat mkfs.ext4 grub-install mount umount; do
@@ -102,6 +103,7 @@ grub-install --target=x86_64-efi \
   --removable --no-nvram --recheck
 
 mkdir -p "$work_root/data/Templates" \
+  "$work_root/data/Branding" \
   "$work_root/data/Output" \
   "$work_root/data/Diagnostics" \
   "$work_root/data/Updates/incoming" \
@@ -114,6 +116,11 @@ if [[ -n "$templates_dir" && -d "$templates_dir" ]]; then
   # FAT32 cannot store Unix ownership/permissions. Copy file contents without
   # archive metadata so the Mac/Windows-readable template volume stays valid.
   cp -R "$templates_dir/." "$work_root/data/Templates/"
+fi
+
+if [[ -n "$branding_dir" && -f "$branding_dir/triumph-logo.png" ]]; then
+  cp "$branding_dir/triumph-logo.png" \
+    "$work_root/data/Branding/home-logo.png"
 fi
 
 cat > "$work_root/data/.photobooth-volume" <<EOF

@@ -31,7 +31,9 @@ map_prefix="/dev/mapper/$(basename "$loop_device")p"
 mount -o ro "${map_prefix}4" "$work_root"
 mounted=true
 grep -Fxq 'PHOTOBOOTH_OFFLINE_UPDATE_VOLUME_V1' "$work_root/.photobooth-volume"
-[[ -d "$work_root/Templates" && -d "$work_root/Output" && -d "$work_root/Diagnostics" ]]
+[[ -d "$work_root/Templates" && -d "$work_root/Branding" &&
+   -d "$work_root/Output" && -d "$work_root/Diagnostics" ]]
+[[ -s "$work_root/Branding/home-logo.png" ]]
 umount "$work_root"
 mounted=false
 

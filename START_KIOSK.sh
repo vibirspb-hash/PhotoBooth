@@ -23,7 +23,8 @@ if ! mountpoint -q "$data_root"; then
 fi
 
 if mountpoint -q "$data_root"; then
-  mkdir -p "$data_root/Output" "$data_root/Templates" "$data_root/Diagnostics"
+  mkdir -p "$data_root/Output" "$data_root/Templates" \
+    "$data_root/Branding" "$data_root/Diagnostics"
   export PHOTOBOOTH_DATA_ROOT="$data_root"
 fi
 
