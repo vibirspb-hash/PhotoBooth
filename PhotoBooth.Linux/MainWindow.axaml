@@ -442,7 +442,6 @@
 
         <Grid x:Name="HomePanel"
               Margin="0"
-              FontFamily="avares://PhotoBooth.Linux/Assets/Fonts#Inter"
               IsVisible="False">
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
