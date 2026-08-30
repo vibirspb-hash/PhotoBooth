@@ -445,10 +445,10 @@
               IsVisible="False">
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                    <GradientStop Color="#FF07132F" Offset="0" />
-                    <GradientStop Color="#FF11275A" Offset="0.36" />
-                    <GradientStop Color="#FF7A185B" Offset="0.72" />
-                    <GradientStop Color="#FFF08E24" Offset="1" />
+                    <GradientStop Color="#FF173C79" Offset="0" />
+                    <GradientStop Color="#FF244F91" Offset="0.34" />
+                    <GradientStop Color="#FF6C5E9C" Offset="0.69" />
+                    <GradientStop Color="#FFCB7287" Offset="1" />
                 </LinearGradientBrush>
             </Grid.Background>
 
@@ -466,11 +466,91 @@
                    IsVisible="False" />
             <Border x:Name="HomeBackgroundShade"
                     Grid.RowSpan="3"
-                    Background="#3007132F"
+                    Background="#2608162F"
                     IsHitTestVisible="False"
                     IsVisible="False" />
 
-            <Grid Margin="72,50,72,0">
+            <Ellipse Grid.RowSpan="3"
+                     Width="1080"
+                     Height="1080"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center"
+                     Margin="-430,0,0,40"
+                     IsHitTestVisible="False">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#786FA8FF" Offset="0" />
+                        <GradientStop Color="#30659AF1" Offset="0.52" />
+                        <GradientStop Color="#00659AF1" Offset="1" />
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+
+            <Ellipse Grid.RowSpan="3"
+                     Width="1040"
+                     Height="1040"
+                     HorizontalAlignment="Right"
+                     VerticalAlignment="Top"
+                     Margin="0,-410,-280,0"
+                     IsHitTestVisible="False">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#8CFFB4B3" Offset="0" />
+                        <GradientStop Color="#45EF91A8" Offset="0.5" />
+                        <GradientStop Color="#00EF91A8" Offset="1" />
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+
+            <Ellipse Grid.RowSpan="3"
+                     Width="920"
+                     Height="920"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Bottom"
+                     Margin="0,0,0,-650"
+                     IsHitTestVisible="False">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#706F4EB2" Offset="0" />
+                        <GradientStop Color="#286F4EB2" Offset="0.56" />
+                        <GradientStop Color="#006F4EB2" Offset="1" />
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+
+            <Ellipse Grid.RowSpan="3"
+                     Width="150"
+                     Height="150"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center"
+                     Margin="118,0,0,80"
+                     Opacity="0.2"
+                     IsHitTestVisible="False">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#B8FFFFFF" Offset="0" />
+                        <GradientStop Color="#00FFFFFF" Offset="1" />
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+
+            <Ellipse Grid.RowSpan="3"
+                     Width="230"
+                     Height="230"
+                     HorizontalAlignment="Right"
+                     VerticalAlignment="Bottom"
+                     Margin="0,0,96,44"
+                     Opacity="0.13"
+                     IsHitTestVisible="False">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#AFFFFFFF" Offset="0" />
+                        <GradientStop Color="#00FFFFFF" Offset="1" />
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+
+            <Grid Margin="52,40,52,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -482,12 +562,13 @@
                            Text="{DynamicResource Text.brand}"
                            Foreground="{DynamicResource Theme.textOnColor.Brush}"
                            FontSize="{DynamicResource Theme.font21}"
+                           FontWeight="SemiBold"
                            VerticalAlignment="Center" />
                     <Image x:Name="HomeLogoImage"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Center"
-                           MaxWidth="270"
-                           MaxHeight="112"
+                           MaxWidth="230"
+                           MaxHeight="90"
                            IsHitTestVisible="False"
                            IsVisible="False" />
                 </Grid>
@@ -495,15 +576,15 @@
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             Spacing="10"
-                            Margin="0,0,18,0"
+                            Margin="0,0,16,0"
                             VerticalAlignment="Center">
                     <Border x:Name="HomeCameraStatusBadge"
-                            Width="54"
-                            Height="54"
-                            Background="{DynamicResource Theme.glassBadge.Brush}"
-                            BorderBrush="{DynamicResource Theme.glassBorderMedium.Brush}"
+                            Width="58"
+                            Height="58"
+                            Background="#24FFFFFF"
+                            BorderBrush="#70FFFFFF"
                             BorderThickness="1"
-                            CornerRadius="{DynamicResource Theme.corner27}"
+                            CornerRadius="29"
                             ToolTip.Tip="Проверяем камеру">
                         <PathIcon Width="25"
                                   Height="25"
@@ -512,12 +593,12 @@
                     </Border>
 
                     <Border x:Name="HomePrinterStatusBadge"
-                            Width="54"
-                            Height="54"
-                            Background="{DynamicResource Theme.glassBadge.Brush}"
-                            BorderBrush="{DynamicResource Theme.glassBorderMedium.Brush}"
+                            Width="58"
+                            Height="58"
+                            Background="#24FFFFFF"
+                            BorderBrush="#70FFFFFF"
                             BorderThickness="1"
-                            CornerRadius="{DynamicResource Theme.corner27}"
+                            CornerRadius="29"
                             ToolTip.Tip="Проверяем принтер">
                         <PathIcon Width="27"
                                   Height="27"
@@ -527,73 +608,116 @@
                 </StackPanel>
 
                 <Button Grid.Column="2"
-                        Classes="glass"
-                        MinWidth="250"
+                        MinWidth="228"
+                        MinHeight="72"
+                        Padding="30,16"
+                        Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                        Background="#22FFFFFF"
+                        BorderBrush="#88FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="36"
                         Click="SettingsButton_OnClick">
                     <TextBlock Text="{DynamicResource Text.settings}"
-                               FontSize="{DynamicResource Theme.font22}" />
+                               FontSize="{DynamicResource Theme.font22}"
+                               FontWeight="SemiBold" />
                 </Button>
             </Grid>
 
-            <Button Grid.Row="1"
-                    Classes="triumphGlass"
-                    Width="780"
-                    MinHeight="410"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    CornerRadius="36"
-                    Click="StartButton_OnClick">
-                <StackPanel HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                    <Border Width="190"
-                            Height="190"
-                            CornerRadius="{DynamicResource Theme.corner95}"
-                            BorderBrush="{DynamicResource Theme.field.Brush}"
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="4.5*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="1"
+                        Grid.Column="1"
+                        CornerRadius="54"
+                        BorderBrush="#9AFFFFFF"
+                        BorderThickness="1"
+                        BoxShadow="0 24 70 0 #48153168">
+                    <Button Padding="28,20"
+                            Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                            BorderBrush="#58FFFFFF"
                             BorderThickness="1"
-                            Margin="0,0,0,26">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0%,0%"
-                                                 EndPoint="100%,100%">
-                                <GradientStop Color="{DynamicResource Theme.homeGradient1.Color}" Offset="0" />
-                                <GradientStop Color="{DynamicResource Theme.homeGradient2.Color}" Offset="0.48" />
-                                <GradientStop Color="{DynamicResource Theme.homeGradient3.Color}" Offset="0.72" />
-                                <GradientStop Color="{DynamicResource Theme.homeGradient4.Color}" Offset="1" />
+                            CornerRadius="54"
+                            Click="StartButton_OnClick">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#42FFFFFF" Offset="0" />
+                                <GradientStop Color="#20D8E7FF" Offset="0.48" />
+                                <GradientStop Color="#38FFD7E2" Offset="1" />
                             </LinearGradientBrush>
-                        </Border.Background>
-                        <PathIcon Width="78"
-                                  Height="78"
-                                  Foreground="{DynamicResource Theme.textOnColor.Brush}"
-                                  Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
-                    </Border>
+                        </Button.Background>
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                            <Border Width="220"
+                                    Height="220"
+                                    CornerRadius="110"
+                                    BorderBrush="#D8FFFFFF"
+                                    BorderThickness="2"
+                                    BoxShadow="0 12 42 2 #62E7C9FF"
+                                    Margin="0,0,0,20">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0%,0%"
+                                                         EndPoint="100%,100%">
+                                        <GradientStop Color="#FF75B9FF" Offset="0" />
+                                        <GradientStop Color="#FF8B70E8" Offset="0.48" />
+                                        <GradientStop Color="#FFF19AD3" Offset="0.76" />
+                                        <GradientStop Color="#FFFFB49A" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <PathIcon Width="88"
+                                          Height="88"
+                                          Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                          Data="M4,5 L7,5 L8.5,3 L15.5,3 L17,5 L20,5 C21.1,5 22,5.9 22,7 L22,19 C22,20.1 21.1,21 20,21 L4,21 C2.9,21 2,20.1 2,19 L2,7 C2,5.9 2.9,5 4,5 M12,8 C8.7,8 6,10.7 6,14 C6,17.3 8.7,20 12,20 C15.3,20 18,17.3 18,14 C18,10.7 15.3,8 12,8 M12,10 C14.2,10 16,11.8 16,14 C16,16.2 14.2,18 12,18 C9.8,18 8,16.2 8,14 C8,11.8 9.8,10 12,10 Z" />
+                            </Border>
 
-                    <TextBlock Classes="triumphTitle"
-                               Text="{DynamicResource Text.startPhotoSession}"
-                               FontSize="{DynamicResource Theme.font50}"
-                               TextAlignment="Center" />
+                            <TextBlock Text="{DynamicResource Text.startPhotoSession}"
+                                       Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                                       FontFamily="{DynamicResource Theme.FontFamily}"
+                                       FontSize="52"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center" />
 
-                    <TextBlock x:Name="HomeSubtitleText"
-                               Text="{DynamicResource Text.homeSubtitle}"
-                               Foreground="{DynamicResource Theme.textOnColor.Brush}"
-                               FontSize="{DynamicResource Theme.font24}"
-                               TextAlignment="Center"
-                               Margin="0,14,0,0" />
-                </StackPanel>
-            </Button>
+                            <TextBlock x:Name="HomeSubtitleText"
+                                       Text="{DynamicResource Text.homeSubtitle}"
+                                       Foreground="#DBFFFFFF"
+                                       FontSize="26"
+                                       FontWeight="Normal"
+                                       TextAlignment="Center"
+                                       Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Button>
+                </Border>
+            </Grid>
 
             <Grid Grid.Row="2"
-                  Margin="72,0,72,46">
-                <Button Classes="triumphGlass"
-                        MinWidth="420"
+                  Margin="52,0,52,36">
+                <Button MinWidth="390"
+                        MinHeight="64"
+                        Padding="24,12"
                         HorizontalAlignment="Left"
+                        Foreground="{DynamicResource Theme.textOnColor.Brush}"
+                        Background="#12FFFFFF"
+                        BorderBrush="#64FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="32"
                         Click="InstructionButton_OnClick">
                     <TextBlock Text="{DynamicResource Text.instructions}"
-                               FontSize="{DynamicResource Theme.font19}" />
+                               FontSize="{DynamicResource Theme.font19}"
+                               FontWeight="SemiBold" />
                 </Button>
 
                 <TextBlock x:Name="ActiveSessionText"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
-                           Foreground="{DynamicResource Theme.textOnColorMuted.Brush}"
+                           Foreground="#D8FFFFFF"
                            FontSize="{DynamicResource Theme.font16}" />
             </Grid>
         </Grid>
