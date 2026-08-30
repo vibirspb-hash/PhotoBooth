@@ -45,6 +45,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\Fonts\Inter-*.ttf" />
+    <None Update="Assets\Fonts\Inter-LICENSE.txt"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Update="config.json"
           CopyToOutputDirectory="PreserveNewest" />
     <None Update="Branding\**\*"
