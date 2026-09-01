@@ -76,7 +76,6 @@
             <Setter Property="Background" Value="#FFFFFFFF" />
             <Setter Property="BorderBrush" Value="#BFFFFFFF" />
             <Setter Property="BorderThickness" Value="2" />
-            <Setter Property="BoxShadow" Value="0 10 30 0 #66081631" />
         </Style>
 
         <Style Selector="Button.reviewSecondary:pointerover /template/ ContentPresenter">
@@ -201,7 +200,6 @@
             <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
             <Setter Property="BorderBrush" Value="#FFFFFFFF" />
             <Setter Property="BorderThickness" Value="2" />
-            <Setter Property="BoxShadow" Value="0 8 22 0 #59E94878" />
         </Style>
 
         <Style Selector="Button.copyOption.selected:pointerover /template/ ContentPresenter">
