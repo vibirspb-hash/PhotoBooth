@@ -469,7 +469,7 @@ public sealed partial class MainWindow : Window
                 ? "Принтер не найден"
                 : $"Принтер: {_printerService.DisplayName}");
 
-        _captureDeviceBadge.IsVisible = true;
+        _captureDeviceBadge.IsVisible = false;
         _captureDeviceBadgeText.Text = _cameraService.IsDemo
             ? "КАМЕРА НЕ НАЙДЕНА"
             : _cameraService.DisplayName.ToUpperInvariant();
