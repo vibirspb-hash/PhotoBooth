@@ -70,6 +70,7 @@ public sealed partial class MainWindow : Window
     private readonly Border _countdownOverlay;
     private readonly TextBlock _countdownText;
     private readonly TextBlock _countdownCaption;
+    private readonly Grid _captureProcessingOverlay;
     private readonly StackPanel _shotReviewOverlay;
     private readonly StackPanel _shotReviewActions;
     private readonly TextBlock _shotReviewProgressText;
@@ -221,6 +222,7 @@ public sealed partial class MainWindow : Window
         _countdownOverlay = Find<Border>("CountdownOverlay");
         _countdownText = Find<TextBlock>("CountdownText");
         _countdownCaption = Find<TextBlock>("CountdownCaption");
+        _captureProcessingOverlay = Find<Grid>("CaptureProcessingOverlay");
         _shotReviewOverlay = Find<StackPanel>("ShotReviewOverlay");
         _shotReviewActions = Find<StackPanel>("ShotReviewActions");
         _shotReviewProgressText = Find<TextBlock>("ShotReviewProgressText");
@@ -299,7 +301,7 @@ public sealed partial class MainWindow : Window
         _shotFlyCard.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
 
         _countdownTimer = CreateTimer(TimeSpan.FromSeconds(1), CountdownTimer_OnTick);
-        _reviewDelayTimer = CreateTimer(TimeSpan.FromMilliseconds(450), ReviewDelayTimer_OnTick);
+        _reviewDelayTimer = CreateTimer(TimeSpan.FromMilliseconds(50), ReviewDelayTimer_OnTick);
         _flyTimer = CreateTimer(TimeSpan.FromMilliseconds(16), FlyTimer_OnTick);
         _finalPreviewTimer = CreateTimer(TimeSpan.FromMilliseconds(650), FinalPreviewTimer_OnTick);
         _printProgressTimer = CreateTimer(TimeSpan.FromMilliseconds(90), PrintProgressTimer_OnTick);
@@ -951,6 +953,7 @@ public sealed partial class MainWindow : Window
         _captureReadyOverlay.IsVisible = true;
         _captureReadyActions.IsVisible = true;
         _countdownOverlay.IsVisible = false;
+        _captureProcessingOverlay.IsVisible = false;
         _shotReviewOverlay.IsVisible = false;
         _shotReviewActions.IsVisible = false;
         _shotFlyCard.IsVisible = false;
@@ -1030,6 +1033,7 @@ public sealed partial class MainWindow : Window
         _captureReadyActions.IsVisible = false;
         _shotReviewOverlay.IsVisible = false;
         _shotReviewActions.IsVisible = false;
+        _captureProcessingOverlay.IsVisible = false;
         _countdownValue = CountdownStart;
         _countdownText.Text = _countdownValue.ToString();
         _countdownCaption.Text = "Смотрите в объектив";
@@ -1050,8 +1054,8 @@ public sealed partial class MainWindow : Window
 
         _countdownTimer.Stop();
         _livePreviewTimer.Stop();
-        _countdownText.Text = "●";
-        _countdownCaption.Text = "Снимаем...";
+        _countdownOverlay.IsVisible = false;
+        _captureProcessingOverlay.IsVisible = true;
 
         try
         {
@@ -1069,6 +1073,7 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception exception)
         {
+            _captureProcessingOverlay.IsVisible = false;
             _countdownOverlay.IsVisible = false;
             _captureFooterText.Text = $"Ошибка камеры: {exception.Message}";
             _captureReadyTitleText.Text = "Попробовать ещё раз";
@@ -1081,6 +1086,7 @@ public sealed partial class MainWindow : Window
     private void ReviewDelayTimer_OnTick(object? sender, EventArgs e)
     {
         _reviewDelayTimer.Stop();
+        _captureProcessingOverlay.IsVisible = false;
         _countdownOverlay.IsVisible = false;
         _shotReviewProgressText.Text =
             $"Снимок {_currentShotNumber} готов";
@@ -1241,6 +1247,8 @@ public sealed partial class MainWindow : Window
             _isHistoryPreview = false;
             _resultPreviewImage.Source = LoadBitmap(_resultPath);
             ConfigurePreviewTexts();
+            _copyCount = 1;
+            UpdateCopyButtons();
             _printButtonText.Text = "Печать";
             HidePrimaryPanels();
             _previewPanel.IsVisible = true;

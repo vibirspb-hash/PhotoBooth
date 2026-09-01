@@ -19,6 +19,13 @@
             <GradientStop Color="{DynamicResource Theme.primaryGradient2.Color}" Offset="0.52" />
             <GradientStop Color="{DynamicResource Theme.primaryGradient3.Color}" Offset="1" />
         </LinearGradientBrush>
+        <LinearGradientBrush x:Key="TriumphPrimaryActionBrush"
+                             StartPoint="0%,0%"
+                             EndPoint="100%,0%">
+            <GradientStop Color="#FFF39A22" Offset="0" />
+            <GradientStop Color="#FFE94878" Offset="0.52" />
+            <GradientStop Color="#FFB71972" Offset="1" />
+        </LinearGradientBrush>
     </Window.Resources>
 
     <Window.Styles>
@@ -61,6 +68,27 @@
 
         <Style Selector="Button.primary.alwaysBright:focus /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource PrimaryActionBrush}" />
+        </Style>
+
+        <Style Selector="Button.reviewSecondary">
+            <Setter Property="Foreground" Value="#FF081631" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background" Value="#FFFFFFFF" />
+            <Setter Property="BorderBrush" Value="#BFFFFFFF" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BoxShadow" Value="0 10 30 0 #66081631" />
+        </Style>
+
+        <Style Selector="Button.reviewSecondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#FFFFFFFF" />
+        </Style>
+
+        <Style Selector="Button.reviewSecondary:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#FFFFFFFF" />
+        </Style>
+
+        <Style Selector="Button.reviewSecondary:focus /template/ ContentPresenter">
+            <Setter Property="Background" Value="#FFFFFFFF" />
         </Style>
 
         <Style Selector="TextBox.session">
@@ -169,10 +197,23 @@
         </Style>
 
         <Style Selector="Button.copyOption.selected">
-            <Setter Property="Foreground" Value="{DynamicResource Theme.accentDark.Brush}" />
-            <Setter Property="Background" Value="{DynamicResource Theme.textOnColor.Brush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource Theme.accent.Brush}" />
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
+            <Setter Property="BorderBrush" Value="#FFFFFFFF" />
             <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BoxShadow" Value="0 8 22 0 #59E94878" />
+        </Style>
+
+        <Style Selector="Button.copyOption.selected:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
+        </Style>
+
+        <Style Selector="Button.copyOption.selected:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
+        </Style>
+
+        <Style Selector="Button.copyOption.selected:focus /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
         </Style>
 
         <Style Selector="Button.historyCard">
@@ -221,15 +262,21 @@
         <Style Selector="Button.triumphPrimary">
             <Setter Property="Foreground" Value="#FFFFFFFF" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Background">
-                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-                    <GradientStop Color="#FFF39A22" Offset="0" />
-                    <GradientStop Color="#FFE94878" Offset="0.52" />
-                    <GradientStop Color="#FFB71972" Offset="1" />
-                </LinearGradientBrush>
-            </Setter>
+            <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
             <Setter Property="BorderBrush" Value="#99FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style Selector="Button.triumphPrimary.alwaysBright:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
+        </Style>
+
+        <Style Selector="Button.triumphPrimary.alwaysBright:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
+        </Style>
+
+        <Style Selector="Button.triumphPrimary.alwaysBright:focus /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TriumphPrimaryActionBrush}" />
         </Style>
 
         <Style Selector="Button.templateCard.triumphTemplate">
@@ -1035,7 +1082,7 @@
                                 VerticalAlignment="Bottom"
                                 Spacing="20"
                                 IsVisible="False">
-                        <Button Classes="glass actionButton"
+                        <Button Classes="reviewSecondary actionButton"
                                 Width="340"
                                 Click="RetakeCurrentShotButton_OnClick">
                             <TextBlock Text="{DynamicResource Text.retake}"
@@ -1052,6 +1099,34 @@
 
                 <TextBlock x:Name="CaptureFooterText"
                            IsVisible="False" />
+            </Grid>
+
+            <Grid x:Name="CaptureProcessingOverlay"
+                  Background="#FFFFFFFF"
+                  IsHitTestVisible="False"
+                  IsVisible="False">
+                <StackPanel Width="900"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="↑"
+                               Foreground="{DynamicResource TriumphPrimaryActionBrush}"
+                               FontSize="220"
+                               FontWeight="Bold"
+                               LineHeight="190"
+                               TextAlignment="Center" />
+                    <TextBlock Text="СМОТРИТЕ В КАМЕРУ"
+                               Foreground="#FF081631"
+                               FontFamily="Bodoni 72, Didot, Georgia, serif"
+                               FontSize="56"
+                               FontWeight="SemiBold"
+                               TextAlignment="Center"
+                               Margin="0,8,0,0" />
+                    <TextBlock Text="Снимок обрабатывается"
+                               Foreground="#B3081631"
+                               FontSize="22"
+                               TextAlignment="Center"
+                               Margin="0,14,0,0" />
+                </StackPanel>
             </Grid>
         </Grid>
 
@@ -1126,7 +1201,7 @@
                                 Click="CopyCountButton_OnClick">3</Button>
                     </StackPanel>
 
-                    <Button Classes="triumphPrimary actionButton"
+                    <Button Classes="triumphPrimary actionButton alwaysBright"
                             Width="680"
                             Margin="0,8,0,0"
                             Click="PrintButton_OnClick">
